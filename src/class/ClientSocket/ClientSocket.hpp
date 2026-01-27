@@ -1,0 +1,18 @@
+#ifndef CLIENTSOCKET_HPP
+#define CLIENTSOCKET_HPP
+
+#include "ASocket.hpp"
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+class	ClientSocket: ASocket
+{
+	private:
+		struct sockaddr_storage	_address;
+		socklen_t				_addressLen;
+	public:
+		~ClientSocket();
+		ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen);
+};
+
+#endif
