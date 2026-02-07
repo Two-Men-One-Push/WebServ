@@ -1,4 +1,4 @@
-INCLUDE		=	$(addprefix -I, $(shell find src -name "*.hpp" -exec dirname {} + | sort -u))
+INCLUDE		=	$(addprefix -I, include $(shell find src -name "*.hpp" -exec dirname {} + | sort -u))
 
 SRC			=	$(shell find src -name "*.cpp")
 
@@ -9,7 +9,7 @@ DEPS		=	$(OBJS:.o=.d)
 CPP			=	c++
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
 
-NAME		=	a.out
+NAME		=	webserv
 
 all: $(NAME)
 
@@ -29,7 +29,8 @@ clean:
 fclean: clean
 	@rm -f $(NAME)
 
-re: fclean all
+re: fclean
+	$(MAKE) all
 
 -include $(DEPS)
 
