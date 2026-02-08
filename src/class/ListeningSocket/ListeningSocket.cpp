@@ -1,10 +1,11 @@
 #include "ListeningSocket.hpp"
-#include "ASocket.hpp"
-#include "ClientSocket.hpp"
+#include "ASocket/ASocket.hpp"
+#include "ClientSocket/ClientSocket.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -20,7 +21,7 @@ ListeningSocket::ListeningSocket(const struct sockaddr_storage &address) try: AS
 	{
         throw std::runtime_error("[FATAL_ERROR] Bind failed: " + std::string(strerror(errno)));
     }
-    
+
     if (listen(_fd, SOMAXCONN) < 0)
 	{
 		throw std::runtime_error("[FATAL_ERROR] Listen failed: " + std::string(strerror(errno)));

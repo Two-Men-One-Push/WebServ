@@ -1,4 +1,5 @@
-INCLUDE		=	$(addprefix -I, include $(shell find src -name "*.hpp" -exec dirname {} + | sort -u))
+INCLUDE_DIR	=	include src/class
+INCLUDE		=	$(addprefix -I, $(INCLUDE_DIR))
 
 SRC			=	$(shell find src -name "*.cpp")
 
