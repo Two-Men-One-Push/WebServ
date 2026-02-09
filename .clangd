@@ -8,4 +8,4 @@ CompileFlags:
         - -Isrc/class
 
 Completion:
-  HeaderInsertion: IWYU
+    HeaderInsertion: IWYU

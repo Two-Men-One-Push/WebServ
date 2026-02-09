@@ -3,4 +3,4 @@ TabWidth: 4
 UseTab: Always
 SeparateDefinitionBlocks: Always
 AlwaysBreakTemplateDeclarations: Yes
-ColumnLimit: 120
+ColumnLimit: 0
