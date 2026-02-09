@@ -1,6 +1,6 @@
-#include "config/directives/BooleanDirective/BooleanDirective.hpp"
+#include "config/MainBlock/MainBlock.hpp"
 
 int main(void) {
-	BooleanDirective t(true);
-	return (0);
+	Config config;
+	config.parse(config, "bonjour");
 }
