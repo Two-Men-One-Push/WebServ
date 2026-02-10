@@ -24,6 +24,9 @@ $(BUILD_DIR)/%.o: %.cpp
 clangd:
 	@echo "$(CPPFLAGS) $(INCLUDE)" | tr ' ' '\n' > compile_flags.txt
 
+compile_commands.json: fclean
+	@bear -- make -k > /dev/null 2>&1
+
 clean:
 	@rm -rf $(BUILD_DIR)
 

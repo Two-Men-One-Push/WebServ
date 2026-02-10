@@ -1,0 +1,8 @@
+name: deploy-on-release
+
+on:
+  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest

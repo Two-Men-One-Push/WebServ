@@ -1,4 +1,6 @@
-int	main(void)
-{
-	return (0);
+#include "config/MainBlock/MainBlock.hpp"
+
+int main(void) {
+	Config config;
+	config.parse(config, "bonjour");
 }
