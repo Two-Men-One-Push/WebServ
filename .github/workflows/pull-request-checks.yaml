@@ -5,7 +5,7 @@ on:
     branches: ['**']
 
 jobs:
-  checks:
+  pull-request-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
