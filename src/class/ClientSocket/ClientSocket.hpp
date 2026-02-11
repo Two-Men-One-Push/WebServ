@@ -13,6 +13,9 @@ class	ClientSocket: ASocket
 	public:
 		~ClientSocket();
 		ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen);
+
+		const struct sockaddr_storage &getAdress() const;
+		socklen_t getAdressLen() const;
 };
 
 #endif
