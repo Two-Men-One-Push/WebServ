@@ -1,11 +1,11 @@
-name: main-push-check
+name: pull-request-check
 
 on:
   pull_request:
     branches: ['**']
 
 jobs:
-  checks:
+  pull-request-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
