@@ -7,7 +7,10 @@ BUILD_DIR	=	.build
 OBJS		=	$(addprefix $(BUILD_DIR)/, $(SRC:.cpp=.o))
 DEPS		=	$(OBJS:.o=.d)
 
-CPP			=	c++
+# CPP is already set by defult by make, we can't juste use 'CPP ?= c++'
+EXTCPP		?=	c++
+CPP			=	$(EXTCPP)
+
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
 
 NAME		=	webserv
