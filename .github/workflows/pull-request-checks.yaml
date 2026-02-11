@@ -1,4 +1,4 @@
-name: main-push-check
+name: pull-request-check
 
 on:
   pull_request:
