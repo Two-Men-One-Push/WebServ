@@ -1,4 +1,4 @@
-#include "config/MainBlock/MainBlock.hpp"
+#include "config/MainContext/MainContext.hpp"
 
 int main(void) {
 	Config config;
