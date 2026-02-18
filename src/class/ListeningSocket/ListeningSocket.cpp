@@ -6,25 +6,12 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <stdexcept>
-#include <string>
 #include <sys/socket.h>
 
 ListeningSocket::~ListeningSocket() {}
 
-ListeningSocket::ListeningSocket(const struct sockaddr_storage &address) try : ASocket(socket(address.ss_family, SOCK_STREAM, IPPROTO_TCP)) {
-	int opt = 1;
-	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+ListeningSocket::ListeningSocket(int socketFd, const struct sockaddr_storage &address) : ASocket(socketFd) {
 
-	if (bind(_fd, reinterpret_cast<const struct sockaddr *>(&address), sizeof(address)) < 0) {
-		throw std::runtime_error("[FATAL_ERROR] Bind failed: " + std::string(strerror(errno)));
-	}
-
-	if (listen(_fd, SOMAXCONN) < 0) {
-		throw std::runtime_error("[FATAL_ERROR] Listen failed: " + std::string(strerror(errno)));
-	}
-} catch (const std::invalid_argument &exception) {
-
-	throw std::runtime_error("[FATAL_ERROR] Socket failed: " + std::string(strerror(errno)));
 }
 
 ClientSocket *ListeningSocket::acceptConnexion(void) const {
@@ -42,6 +29,20 @@ ClientSocket *ListeningSocket::acceptConnexion(void) const {
 	}
 }
 
-int ListeningSocket::getFd() const {
-	return this->_fd;
+ListeningSocket ListeningSocket::createListeningSocket(const struct sockaddr_storage &address) {
+    const int socketFd = socket(address.ss_family, SOCK_STREAM, IPPROTO_TCP);
+    if (socketFd < 0) {
+        throw std::runtime_error()
+    }
+
+	int opt = 1;
+	setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+	if (bind(socketFd, reinterpret_cast<const struct sockaddr *>(&address), sizeof(address)) < 0) {
+		throw std::runtime_error("[FATAL_ERROR] Bind failed: " + std::string(strerror(errno)));
+	}
+
+	if (listen(socketFd, SOMAXCONN) < 0) {
+		throw std::runtime_error("[FATAL_ERROR] Listen failed: " + std::string(strerror(errno)));
+	}
 }

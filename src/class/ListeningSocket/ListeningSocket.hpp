@@ -6,15 +6,17 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-class	ListeningSocket: ASocket
-{
-	private:
-	public:
-		~ListeningSocket();
-		ListeningSocket(const struct sockaddr_storage &address);
+class ListeningSocket : ASocket {
+  private:
+	ListeningSocket(const struct sockaddr_storage &address);
 
-		ClientSocket *acceptConnexion(void) const;
-		int	getFd(void) const;
+  public:
+	~ListeningSocket();
+
+	ClientSocket *acceptConnexion(void) const;
+	int getFd(void) const;
+
+	static ListeningSocket createListeningSocket(const struct sockaddr_storage &address);
 };
 
 #endif

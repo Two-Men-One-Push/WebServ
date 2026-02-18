@@ -5,10 +5,11 @@
 
 class ASocket : public AFd {
   protected:
-	ASocket(int fd);
+	virtual ~ASocket();
 
   public:
-	virtual ~ASocket();
+	ASocket(int fd);
+	static ASocket createSocket();
 };
 
 #endif
