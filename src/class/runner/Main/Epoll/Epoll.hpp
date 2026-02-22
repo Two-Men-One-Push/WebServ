@@ -5,11 +5,12 @@
 
 class Epoll : public AFd {
   private:
-	static int createEpoll();
+	Epoll(int epollFd);
 
   public:
-	Epoll();
 	~Epoll();
+
+	static Epoll create();
 };
 
 #endif

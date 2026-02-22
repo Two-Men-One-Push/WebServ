@@ -1,7 +1,6 @@
 #include "./Main.hpp"
-#include "AFd/AFd.hpp"
+#include "config/MainContext/MainContext.hpp"
 #include "runner/Main/Epoll/Epoll.hpp"
 #include <sys/epoll.h>
 
-Main::Main() : epoll(Epoll::createEpoll()) {
-}
+Main::Main(Config &config) : epoll(Epoll::create()), _mainConfig(config) {}

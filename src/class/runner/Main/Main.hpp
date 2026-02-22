@@ -7,7 +7,7 @@
 #include "runner/Main/Epoll/Epoll.hpp"
 #include <vector>
 
-class Main : public AFd {
+class Main {
   private:
 	Epoll epoll;
 	MainContext &_mainConfig;

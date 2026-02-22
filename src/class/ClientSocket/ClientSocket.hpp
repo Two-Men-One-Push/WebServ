@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+class ListeningSocket;
+
 class ClientSocket : ASocket {
   private:
 	struct sockaddr_storage _address;
@@ -16,6 +18,8 @@ class ClientSocket : ASocket {
 
 	const struct sockaddr_storage &getAdress() const;
 	socklen_t getAdressLen() const;
+
+	static ClientSocket createFromListener(int listenerFd);
 };
 
 #endif

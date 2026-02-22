@@ -2,6 +2,4 @@
 
 using namespace webserv_errors;
 
-SystemError::SystemError(int err) : _err(err){
-
-}
+LoggableError::~LoggableError() throw() {}

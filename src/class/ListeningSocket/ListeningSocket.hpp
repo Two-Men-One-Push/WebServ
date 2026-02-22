@@ -2,13 +2,14 @@
 #define LISTENINGSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
-#include "ClientSocket/ClientSocket.hpp"
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+class ClientSocket;
+
 class ListeningSocket : ASocket {
   private:
-	ListeningSocket(const struct sockaddr_storage &address);
+	ListeningSocket(int socketFd, const struct sockaddr_storage &address);
 
   public:
 	~ListeningSocket();
@@ -16,7 +17,7 @@ class ListeningSocket : ASocket {
 	ClientSocket *acceptConnexion(void) const;
 	int getFd(void) const;
 
-	static ListeningSocket createListeningSocket(const struct sockaddr_storage &address);
+	static ListeningSocket create(const struct sockaddr_storage &address);
 };
 
 #endif

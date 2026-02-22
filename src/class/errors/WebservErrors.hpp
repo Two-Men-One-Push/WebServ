@@ -1,29 +1,42 @@
-#include <bits/types/error_t.h>
+#ifndef WEBSERVERRORS_HPP
+#define WEBSERVERRORS_HPP
+
 #include <cerrno>
 #include <cstdio>
 #include <exception>
-#include <ostream>
+#include <string>
 
 namespace webserv_errors {
-class LoggableError : std::exception {
+class LoggableError : public std::exception {
   public:
-	virtual std::ostream &operator<<(std::ostream &) = 0;
+	virtual ~LoggableError() throw();
+
+	// virtual void print(std::ostream &) const = 0;
 };
 
-class SystemError : LoggableError {
+// Logger &operator<<(std::ostream &logger, const LoggableError &e) {
+// 	e.print(logger);
+// 	return logger;
+// }
+
+class SysError : public LoggableError {
   private:
+	int _err;
 	const std::string _context;
 	const std::string _cause;
-	int _err;
+	const std::string _msg;
 
   public:
-	SystemError(int err);
-	SystemError(const std::string &context, int err);
-	SystemError(const std::string &context, int err, const std::string &cause);
-	~SystemError() throw();
+	SysError(int err);
+	SysError(const std::string &context, int err);
+	SysError(const std::string &context, int err, const std::string &cause);
+	~SysError() throw();
 
-	std::ostream &operator<<(std::ostream &);
-	const char *what() const throw();
+	virtual const char *what() const throw();
+
+	int getErr() const;
 };
 
 }; // namespace webserv_errors
+
+#endif
