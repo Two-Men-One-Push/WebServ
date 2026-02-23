@@ -2,6 +2,7 @@
 #define LISTENINGSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
@@ -9,7 +10,7 @@ class ClientSocket;
 
 class ListeningSocket : ASocket {
   private:
-	ListeningSocket(int socketFd, const struct sockaddr_storage &address);
+	ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen);
 
   public:
 	~ListeningSocket();
@@ -17,7 +18,7 @@ class ListeningSocket : ASocket {
 	ClientSocket *acceptConnexion(void) const;
 	int getFd(void) const;
 
-	static ListeningSocket create(const struct sockaddr_storage &address);
+	static ListeningSocket create(const sockaddr &addr, socklen_t addresslen);
 };
 
 #endif
