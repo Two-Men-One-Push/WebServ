@@ -1,34 +1,25 @@
-INCLUDE_DIR	=	include src/class
-INCLUDE		=	$(addprefix -I, $(INCLUDE_DIR))
+INCLUDE		=	$(addprefix -I,$(shell find src -name "*.hpp" -exec dirname {} + | sort -u))
 
 SRC			=	$(shell find src -name "*.cpp")
 
 BUILD_DIR	=	.build
-OBJS		=	$(addprefix $(BUILD_DIR)/, $(SRC:.cpp=.o))
+OBJS		=	$(addprefix $(BUILD_DIR)/,$(SRC:.cpp=.o))
 DEPS		=	$(OBJS:.o=.d)
 
-# CPP is already set by defult by make, we can't juste use 'CPP ?= c++'
-EXTCPP		?=	c++
-CPP			=	$(EXTCPP)
+CPP			=	c++
 
-CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
+FLAGS		=	-Wall -Wextra -Werror -std=c++98
 
 NAME		=	webserv
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CPP) $(CPPFLAGS) $(INCLUDE) -o $@ $(OBJS)
+	$(CPP) $(FLAGS) $(INCLUDE) -o $@ $(OBJS)
 
 $(BUILD_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CPP) $(CPPFLAGS) $(INCLUDE) -MD -MP -c $< -o $@
-
-clangd:
-	@echo "$(CPPFLAGS) $(INCLUDE)" | tr ' ' '\n' > compile_flags.txt
-
-compile_commands.json: fclean
-	@bear -- make -k > /dev/null 2>&1
+	$(CPP) $(FLAGS) $(INCLUDE) -MD -MP -c $< -o $@
 
 clean:
 	@rm -rf $(BUILD_DIR)
@@ -36,8 +27,7 @@ clean:
 fclean: clean
 	@rm -f $(NAME)
 
-re: fclean
-	$(MAKE) all
+re: fclean all
 
 -include $(DEPS)
 

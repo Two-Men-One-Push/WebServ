@@ -1,6 +1,8 @@
-#include "config/MainBlock/MainBlock.hpp"
+#include "MainContext.hpp"
 
-int main(void) {
-	Config config;
-	config.parse(config, "bonjour");
+int	main(int argc, char **argv)
+{
+	if (argc <= 1)
+		return (0);
+	MainContext	config(argv[1]);
 }
