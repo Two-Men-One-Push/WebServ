@@ -37,6 +37,24 @@ class SysError : public LoggableError {
 	int getErr() const;
 };
 
+class GaiError : public LoggableError {
+  private:
+	int _err;
+	const std::string _context;
+	const std::string _cause;
+	const std::string _msg;
+
+  public:
+	GaiError(int err);
+	GaiError(const std::string &context, int err);
+	GaiError(const std::string &context, int err, const std::string &cause);
+	~GaiError() throw();
+
+	virtual const char *what() const throw();
+
+	int getErr() const;
+};
+
 }; // namespace webserv_errors
 
 #endif

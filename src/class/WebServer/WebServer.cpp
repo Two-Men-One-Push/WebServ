@@ -1,23 +1,26 @@
 #include "./WebServer.hpp"
+#include "AFd/AFd.hpp"
+#include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "config/MainContext/MainContext.hpp"
-#include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
+#include <vector>
 
 WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::create()) {
-
 	/* temp */
 	short port = 6969;
-	std::string ipAddress = "127.0.0.1";
+	std::string ipAddress = "localhost";
 
-	_listeningSockets.reserve(10 /* count server and the number of different listen directivesand reserve enough */);
+	_listeningSockets.reserve(10 /* count server and the number of different listen directives and reserve enough */);
 	/* temp */
 
 	struct addrinfo hints;
@@ -37,22 +40,35 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 
 	addrinfo *currentAddressInfo = res;
 	while (currentAddressInfo) {
-		_listeningSockets.push_back(ListeningSocket::create(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
+		_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
+		_epoll.registerFd(*_listeningSockets.back());
 		currentAddressInfo = currentAddressInfo->ai_next;
 	}
-	std::cout << "Listening on " << ipAddress << ":" << port << std::endl;
+
+	freeaddrinfo(res);
+
+	std::cout << "Listening http://" << ipAddress << ":" << port << std::endl;
 
 	while (true) {
-		AFd &test = _epoll.wait();
-
-		char buffer[4096];
-
-		errno = 0;
-		while (errno != EAGAIN) {
-			ssize_t readLen = recv(test.getFd(), buffer, 4096, 0);
-			std::cout.write(buffer, readLen);
+		std::vector<EpollEvent> events;
+		_epoll.wait(events);
+		for (std::vector<EpollEvent>::iterator it = events.begin(); it != events.end(); ++it) {
+			it->fd->handleEvents(it->events, *this);
 		}
+
+		// char buffer[4096];
+
+		// errno = 0;
+		// while (errno != EAGAIN) {
+		// 	ssize_t readLen = read(test.getFd(), buffer, 4096);
+		// 	std::cout.write(buffer, readLen);
+		// }
 	}
 }
 
 WebServer::~WebServer() {}
+
+void WebServer::addClient(ClientSocket *client) {
+	_clientSockets.push_back(client);
+	_epoll.registerFd(*client);
+}
