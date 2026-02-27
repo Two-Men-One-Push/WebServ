@@ -28,7 +28,20 @@ clangd:
 	@echo "$(CPPFLAGS) $(INCLUDE)" | tr ' ' '\n' > compile_flags.txt
 
 compile_commands.json: fclean
-	@bear -- make -k > /dev/null 2>&1
+	@bear -- make re -k > /dev/null 2>&1
+
+something_looking_like_compile_command.json:
+	@echo '[' > 'compile_commands.json'
+	@first=true; for src in $(SRC); do \
+[ "$$first" = true ] && first=false || echo ',' >> compile_commands.json; \
+echo '  {' >> compile_commands.json; \
+echo '    "directory": "'$(shell pwd)'",' >> compile_commands.json; \
+obj_path=$$(echo "$$src" | sed 's|src/|$(BUILD_DIR)/|' | sed 's|\.cpp$$|.o|'); \
+echo "    \"command\": \"$(CPP) $(CPPFLAGS) $(INCLUDE) -c $$src -o $$obj_path\"," >> compile_commands.json; \
+echo '    "file": "'$$src'"' >> compile_commands.json; \
+echo '  }' >> compile_commands.json; \
+done
+	@echo ']' >> compile_commands.json
 
 clean:
 	@rm -rf $(BUILD_DIR)

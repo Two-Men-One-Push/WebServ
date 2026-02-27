@@ -1,13 +1,14 @@
 #ifndef SOCKET_HPP
 #define SOCKET_HPP
 
-class ASocket
-{
-	protected:
-		const int	_fd;
-		ASocket(int fd);
-	public:
-		virtual ~ASocket();
+#include "AFd/AFd.hpp"
+
+class ASocket : public AFd {
+  protected:
+	ASocket(int fd);
+
+  public:
+	virtual ~ASocket();
 };
 
 #endif
