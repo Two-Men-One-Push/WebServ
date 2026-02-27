@@ -1,8 +1,8 @@
 #ifndef LISTENINGSOCKET_HPP
 #define LISTENINGSOCKET_HPP
 
-#include "ASocket/ASocket.hpp"
-#include "ClientSocket/ClientSocket.hpp"
+#include "ASocket.hpp"
+#include "ClientSocket.hpp"
 #include <netinet/in.h>
 #include <sys/socket.h>
 

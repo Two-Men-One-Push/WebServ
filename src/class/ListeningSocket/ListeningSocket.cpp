@@ -1,6 +1,6 @@
 #include "ListeningSocket.hpp"
-#include "ASocket/ASocket.hpp"
-#include "ClientSocket/ClientSocket.hpp"
+#include "ASocket.hpp"
+#include "ClientSocket.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>

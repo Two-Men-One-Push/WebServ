@@ -13,7 +13,7 @@ class	MainContext
 		MainContext();
 		MainContext(const MainContext &copy);
 		MainContext	&operator=(const MainContext &other);
-		MainContext(std::string file);
+		MainContext(std::istream &file);
 };
 
 #endif
