@@ -1,17 +1,18 @@
 #include "MainContext.hpp"
 #include <cctype>
-#include <exception>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 
 enum	e_state
 {
-	DEFAULT		= 0,
-	STRING		= 1 << 0,
-	BLOCK		= 1 << 1,
-	WAIT_BLOCK	= 1 << 2,
-	LITTERAL	= 1 << 3,
+	DEFAULT			= 0,
+	LITTERAL		= 1 << 1,
+	SQ_STRING		= 1 << 2,
+	DQ_STRING		= 1 << 3,
+	LITTERAL_STRING	= 1 << 4,
+	SERVER_BLOCK	= 1 << 5,
+	SERVER			= 1 << 6,
 };
 
 MainContext::~MainContext()
@@ -44,57 +45,85 @@ MainContext::MainContext(std::istream &input)
 	state = DEFAULT;
 	while (input.get(c))
 	{
-		if (state & WAIT_BLOCK)
+		if (state & LITTERAL)
+		{
+			word += c;
+			state &= ~LITTERAL;
+		}
+		else if (c == '\\')
+		{
+			state |= LITTERAL;
+			if (state & LITTERAL_STRING)
+				word += c;
+		}
+		else if (state & SQ_STRING)
+		{
+			if (c == '\'')
+				state &= ~SQ_STRING;
+			else
+				word += c;
+		}
+		else if (c == '\'')
+		{
+			state |= SQ_STRING;
+			if (state & LITTERAL_STRING)
+				word += c;
+		}
+		else if (state & DQ_STRING)
+		{
+			if (c == '\"')
+				state &= ~DQ_STRING;
+			if (state & LITTERAL_STRING)
+				word += c;
+		}
+		else if (c == '\"')
+		{
+			state |= DQ_STRING;
+			if (state & LITTERAL_STRING)
+				word += c;
+		}
+		else if (state & SERVER)
 		{
 			if (c == '{')
 			{
-				state = BLOCK;
+				state = SERVER_BLOCK | LITTERAL_STRING;
 				scope++;
 			}
 			else if (!isspace(c))
-			{
 				throw std::invalid_argument("Invalid Config");
-			}
 		}
-		else if (state & BLOCK)
+		else if (state & SERVER_BLOCK)
 		{
-			if (state & STRING)
-			{
-				if (!(state & LITTERAL))
-				{
-					if (c == '\"' || c == '\'')
-						state &= ~STRING;
-					else if (c == '\\')
-						state |= LITTERAL;
-				}
-			}
-			else if (c == '\"' || c == '\'')
-				state |= STRING;
-			else if (c == '{')
+			if (c == '{')
 				scope++;
 			else if (c == '}')
 				scope--;
-			else if (c == '\\')
-				state |= LITTERAL;
 			if (scope <= 0)
-				state &= ~BLOCK;
+			{
+				state = DEFAULT;
+				this->_servers.push_back(ServerContext(tmp));
+			}
 			else
-				tmp << c;
+			{
+				word += c;
+				tmp << word;
+				word.clear();
+			}
 		}
 		else
 		{
 			if (!isspace(c))
 				word += c;
-			if (word == "server")
+			else if (word == "server")
 			{
-				state = WAIT_BLOCK;
+				state = SERVER | LITTERAL_STRING;
+				std::cout << "[" << word << "]" << std::endl;
 				word.clear();
 			}
-			else if (isspace(c) && !word.empty() && !(state & BLOCK))
-			{
+			else if (!word.empty())
 				throw std::invalid_argument("Invalid Config");
-			}
 		}
 	}
-	std::cout << "[" << tmp.rdbuf() << "]" << std::endl;
+	if (scope > 0)
+		throw std::invalid_argument("Invalid Config");
 }

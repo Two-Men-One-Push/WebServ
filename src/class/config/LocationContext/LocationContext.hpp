@@ -15,11 +15,13 @@ class	LocationContext
 		bool								_autoindex;
 		std::string							_redirection;
 		std::map<std::string, std::string>	_cgi_info;
+		std::vector<LocationContext>		_locations;
 	public:
 		~LocationContext();
 		LocationContext();
 		LocationContext(const LocationContext &copy);
 		LocationContext	&operator=(const LocationContext &other);
+		LocationContext(std::istream &input);
 };
 
 #endif

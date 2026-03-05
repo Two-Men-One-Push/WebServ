@@ -1,6 +1,9 @@
-
-server      {
-dasfsadf
-dfdsfsadf
-	dsfsdf
+server {
+    location /location1 {
+		location /location2 {
+			location /location3
+			{
+    		}
+    	}
+    }
 }

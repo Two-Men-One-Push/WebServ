@@ -20,6 +20,7 @@ class	ServerContext
 		ServerContext();
 		ServerContext(const ServerContext &copy);
 		ServerContext	&operator=(const ServerContext &other);
+		ServerContext(std::istream &input);
 };
 
 #endif
