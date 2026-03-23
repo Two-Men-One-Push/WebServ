@@ -3,14 +3,18 @@
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
+#include "Pipe/Pipe.hpp"
 #include "config/MainContext/MainContext.hpp"
+#include "errors/WebservErrors.hpp"
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
+#include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
@@ -71,4 +75,20 @@ WebServer::~WebServer() {}
 void WebServer::addClient(ClientSocket *client) {
 	_clientSockets.push_back(client);
 	_epoll.registerFd(*client);
+}
+
+void startCgi(void) {
+	Pipe pipe = Pipe::createPipe();
+
+	pid_t pid = fork();
+	if (pid < 0) throw webserv_errors::SysError("fork", errno);
+	if (pid) {
+		const char *path = "/usr/bin/python";
+		char *const argv[] = {"/usr/bin/python", NULL};
+		char *const envp[] = {NULL};
+		execve(path, argv, envp);
+	} else {
+		int stats;
+		waitpid(pid, &stats, options);
+	}
 }
