@@ -16,8 +16,10 @@ class WebServer {
 
   public:
 	WebServer(Config &config);
-	void addClient(ClientSocket *client);
 	~WebServer();
+
+	void addClient(ClientSocket *client);
+	void startCgi(void);
 };
 
 #endif
