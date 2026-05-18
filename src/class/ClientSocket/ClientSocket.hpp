@@ -2,9 +2,12 @@
 #define CLIENTSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
+#include "http/HttpRequest.hpp"
 #include <netinet/in.h>
+#include <sstream>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <vector>
 
 class WebServer;
 class ListeningSocket;
@@ -19,6 +22,9 @@ class ClientSocket : public ASocket {
 	void onWriteReady();
 	void onEpollIn();
 	void onEpollOut();
+
+	std::stringstream _buffer;
+	std::vector<HttpRequest> _requests;
 
 	int readCount; // !:! temp
 	bool responseSent; // !:! temp

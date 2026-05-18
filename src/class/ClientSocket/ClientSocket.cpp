@@ -1,16 +1,18 @@
 #include "./ClientSocket.hpp"
+#include "http/HttpRequest.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false) {}
+	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _buffer(), _requests(1), readCount(0) {}
 
 ClientSocket::~ClientSocket() {}
 
@@ -85,12 +87,17 @@ void ClientSocket::onEpollIn() {
 	ssize_t readLen = read(_fd, buffer, BUFFER_SIZE);
 	if (!readLen)
 		_closed = true;
-	else if (readLen > 0) {
-		std::cout.write(buffer, readLen);
-		readCount++;
-	} else {
+	if (readLen < 1) {
 		std::cout << _closed << std::endl;
 		throw webserv_errors::SysError("read", errno);
+	}
+
+	this->_buffer.write(buffer, readLen);
+	readCount++;
+	while (this->_buffer.peek() != std::stringstream::traits_type::eof()) {
+		if (this->_requests.back().append(this->_buffer)) {
+			this->_requests.push_back(HttpRequest());
+		}
 	}
 }
 
@@ -100,7 +107,8 @@ void ClientSocket::onEpollIn() {
 					  "{\"hello\": \"world\"}"
 
 void ClientSocket::onEpollOut() {
-	if (readCount > 0 && !responseSent) {
+	if (readCount > 0
+		&& !responseSent) {
 		// responseSent = true;
 		write(_fd, TEST_RESPONSE, strlen(TEST_RESPONSE));
 		close(_fd);
