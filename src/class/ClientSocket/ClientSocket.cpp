@@ -1,7 +1,10 @@
 #include "./ClientSocket.hpp"
-#include "http/HttpRequest.hpp"
+#include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
+#include "http/HttpConnection.hpp"
+#include "http/messages/HttpRequest.hpp"
 #include <cerrno>
+#include <stdint.h>
 #include <cstring>
 #include <iostream>
 #include <ostream>
@@ -12,7 +15,7 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _buffer(), _requests(1), readCount(0) {}
+	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _buffer(), _connections() {}
 
 ClientSocket::~ClientSocket() {}
 
@@ -27,7 +30,7 @@ ClientSocket *ClientSocket::createFromListener(int listenerFd) {
 	const int fd = accept(listenerFd, reinterpret_cast<struct sockaddr *>(&clientAddr), &addrLen);
 
 	if (fd < 0)
-		throw webserv_errors::SysError("accept", errno);
+		throw WebservErrors::SysError("accept", errno);
 
 	return new ClientSocket(fd, clientAddr, addrLen);
 }
@@ -36,8 +39,11 @@ const struct sockaddr_storage &ClientSocket::getAdress() const {
 	return _address;
 }
 
-u_int32_t ClientSocket::getHandledEvents() const {
-	return EPOLLIN | EPOLLOUT | EPOLLRDHUP;
+uint32_t ClientSocket::getHandledEvents() const {
+	uint32_t result = EPOLLIN | EPOLLRDHUP;
+	if (!this->_connections.empty() && this->_connections.front()->request().completed())
+		result |= EPOLLOUT;
+	return result;
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
@@ -47,7 +53,7 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			std::cout << "EPOLLIN" << std::endl;
 		}
 		if (events & EPOLLOUT) {
-			// std::cout << "EPOLLOUT" << std::endl;
+			std::cout << "EPOLLOUT" << std::endl;
 		}
 		if (events & EPOLLRDHUP) {
 			std::cout << "EPOLLRDHUP" << std::endl;
@@ -59,10 +65,10 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			std::cout << "EPOLLERR" << std::endl;
 		}
 		if (events & EPOLLIN) {
-			this->onEpollIn();
+			this->onEpollIn(webServer);
 		}
 		if (events & EPOLLOUT) {
-			this->onEpollOut();
+			this->onEpollOut(webServer);
 		}
 		if (events & EPOLLRDHUP) {
 			_closed = true;
@@ -80,23 +86,28 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 
 #define BUFFER_SIZE 4096
 
-void ClientSocket::onEpollIn() {
+void ClientSocket::onEpollIn(WebServer &webServer) {
 	char buffer[BUFFER_SIZE];
 
 	errno = 0;
 	ssize_t readLen = read(_fd, buffer, BUFFER_SIZE);
-	if (!readLen)
-		_closed = true;
-	if (readLen < 1) {
-		std::cout << _closed << std::endl;
-		throw webserv_errors::SysError("read", errno);
+	if (!readLen) {
+		this->_closed = true;
 	}
+	if (readLen < 0) {
+		std::cout << _closed << std::endl;
+		throw WebservErrors::SysError("read", errno); // !:! warn instead and close connection
+	}
+	if (this->_closed) return;
 
 	this->_buffer.write(buffer, readLen);
-	readCount++;
+	if (this->_connections.empty()) {
+		this->_connections.push(new HttpConnection());
+	}
 	while (this->_buffer.peek() != std::stringstream::traits_type::eof()) {
-		if (this->_requests.back().append(this->_buffer)) {
-			this->_requests.push_back(HttpRequest());
+		if (this->_connections.back()->request().append(this->_buffer)) {
+			webServer.updateFd(*this);
+			this->_connections.push(new HttpConnection());
 		}
 	}
 }
@@ -106,11 +117,15 @@ void ClientSocket::onEpollIn() {
 					  "\r\n"                        \
 					  "{\"hello\": \"world\"}"
 
-void ClientSocket::onEpollOut() {
-	if (readCount > 0
-		&& !responseSent) {
-		// responseSent = true;
-		write(_fd, TEST_RESPONSE, strlen(TEST_RESPONSE));
-		close(_fd);
+void ClientSocket::onEpollOut(WebServer &webServer) {
+	while (!this->_connections.empty() && this->_connections.front()->request().completed()) {
+		HttpConnection *conn = this->_connections.front();
+		delete conn;
+		this->_connections.pop();
 	}
+	if (this->_connections.empty() || !this->_connections.front()->request().completed()) {
+		webServer.updateFd(*this);
+	}
+
+
 }

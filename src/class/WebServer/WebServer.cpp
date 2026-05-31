@@ -72,3 +72,25 @@ void WebServer::addClient(ClientSocket *client) {
 	_clientSockets.push_back(client);
 	_epoll.registerFd(*client);
 }
+
+void WebServer::updateFd(AFd &fd) {
+	this->_epoll.updateFd(fd);
+}
+
+void WebServer::requestDelete(ClientSocket *client) {
+	this->_clientSocketsToDelete.push_back(client);
+}
+
+void WebServer::deleteClientSockets() {
+	for (std::vector<ClientSocket*>::iterator dit = this->_clientSocketsToDelete.begin(); dit != _clientSocketsToDelete.end(); ++dit) {
+		ClientSocket *cs = *dit;
+		for (std::vector<ClientSocket *>::iterator it = _clientSockets.begin(); it != _clientSockets.end(); ++it) {
+			if (*it == cs) {
+				_clientSockets.erase(it);
+				break;
+			}
+		}
+		delete cs;
+	}
+	_clientSocketsToDelete.clear();
+}

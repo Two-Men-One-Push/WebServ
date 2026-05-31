@@ -1,7 +1,7 @@
 #include "./WebservErrors.hpp"
 #include <cstring>
 
-using namespace webserv_errors;
+using namespace WebservErrors;
 
 SysError::SysError(int err) : _err(err), _context(""), _cause(""), _msg(strerror(err)) {
 }

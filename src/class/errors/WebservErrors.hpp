@@ -6,7 +6,7 @@
 #include <exception>
 #include <string>
 
-namespace webserv_errors {
+namespace WebservErrors {
 class LoggableError : public std::exception {
   public:
 	virtual ~LoggableError() throw();
@@ -55,6 +55,6 @@ class GaiError : public LoggableError {
 	int getErr() const;
 };
 
-}; // namespace webserv_errors
+}; // namespace WebservErrors
 
 #endif

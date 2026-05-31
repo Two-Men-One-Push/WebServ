@@ -2,12 +2,12 @@
 #define CLIENTSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
-#include "http/HttpRequest.hpp"
+#include "http/HttpConnection.hpp"
 #include <netinet/in.h>
+#include <queue>
 #include <sstream>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <vector>
 
 class WebServer;
 class ListeningSocket;
@@ -20,14 +20,11 @@ class ClientSocket : public ASocket {
 
 	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen);
 	void onWriteReady();
-	void onEpollIn();
-	void onEpollOut();
+	void onEpollIn(WebServer &webServer);
+	void onEpollOut(WebServer &webServer);
 
 	std::stringstream _buffer;
-	std::vector<HttpRequest> _requests;
-
-	int readCount; // !:! temp
-	bool responseSent; // !:! temp
+	std::queue<HttpConnection*> _connections;
 
   public:
 	~ClientSocket();

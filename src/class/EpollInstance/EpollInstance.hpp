@@ -17,7 +17,7 @@ class EpollInstance : public AFd {
   public:
 	~EpollInstance();
 
-	void registerFd(AFd &) const;
+	void registerFd(AFd &fd) const;
 	void updateFd(AFd &fd) const;
 	void wait(std::vector<EpollEvent> &result) const;
 
