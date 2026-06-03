@@ -14,8 +14,12 @@ class HttpExceptionT : public HttpException {
 
 namespace HttpExceptions {
 class BadRequestException : public HttpExceptionT<HttpStatus::BadRequest> {};
+
 class NotImplementedException : public HttpExceptionT<HttpStatus::NotImplemented> {};
+
 class HTTPVersionNotSupportedException : public HttpExceptionT<HttpStatus::HTTPVersionNotSupported> {};
+
+class URITooLongException : public HttpExceptionT<HttpStatus::URITooLong> {};
 }; // namespace HttpExceptions
 
 #endif

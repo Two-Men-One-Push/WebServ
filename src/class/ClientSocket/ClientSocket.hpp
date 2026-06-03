@@ -23,14 +23,17 @@ class ClientSocket : public ASocket {
 	void onEpollIn(WebServer &webServer);
 	void onEpollOut(WebServer &webServer);
 
-	std::stringstream _buffer;
+	std::stringstream _iBuffer;
+	std::stringstream _oBuffer;
 	std::queue<HttpConnection*> _connections;
+
+	bool canHandleEpollOut() const;
 
   public:
 	~ClientSocket();
 
-	const struct sockaddr_storage &getAdress() const;
-	socklen_t getAdressLen() const;
+	const struct sockaddr_storage &address() const;
+	socklen_t addressLen() const;
 
 	u_int32_t getHandledEvents() const;
 	void handleEvents(u_int32_t events, WebServer &webServer);

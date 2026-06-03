@@ -13,6 +13,7 @@ bool istokenc(char c) {
 }
 
 bool istoken(const std::string &s) {
+	if (s.empty()) return false;
 	for (std::string::const_iterator it = s.begin(); it != s.end(); it++) {
 		if (!istokenc(*it))
 			return false;

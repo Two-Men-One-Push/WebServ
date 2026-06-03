@@ -4,16 +4,14 @@
 #include <map>
 #include <string>
 
-typedef std::map<std::string, std::string> Headers;
+class Headers : public std::map<std::string, std::string> {
+  public:
+	bool has(std::string key) const { return this->find(key) != this->end(); }
+};
 
 enum HttpVersion {
 	HTTP1_0,
 	HTTP1_1,
-};
-
-enum TransferEncoding {
-	TE_IDENTITY,
-	TE_CHUNKED,
 };
 
 enum HttpMethod {
@@ -27,7 +25,14 @@ enum HttpMethod {
 	CONNECT,
 };
 
+enum TransferEncoding {
+	TE_UNDEFINED,
+	TE_IDENTITY,
+	TE_CHUNKED,
+};
+
 std::string httpVersionString(HttpVersion version);
 std::string httpMethodString(HttpMethod method);
+std::string transferEncodingString(TransferEncoding tranfertEncoding);
 
 #endif

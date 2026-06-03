@@ -1,6 +1,7 @@
 #ifndef HTTPCONNECTION_HPP
 #define HTTPCONNECTION_HPP
 
+#include "http/errors/HttpException.hpp"
 #include "http/messages/HttpRequest.hpp"
 #include "http/messages/HttpResponse.hpp"
 
@@ -9,7 +10,7 @@ class HttpConnection {
 	HttpRequest _request;
 	HttpResponse _response;
 
-	bool _close;
+	bool _last;
 
   public:
 	HttpConnection();
@@ -22,8 +23,7 @@ class HttpConnection {
 	HttpResponse &response();
 	const HttpResponse &response() const;
 
-	bool close() const;
-	void close(bool close);
+	void error(const HttpException &e);
 };
 
 #endif

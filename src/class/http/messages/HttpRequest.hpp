@@ -3,6 +3,7 @@
 
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
+#include <cstddef>
 #include <istream>
 #include <map>
 #include <string>
@@ -14,12 +15,29 @@ class HttpRequest : public HttpMessage {
 	HttpMethod _method;
 	std::string _uri;
 
+	enum FirstLineParsingState {
+		REQUEST_METHOD,
+		REQUEST_URI,
+		REQUEST_VERSION,
+	};
+
+	FirstLineParsingState _firstLineState;
+
+	size_t _maxMethodSize;
+	static size_t _maxUriSize;
+	static size_t _maxVersionSize;
+
+	size_t getMaxMethodSize();
+
 	bool extractRequestLine(std::istream &input);
-	static HttpMethod parseRequestMethod(const std::string &input);
+	bool parseRequestMethod(std::istream &input);
+	bool parseRequestUri(std::istream &input);
+	bool parseRequestVersion(std::istream &input);
 
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
 	bool appendMessageTypes(std::istream &input);
+	void loadTypeUsedHeaders();
 
   public:
 	static std::map<std::string, HttpMethod> implementedHttpMethod;

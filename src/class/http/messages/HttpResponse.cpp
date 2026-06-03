@@ -1,4 +1,5 @@
 #include "./HttpResponse.hpp"
+#include "ClientSocket/ClientSocket.hpp"
 #include "http/HttpConnection.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/HttpMessage.hpp"
@@ -57,7 +58,19 @@ void HttpResponse::error(const HttpException &e) {
 	this->_status = e.status();
 	this->_message = e.message();
 
-	if (e.status() == 405) {
-        this->setHeader("Allow", HttpRequest::getAllowHeader());
+	if (HttpStatus::isError(e.status())) {
+		this->setHeader("Connection", "close");
 	}
+	if (e.status() == 405) {
+		this->setHeader("Allow", HttpRequest::getAllowHeader());
+	}
+}
+
+bool HttpResponse::send(ClientSocket &clientSocket) {
+	(void)clientSocket;
+	return true;
+}
+
+void HttpResponse::loadTypeUsedHeaders() {
+	return;
 }

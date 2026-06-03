@@ -4,8 +4,9 @@
 #include "http/types.hpp"
 #include <cstddef>
 #include <istream>
+#include <string>
 
-#define HTTP_BUFFER_SIZE 4096 /* !:! tmp en attendant la config */
+#define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
 
 class HttpConnection;
 
@@ -15,17 +16,17 @@ class HttpMessage {
 
 	// parsing data
 
-	typedef enum {
+	enum ParsingState {
 		MESSAGE_TYPES,
 		MESSAGE_HEADERS,
+		MESSAGE_USED_HEADERS,
 		MESSAGE_BODY,
 		COMPLETED,
-	} ParsingState;
+	};
 
 	ParsingState _state;
 
 	// Each one of the functions below return if they had enough content to finish their task
-	virtual bool appendMessageTypes(std::istream &input) = 0;
 	bool appendMessageHeaders(std::istream &input);
 
   protected:
@@ -41,6 +42,14 @@ class HttpMessage {
 
 	HttpConnection &_connection;
 
+	virtual bool appendMessageTypes(std::istream &input) = 0;
+	void loadBaseUsedHeaders();
+
+	// HEADER LOADER
+
+	void loadTranferEncoding();
+
+	virtual void loadTypeUsedHeaders() = 0;
 	bool collectBody(std::istream &input);
 
 	virtual bool hasBody() const;
@@ -65,6 +74,9 @@ class HttpMessage {
 
 	const Headers &headers() const;
 	Headers &headers();
+
+	TransferEncoding transferEncoding() const;
+	std::string transferEncodingStr() const;
 };
 
 #endif

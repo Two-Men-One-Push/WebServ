@@ -9,7 +9,7 @@ HttpMessage::HttpMessage(HttpConnection &connection)
 	  _headers(),
 	  _buffer(),
 	  _connection(connection) {
-	this->_buffer.reserve(HTTP_BUFFER_SIZE);
+	this->_buffer.reserve(TMP_HTTP_BUFFER_SIZE);
 }
 
 HttpMessage::HttpMessage(const HttpMessage &other, HttpConnection &connection)
@@ -39,4 +39,12 @@ const Headers &HttpMessage::headers() const {
 
 Headers &HttpMessage::headers() {
 	return this->_headers;
+}
+
+TransferEncoding HttpMessage::transferEncoding() const {
+	return this->_transferEncoding;
+}
+
+std::string HttpMessage::transferEncodingStr() const {
+	return transferEncodingString(this->_transferEncoding);
 }

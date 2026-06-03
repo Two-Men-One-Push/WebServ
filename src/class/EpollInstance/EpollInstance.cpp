@@ -26,7 +26,7 @@ void EpollInstance::registerFd(AFd &fd) const {
 		},
 	};
 
-	epoll_ctl(_fd, EPOLL_CTL_ADD, fd.getFd(), &epollEvent);
+	epoll_ctl(_fd, EPOLL_CTL_ADD, fd.fd(), &epollEvent);
 }
 
 void EpollInstance::updateFd(AFd &fd) const {
@@ -37,7 +37,7 @@ void EpollInstance::updateFd(AFd &fd) const {
 		},
 	};
 
-	epoll_ctl(_fd, EPOLL_CTL_MOD, fd.getFd(), &epollEvent);
+	epoll_ctl(_fd, EPOLL_CTL_MOD, fd.fd(), &epollEvent);
 }
 
 #define MAX_EVENTS 10

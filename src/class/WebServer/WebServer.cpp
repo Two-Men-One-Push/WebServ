@@ -56,6 +56,7 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 			it->fd->handleEvents(it->events, *this);
 		}
 
+		this->deleteClientSockets();
 		// char buffer[4096];
 
 		// errno = 0;

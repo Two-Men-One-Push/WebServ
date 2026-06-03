@@ -4,22 +4,28 @@
 #include "http/HttpConnection.hpp"
 #include "http/messages/HttpRequest.hpp"
 #include <cerrno>
-#include <stdint.h>
 #include <cstring>
 #include <iostream>
 #include <ostream>
+#include <queue>
 #include <sstream>
+#include <stdint.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _buffer(), _connections() {}
+	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _iBuffer(), _connections() {}
 
-ClientSocket::~ClientSocket() {}
+ClientSocket::~ClientSocket() {
+	while (!this->_connections.empty()) {
+		delete this->_connections.front();
+		this->_connections.pop();
+	}
+}
 
-socklen_t ClientSocket::getAdressLen() const {
+socklen_t ClientSocket::addressLen() const {
 	return _addressLen;
 }
 
@@ -35,19 +41,22 @@ ClientSocket *ClientSocket::createFromListener(int listenerFd) {
 	return new ClientSocket(fd, clientAddr, addrLen);
 }
 
-const struct sockaddr_storage &ClientSocket::getAdress() const {
+const struct sockaddr_storage &ClientSocket::address() const {
 	return _address;
 }
 
 uint32_t ClientSocket::getHandledEvents() const {
 	uint32_t result = EPOLLIN | EPOLLRDHUP;
-	if (!this->_connections.empty() && this->_connections.front()->request().completed())
+	if (this->canHandleEpollOut())
 		result |= EPOLLOUT;
 	return result;
 }
 
+bool ClientSocket::canHandleEpollOut() const {
+	return !this->_connections.empty() && this->_connections.front()->request().completed();
+}
+
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
-	(void)webServer;
 	if (events & (EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
 		if (events & EPOLLIN) {
 			std::cout << "EPOLLIN" << std::endl;
@@ -71,13 +80,14 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			this->onEpollOut(webServer);
 		}
 		if (events & EPOLLRDHUP) {
-			_closed = true;
+
+			webServer.requestDelete(this);
 		}
 		if (events & EPOLLHUP) {
-			std::cout << "Unhandled event : EPOLLHUP" << std::endl;
+			webServer.requestDelete(this);
 		}
 		if (events & EPOLLERR) {
-			std::cout << "Unhandled event : EPOLLERR" << std::endl;
+			webServer.requestDelete(this);
 		}
 	} else {
 		std::cout << "Unhandled event : " << events << std::endl;
@@ -100,15 +110,18 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	}
 	if (this->_closed) return;
 
-	this->_buffer.write(buffer, readLen);
+	this->_iBuffer.write(buffer, readLen);
 	if (this->_connections.empty()) {
 		this->_connections.push(new HttpConnection());
 	}
-	while (this->_buffer.peek() != std::stringstream::traits_type::eof()) {
-		if (this->_connections.back()->request().append(this->_buffer)) {
-			webServer.updateFd(*this);
+	while (this->_iBuffer.peek() != std::stringstream::traits_type::eof()) {
+		if (this->_connections.back()->request().append(this->_iBuffer)) {
 			this->_connections.push(new HttpConnection());
 		}
+	}
+
+	if (this->canHandleEpollOut()) {
+		webServer.updateFd(*this);
 	}
 }
 
@@ -119,13 +132,11 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 
 void ClientSocket::onEpollOut(WebServer &webServer) {
 	while (!this->_connections.empty() && this->_connections.front()->request().completed()) {
-		HttpConnection *conn = this->_connections.front();
-		delete conn;
+		HttpConnection *connection = this->_connections.front();
+		delete connection;
 		this->_connections.pop();
 	}
-	if (this->_connections.empty() || !this->_connections.front()->request().completed()) {
+	if (!this->canHandleEpollOut()) {
 		webServer.updateFd(*this);
 	}
-
-
 }
