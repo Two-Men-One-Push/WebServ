@@ -1,6 +1,6 @@
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/HttpMessage.hpp"
-#include "http/messages/HttpRequest.hpp"
+#include "./HttpRequest.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
 #include <iostream>

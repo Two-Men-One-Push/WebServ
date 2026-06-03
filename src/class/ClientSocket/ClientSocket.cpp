@@ -2,7 +2,7 @@
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
-#include "http/messages/HttpRequest.hpp"
+#include "http/messages/request/HttpRequest.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>

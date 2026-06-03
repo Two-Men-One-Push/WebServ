@@ -3,7 +3,7 @@
 #include "http/HttpStatus.hpp"
 #include "http/HttpTransaction.hpp"
 #include "http/messages/HttpMessage.hpp"
-#include "http/messages/HttpRequest.hpp"
+#include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
 #include <iostream>
 #include <istream>

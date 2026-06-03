@@ -2,8 +2,8 @@
 #define HTTPCONNECTION_HPP
 
 #include "http/errors/HttpException.hpp"
-#include "http/messages/HttpRequest.hpp"
-#include "http/messages/HttpResponse.hpp"
+#include "http/messages/request/HttpRequest.hpp"
+#include "http/messages/response/HttpResponse.hpp"
 
 class HttpTransaction {
   private:

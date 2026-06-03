@@ -1,6 +1,6 @@
 #include "./HttpMessage.hpp"
 #include "http/HttpTransaction.hpp"
-#include "http/messages/HttpResponse.hpp"
+#include "http/messages/response/HttpResponse.hpp"
 #include "http/types.hpp"
 
 HttpMessage::HttpMessage(HttpTransaction &connection)
