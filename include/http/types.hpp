@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-class Headers : public std::map<std::string, std::string> {
+class HeaderMap : public std::map<std::string, std::string> {
   public:
 	bool has(std::string key) const { return this->find(key) != this->end(); }
 };
@@ -27,7 +27,6 @@ enum HttpMethod {
 
 enum TransferEncoding {
 	TE_UNDEFINED,
-	TE_IDENTITY,
 	TE_CHUNKED,
 };
 

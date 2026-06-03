@@ -2,7 +2,7 @@
 #define CLIENTSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
-#include "http/HttpConnection.hpp"
+#include "http/HttpTransaction.hpp"
 #include <netinet/in.h>
 #include <queue>
 #include <sstream>
@@ -25,7 +25,7 @@ class ClientSocket : public ASocket {
 
 	std::stringstream _iBuffer;
 	std::stringstream _oBuffer;
-	std::queue<HttpConnection*> _connections;
+	std::queue<HttpTransaction*> _transactions;
 
 	bool canHandleEpollOut() const;
 

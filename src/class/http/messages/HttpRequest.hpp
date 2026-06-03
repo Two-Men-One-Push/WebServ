@@ -43,14 +43,16 @@ class HttpRequest : public HttpMessage {
 	static std::map<std::string, HttpMethod> implementedHttpMethod;
 	static std::string getAllowHeader();
 
-	HttpRequest(HttpConnection &connection);
-	HttpRequest(const HttpRequest &other, HttpConnection &connection);
+	HttpRequest(HttpTransaction &connection);
+	HttpRequest(const HttpRequest &other, HttpTransaction &connection);
 	~HttpRequest();
 
 	HttpMethod method() const;
 	std::string methodStr() const;
 
 	const std::string &uri() const;
+
+	std::ostream &printTypeInfo(std::ostream &os) const;
 };
 
 #endif

@@ -21,6 +21,5 @@ std::string httpMethodString(HttpMethod method) {
 std::string transferEncodingString(TransferEncoding tranfertEncoding) {
 	if (tranfertEncoding == TE_UNDEFINED) return "";
 	if (tranfertEncoding == TE_CHUNKED) return "chunked";
-	if (tranfertEncoding == TE_IDENTITY) return "identity";
 	return "UNKNOWN";
 }

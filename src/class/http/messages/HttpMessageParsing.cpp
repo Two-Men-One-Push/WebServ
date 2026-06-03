@@ -1,15 +1,16 @@
 #include "./HttpMessage.hpp"
-#include "http/HttpConnection.hpp"
+#include "http/HttpTransaction.hpp"
 #include "http/errors/HttpException.hpp"
 #include "http/errors/HttpStandardException.hpp"
-#include "http/messages/HttpRequest.hpp"
 #include "http/types.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
 #include <cstddef>
-#include <exception>
+#include <ios>
 #include <iostream>
+#include <istream>
 #include <sstream>
+#include <unistd.h>
 #include <utility>
 
 bool HttpMessage::append(std::istream &input) {
@@ -19,39 +20,30 @@ bool HttpMessage::append(std::istream &input) {
 			if (!this->appendMessageTypes(input))
 				return false;
 			this->_state = HttpMessage::MESSAGE_HEADERS;
-			std::cout << "[type_line] "
-					  << ((HttpRequest *)this)->methodStr() << " "
-					  << ((HttpRequest *)this)->uri() << " "
-					  << ((HttpRequest *)this)->versionStr()
-					  << std::endl;
 			// fallthrough
 		case HttpMessage::MESSAGE_HEADERS:
-			if (!this->appendMessageHeaders(input))
+			if (!this->appendMessageHeaders(input)) {
 				return false;
-			this->_state = HttpMessage::MESSAGE_USED_HEADERS;
-			for (std::map<std::string, std::string>::const_iterator it = this->_headers.begin(); it != this->_headers.end(); ++it) {
-				std::cout << "[header]" << it->first << ": " << it->second << std::endl;
 			}
+			this->_state = HttpMessage::MESSAGE_USED_HEADERS;
 			// fallthrough
 		case HttpMessage::MESSAGE_USED_HEADERS:
 			this->loadBaseUsedHeaders();
 			this->loadTypeUsedHeaders();
 			this->_state = HttpMessage::MESSAGE_BODY;
-			std::cout << "[contentLength]" << this->_contentLength << std::endl;
-			std::cout << "[transferEncoding]" << this->transferEncodingStr() << std::endl;
 			// fallthrough
 		case HttpMessage::MESSAGE_BODY:
 			if (this->hasBody())
 				if (!this->collectBody(input))
 					return false;
 			this->_state = HttpMessage::COMPLETED;
+			std::cout << *this << std::endl;
 			return true;
-			// fallthrough
 		case HttpMessage::COMPLETED:
 			return true;
 		}
 	} catch (const HttpException &e) {
-		this->_connection.error(e);
+		this->_transaction.error(e);
 		return true;
 	}
 }
@@ -74,16 +66,12 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 }
 
 void HttpMessage::loadBaseUsedHeaders() {
-
-	if (this->_headers.has("Content-Length")) try {
-			this->_contentLength = parseULong(this->_headers["Content-Length"]);
-		} catch (const std::exception &e) {
-			std::cout << "FOUTRE" << e.what() << std::endl;
-		}
+	this->loadTranferEncoding();
+	this->loadContentLenght();
 }
 
 bool HttpMessage::hasBody() const {
-	return false;
+	return this->_transferEncoding != TE_UNDEFINED || this->_contentLength != 0;
 }
 
 bool HttpMessage::completed() const {
@@ -100,7 +88,9 @@ bool HttpMessage::completed() const {
  */
 
 bool HttpMessage::appendMessageHeaders(std::istream &input) {
-	if (!this->extractMessageHeaders(input)) return false;
+	if (!this->extractMessageHeaders(input)) {
+		return false;
+	}
 
 	std::string &buffer = this->_buffer;
 
@@ -154,6 +144,16 @@ bool HttpMessage::extractMessageHeaders(std::istream &input) {
 }
 
 bool HttpMessage::collectBody(std::istream &input) {
-	(void)input;
+	if (this->_transferEncoding == TE_UNDEFINED) return this->collectRawBody(input);
+	if (this->_transferEncoding == TE_CHUNKED) throw HttpExceptions::NotImplementedException();
+	throw HttpExceptions::NotImplementedException();
+}
+
+bool HttpMessage::collectRawBody(std::istream &input) {
+	char buffer[4096];
+	std::streamsize n = input.readsome(buffer, sizeof(buffer));
+	this->_body.append(buffer, n);
+	this->_readContentLength += n;
+	if (this->_readContentLength < this->_contentLength) return false;
 	return true;
 }

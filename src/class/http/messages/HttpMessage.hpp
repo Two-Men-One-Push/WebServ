@@ -4,11 +4,12 @@
 #include "http/types.hpp"
 #include <cstddef>
 #include <istream>
+#include <ostream>
 #include <string>
 
 #define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
 
-class HttpConnection;
+class HttpTransaction;
 
 class HttpMessage {
   private:
@@ -34,31 +35,36 @@ class HttpMessage {
 	static HttpVersion parseHttpVersion(const std::string &input);
 
 	HttpVersion _version;
-	Headers _headers;
+	HeaderMap _headers;
+	std::string _body;
+
 	std::string _buffer;
 
 	size_t _contentLength;
 	TransferEncoding _transferEncoding;
 
-	HttpConnection &_connection;
+	HttpTransaction &_transaction;
 
 	virtual bool appendMessageTypes(std::istream &input) = 0;
 	void loadBaseUsedHeaders();
 
+	size_t _readContentLength;
+
 	// HEADER LOADER
 
 	void loadTranferEncoding();
+	void loadContentLenght();
 
 	virtual void loadTypeUsedHeaders() = 0;
 	bool collectBody(std::istream &input);
+	bool collectRawBody(std::istream &input);
 
-	virtual bool hasBody() const;
 
 	bool extractMessageHeaders(std::istream &input);
 
   public:
-	HttpMessage(HttpConnection &connection);
-	HttpMessage(const HttpMessage &other, HttpConnection &connection);
+	HttpMessage(HttpTransaction &connection);
+	HttpMessage(const HttpMessage &other, HttpTransaction &connection);
 	virtual ~HttpMessage();
 
 	HttpVersion version() const;
@@ -66,17 +72,24 @@ class HttpMessage {
 
 	void setHeader(const std::string &fieldName, const std::string &fieldValue);
 
+	virtual bool hasBody() const;
+
 	bool completed() const;
 	void state(ParsingState state);
 
 	bool append(std::istream &input);
 	void end();
 
-	const Headers &headers() const;
-	Headers &headers();
+	const HeaderMap &headers() const;
+	HeaderMap &headers();
 
 	TransferEncoding transferEncoding() const;
 	std::string transferEncodingStr() const;
+
+	virtual std::ostream &printTypeInfo(std::ostream &os) const = 0;
+	std::ostream &print(std::ostream &os) const;
 };
+
+std::ostream &operator<<(std::ostream &os, const HttpMessage &m);
 
 #endif

@@ -1,5 +1,5 @@
 #include "http/messages/HttpRequest.hpp"
-#include "http/HttpConnection.hpp"
+#include "http/HttpTransaction.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
 #include <cctype>
@@ -22,17 +22,19 @@ size_t HttpRequest::_maxVersionSize = TMP_HTTP_BUFFER_SIZE;
 
 std::map<std::string, HttpMethod> HttpRequest::implementedHttpMethod(pairs, pairs + httpMethodCount);
 
-HttpRequest::HttpRequest(HttpConnection &connnection)
+HttpRequest::HttpRequest(HttpTransaction &connnection)
 	: HttpMessage(connnection),
 	  _method(UNKNOWN),
-	  _uri() {
+	  _uri(),
+	  _firstLineState(HttpRequest::REQUEST_METHOD) {
 	this->_maxMethodSize = this->getMaxMethodSize();
 }
 
-HttpRequest::HttpRequest(const HttpRequest &other, HttpConnection &connnection)
+HttpRequest::HttpRequest(const HttpRequest &other, HttpTransaction &connnection)
 	: HttpMessage(other, connnection),
 	  _method(other._method),
 	  _uri(other._uri),
+	  _firstLineState(other._firstLineState),
 	  _maxMethodSize(other._maxMethodSize) {}
 
 HttpRequest::~HttpRequest() {}
@@ -67,4 +69,8 @@ std::string HttpRequest::methodStr() const {
 
 const std::string &HttpRequest::uri() const {
 	return this->_uri;
+}
+
+std::ostream &HttpRequest::printTypeInfo(std::ostream &os) const {
+	return os << this->methodStr() << " " << this->_uri << " " << this->versionStr() << '\n';
 }

@@ -5,7 +5,7 @@
 #include "http/messages/HttpRequest.hpp"
 #include "http/messages/HttpResponse.hpp"
 
-class HttpConnection {
+class HttpTransaction {
   private:
 	HttpRequest _request;
 	HttpResponse _response;
@@ -13,10 +13,10 @@ class HttpConnection {
 	bool _last;
 
   public:
-	HttpConnection();
-	HttpConnection(const HttpConnection &other);
+	HttpTransaction();
+	HttpTransaction(const HttpTransaction &other);
 	// HttpConnection &operator=(const HttpConnection &other);
-	~HttpConnection();
+	~HttpTransaction();
 
 	HttpRequest &request();
 	const HttpRequest &request() const;

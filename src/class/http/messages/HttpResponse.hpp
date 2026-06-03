@@ -7,7 +7,7 @@
 
 #define TMP_SERVER_ROOT "www"
 
-class HttpConnection;
+class HttpTransaction;
 class ClientSocket;
 
 class HttpResponse : public HttpMessage {
@@ -19,23 +19,26 @@ class HttpResponse : public HttpMessage {
 	std::string _message;
 
   protected:
-	bool hasBody() const;
 	bool appendMessageTypes(std::istream &input);
 
 	void loadTypeUsedHeaders();
 
   public:
-	HttpResponse(HttpConnection &connection);
-	HttpResponse(const HttpResponse &other, HttpConnection &connection);
+	HttpResponse(HttpTransaction &connection);
+	HttpResponse(const HttpResponse &other, HttpTransaction &connection);
 	~HttpResponse();
 
 	int status() const;
 	void status(int status);
 
+	bool hasBody() const;
+
 	void error(const HttpException &e);
 
 	/** @return true if the full predicted content was sent, and false otherwise. */
 	bool send(ClientSocket &clientSocket);
+
+	std::ostream &printTypeInfo(std::ostream &os) const;
 };
 
 #endif

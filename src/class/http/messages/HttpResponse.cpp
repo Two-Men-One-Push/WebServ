@@ -1,7 +1,7 @@
 #include "./HttpResponse.hpp"
 #include "ClientSocket/ClientSocket.hpp"
-#include "http/HttpConnection.hpp"
 #include "http/HttpStatus.hpp"
+#include "http/HttpTransaction.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/messages/HttpRequest.hpp"
 #include "http/types.hpp"
@@ -11,9 +11,9 @@
 #include <sstream>
 #include <string>
 
-HttpResponse::HttpResponse(HttpConnection &connection) : HttpMessage(connection), _status(HttpStatus::NoStatus) {}
+HttpResponse::HttpResponse(HttpTransaction &connection) : HttpMessage(connection), _status(HttpStatus::NoStatus) {}
 
-HttpResponse::HttpResponse(const HttpResponse &other, HttpConnection &connection) : HttpMessage(other, connection), _status(other._status) {}
+HttpResponse::HttpResponse(const HttpResponse &other, HttpTransaction &connection) : HttpMessage(other, connection), _status(other._status) {}
 
 HttpResponse::~HttpResponse() {}
 
@@ -73,4 +73,8 @@ bool HttpResponse::send(ClientSocket &clientSocket) {
 
 void HttpResponse::loadTypeUsedHeaders() {
 	return;
+}
+
+std::ostream &HttpResponse::printTypeInfo(std::ostream &os) const {
+	return os << this->_version << " " << this->_status << '\n';
 }

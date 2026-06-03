@@ -1,7 +1,7 @@
 #include "./ClientSocket.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
-#include "http/HttpConnection.hpp"
+#include "http/HttpTransaction.hpp"
 #include "http/messages/HttpRequest.hpp"
 #include <cerrno>
 #include <cstring>
@@ -16,12 +16,12 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _iBuffer(), _connections() {}
+	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _iBuffer(), _transactions() {}
 
 ClientSocket::~ClientSocket() {
-	while (!this->_connections.empty()) {
-		delete this->_connections.front();
-		this->_connections.pop();
+	while (!this->_transactions.empty()) {
+		delete this->_transactions.front();
+		this->_transactions.pop();
 	}
 }
 
@@ -53,7 +53,7 @@ uint32_t ClientSocket::getHandledEvents() const {
 }
 
 bool ClientSocket::canHandleEpollOut() const {
-	return !this->_connections.empty() && this->_connections.front()->request().completed();
+	return !this->_transactions.empty() && this->_transactions.front()->request().completed();
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
@@ -80,7 +80,6 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			this->onEpollOut(webServer);
 		}
 		if (events & EPOLLRDHUP) {
-
 			webServer.requestDelete(this);
 		}
 		if (events & EPOLLHUP) {
@@ -98,25 +97,27 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 
 void ClientSocket::onEpollIn(WebServer &webServer) {
 	char buffer[BUFFER_SIZE];
+	std::stringstream &iBuffer = this->_iBuffer;
 
 	errno = 0;
 	ssize_t readLen = read(_fd, buffer, BUFFER_SIZE);
-	if (!readLen) {
-		this->_closed = true;
-	}
+
+	if (!readLen) this->_closed = true;
 	if (readLen < 0) {
 		std::cout << _closed << std::endl;
 		throw WebservErrors::SysError("read", errno); // !:! warn instead and close connection
 	}
 	if (this->_closed) return;
 
-	this->_iBuffer.write(buffer, readLen);
-	if (this->_connections.empty()) {
-		this->_connections.push(new HttpConnection());
+	iBuffer.clear();
+	iBuffer.write(buffer, readLen);
+
+	if (this->_transactions.empty()) {
+		this->_transactions.push(new HttpTransaction());
 	}
-	while (this->_iBuffer.peek() != std::stringstream::traits_type::eof()) {
-		if (this->_connections.back()->request().append(this->_iBuffer)) {
-			this->_connections.push(new HttpConnection());
+	while (iBuffer.peek() != std::stringstream::traits_type::eof()) {
+		if (this->_transactions.back()->request().append(iBuffer)) {
+			this->_transactions.push(new HttpTransaction());
 		}
 	}
 
@@ -131,10 +132,10 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 					  "{\"hello\": \"world\"}"
 
 void ClientSocket::onEpollOut(WebServer &webServer) {
-	while (!this->_connections.empty() && this->_connections.front()->request().completed()) {
-		HttpConnection *connection = this->_connections.front();
-		delete connection;
-		this->_connections.pop();
+	while (!this->_transactions.empty() && this->_transactions.front()->request().completed()) {
+		HttpTransaction *transaction = this->_transactions.front();
+		delete transaction;
+		this->_transactions.pop();
 	}
 	if (!this->canHandleEpollOut()) {
 		webServer.updateFd(*this);
