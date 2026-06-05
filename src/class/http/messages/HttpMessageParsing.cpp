@@ -4,6 +4,7 @@
 #include "http/errors/HttpStandardException.hpp"
 #include "http/types.hpp"
 #include "utils/parsing.hpp"
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
 #include <ios>
@@ -17,25 +18,20 @@ bool HttpMessage::append(std::istream &input) {
 	try {
 		switch (this->_state) {
 		case HttpMessage::MESSAGE_TYPES:
-			if (!this->appendMessageTypes(input))
-				return false;
+			if (!this->appendMessageTypes(input)) return false;
 			this->_state = HttpMessage::MESSAGE_HEADERS;
 			// fallthrough
 		case HttpMessage::MESSAGE_HEADERS:
-			if (!this->appendMessageHeaders(input)) {
-				return false;
-			}
-			this->_state = HttpMessage::MESSAGE_USED_HEADERS;
+			if (!this->appendMessageHeaders(input)) return false;
+			this->_state = HttpMessage::LOAD_MESSAGE_HEADERS;
 			// fallthrough
-		case HttpMessage::MESSAGE_USED_HEADERS:
+		case HttpMessage::LOAD_MESSAGE_HEADERS:
 			this->loadBaseUsedHeaders();
 			this->loadTypeUsedHeaders();
 			this->_state = HttpMessage::MESSAGE_BODY;
 			// fallthrough
 		case HttpMessage::MESSAGE_BODY:
-			if (this->hasBody())
-				if (!this->collectBody(input))
-					return false;
+			if (this->hasBody() && !this->collectBody(input)) return false;
 			this->_state = HttpMessage::COMPLETED;
 			std::cout << *this << std::endl;
 			return true;
@@ -80,11 +76,11 @@ bool HttpMessage::completed() const {
 
 /**
  * message-header = field-name ":" [ field-value ]
-		field-name     = token
-		field-value    = *( field-content | LWS )
-		field-content  = <the OCTETs making up the field-value
-						 and consisting of either *TEXT or combinations
-						 of token, separators, and quoted-string>
+ *		field-name     = token
+ *		field-value    = *( field-content | LWS )
+ *		field-content  = <the OCTETs making up the field-value
+ *						 and consisting of either *TEXT or combinations
+ *						 of token, separators, and quoted-string>
  */
 
 bool HttpMessage::appendMessageHeaders(std::istream &input) {
@@ -102,6 +98,7 @@ bool HttpMessage::appendMessageHeaders(std::istream &input) {
 		size_t lineEnd = buffer.find("\r\n", pos);
 		std::string line = buffer.substr(pos, lineEnd - pos);
 		pos = lineEnd + 2;
+
 		// if empty it's the end of headers
 		if (line.empty()) {
 			if (!headerField.first.empty()) this->_headers.insert(headerField);
@@ -151,7 +148,8 @@ bool HttpMessage::collectBody(std::istream &input) {
 
 bool HttpMessage::collectRawBody(std::istream &input) {
 	char buffer[4096];
-	std::streamsize n = input.readsome(buffer, sizeof(buffer));
+
+	std::streamsize n = input.readsome(buffer, std::min(sizeof(buffer), this->_contentLength - this->_readContentLength));
 	this->_body.append(buffer, n);
 	this->_readContentLength += n;
 	if (this->_readContentLength < this->_contentLength) return false;

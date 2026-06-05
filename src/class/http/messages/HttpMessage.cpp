@@ -71,10 +71,10 @@ std::ostream &HttpMessage::print(std::ostream &os) const {
 	if (headers.has("Content-Length"))
 		os << "content_length = " << this->_contentLength << '\n';
 
+	os << "===HEADERS===\n";
 	for (HeaderMap::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-		os << '"' << it->first << "\": \"" << it->second << "\"";
-		if (it != --headers.end()) os << '\n';
+		os << '"' << it->first << "\": \"" << it->second << "\"\n";
 	}
-	if (this->hasBody()) os << this->_body;
+	if (this->hasBody()) os << "===BODY===\n" << this->_body;
 	return os;
 }

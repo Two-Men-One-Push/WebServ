@@ -20,7 +20,7 @@ class HttpMessage {
 	enum ParsingState {
 		MESSAGE_TYPES,
 		MESSAGE_HEADERS,
-		MESSAGE_USED_HEADERS,
+		LOAD_MESSAGE_HEADERS,
 		MESSAGE_BODY,
 		COMPLETED,
 	};
