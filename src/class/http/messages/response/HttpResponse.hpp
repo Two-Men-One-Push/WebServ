@@ -24,8 +24,8 @@ class HttpResponse : public HttpMessage {
 	void loadTypeUsedHeaders();
 
   public:
-	HttpResponse(HttpTransaction &connection);
-	HttpResponse(const HttpResponse &other, HttpTransaction &connection);
+	HttpResponse(HttpTransaction &transaction);
+	HttpResponse(const HttpResponse &other, HttpTransaction &transaction);
 	~HttpResponse();
 
 	int status() const;

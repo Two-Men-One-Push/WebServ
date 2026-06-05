@@ -23,8 +23,7 @@ class ClientSocket : public ASocket {
 	void onEpollIn(WebServer &webServer);
 	void onEpollOut(WebServer &webServer);
 
-	std::stringstream _iBuffer;
-	std::stringstream _oBuffer;
+	std::stringstream _outBuffer;
 	std::queue<HttpTransaction*> _transactions;
 
 	bool canHandleEpollOut() const;

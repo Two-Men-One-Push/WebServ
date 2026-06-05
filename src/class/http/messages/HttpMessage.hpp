@@ -63,8 +63,8 @@ class HttpMessage {
 	bool extractMessageHeaders(std::istream &input);
 
   public:
-	HttpMessage(HttpTransaction &connection);
-	HttpMessage(const HttpMessage &other, HttpTransaction &connection);
+	HttpMessage(HttpTransaction &transaction);
+	HttpMessage(const HttpMessage &other, HttpTransaction &transaction);
 	virtual ~HttpMessage();
 
 	HttpVersion version() const;

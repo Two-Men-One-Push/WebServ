@@ -29,7 +29,6 @@ class HttpRequest : public HttpMessage {
 
 	size_t getMaxMethodSize();
 
-	bool extractRequestLine(std::istream &input);
 	bool parseRequestMethod(std::istream &input);
 	bool parseRequestUri(std::istream &input);
 	bool parseRequestVersion(std::istream &input);
@@ -43,8 +42,8 @@ class HttpRequest : public HttpMessage {
 	static std::map<std::string, HttpMethod> implementedHttpMethod;
 	static std::string getAllowHeader();
 
-	HttpRequest(HttpTransaction &connection);
-	HttpRequest(const HttpRequest &other, HttpTransaction &connection);
+	HttpRequest(HttpTransaction &transaction);
+	HttpRequest(const HttpRequest &other, HttpTransaction &transaction);
 	~HttpRequest();
 
 	HttpMethod method() const;

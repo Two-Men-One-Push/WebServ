@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _iBuffer(), _transactions() {}
+	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {}
 
 ClientSocket::~ClientSocket() {
 	while (!this->_transactions.empty()) {
@@ -97,7 +97,7 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 
 void ClientSocket::onEpollIn(WebServer &webServer) {
 	char buffer[BUFFER_SIZE];
-	std::stringstream &iBuffer = this->_iBuffer;
+	std::stringstream inBuffer;
 
 	errno = 0;
 	ssize_t readLen = read(_fd, buffer, BUFFER_SIZE);
@@ -109,16 +109,17 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	}
 	if (this->_closed) return;
 
-	iBuffer.clear();
-	iBuffer.write(buffer, readLen);
+	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {
 		this->_transactions.push(new HttpTransaction());
 	}
-	while (iBuffer.peek() != std::stringstream::traits_type::eof()) {
-		if (this->_transactions.back()->request().append(iBuffer)) {
+
+	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
+		if (this->_transactions.back()->request().completed()) {
 			this->_transactions.push(new HttpTransaction());
 		}
+		this->_transactions.back()->request().append(inBuffer);
 	}
 
 	if (this->canHandleEpollOut()) {

@@ -11,9 +11,9 @@
 #include <sstream>
 #include <string>
 
-HttpResponse::HttpResponse(HttpTransaction &connection) : HttpMessage(connection), _status(HttpStatus::NoStatus) {}
+HttpResponse::HttpResponse(HttpTransaction &transaction) : HttpMessage(transaction), _status(HttpStatus::NoStatus) {}
 
-HttpResponse::HttpResponse(const HttpResponse &other, HttpTransaction &connection) : HttpMessage(other, connection), _status(other._status) {}
+HttpResponse::HttpResponse(const HttpResponse &other, HttpTransaction &transaction) : HttpMessage(other, transaction), _status(other._status) {}
 
 HttpResponse::~HttpResponse() {}
 

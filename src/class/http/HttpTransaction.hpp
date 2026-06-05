@@ -1,5 +1,5 @@
-#ifndef HTTPCONNECTION_HPP
-#define HTTPCONNECTION_HPP
+#ifndef HTTPTRANSACTION_HPP
+#define HTTPTRANSACTION_HPP
 
 #include "http/errors/HttpException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
@@ -15,7 +15,7 @@ class HttpTransaction {
   public:
 	HttpTransaction();
 	HttpTransaction(const HttpTransaction &other);
-	// HttpConnection &operator=(const HttpConnection &other);
+	// HttpTransaction &operator=(const HttpTransaction &other);
 	~HttpTransaction();
 
 	HttpRequest &request();

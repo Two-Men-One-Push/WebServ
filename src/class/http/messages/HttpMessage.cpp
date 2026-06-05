@@ -3,7 +3,7 @@
 #include "http/messages/response/HttpResponse.hpp"
 #include "http/types.hpp"
 
-HttpMessage::HttpMessage(HttpTransaction &connection)
+HttpMessage::HttpMessage(HttpTransaction &transaction)
 	: _state(HttpMessage::MESSAGE_TYPES),
 	  _version(),
 	  _headers(),
@@ -11,12 +11,12 @@ HttpMessage::HttpMessage(HttpTransaction &connection)
 	  _buffer(),
 	  _contentLength(0),
 	  _transferEncoding(TE_UNDEFINED),
-	  _transaction(connection),
+	  _transaction(transaction),
 	  _readContentLength(0) {
 	this->_buffer.reserve(TMP_HTTP_BUFFER_SIZE);
 }
 
-HttpMessage::HttpMessage(const HttpMessage &other, HttpTransaction &connection)
+HttpMessage::HttpMessage(const HttpMessage &other, HttpTransaction &transaction)
 	: _state(other._state),
 	  _version(other._version),
 	  _headers(other._headers),
@@ -24,7 +24,7 @@ HttpMessage::HttpMessage(const HttpMessage &other, HttpTransaction &connection)
 	  _buffer(other._buffer),
 	  _contentLength(other._contentLength),
 	  _transferEncoding(other._transferEncoding),
-	  _transaction(connection),
+	  _transaction(transaction),
 	  _readContentLength(other._readContentLength) {}
 
 HttpMessage::~HttpMessage() {}

@@ -5,7 +5,6 @@
 #include <cctype>
 #include <iostream>
 #include <istream>
-#include <sstream>
 #include <string>
 
 /**
@@ -97,25 +96,6 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 	this->_version = HttpMessage::parseHttpVersion(buffer);
 	buffer.clear();
 	return true;
-}
-
-bool HttpRequest::extractRequestLine(std::istream &input) {
-	std::string &buffer = this->_buffer;
-
-	while (true) {
-		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
-
-		int c = input.get();
-		if (c == std::stringstream::traits_type::eof()) return false;
-		buffer += static_cast<char>(c);
-		if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
-			if (buffer.size() == 2) {
-				buffer.clear();
-				continue;
-			}
-			return true;
-		}
-	}
 }
 
 void HttpRequest::loadTypeUsedHeaders() {
