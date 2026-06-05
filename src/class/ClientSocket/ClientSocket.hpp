@@ -2,7 +2,10 @@
 #define CLIENTSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
+#include "http/HttpTransaction.hpp"
 #include <netinet/in.h>
+#include <queue>
+#include <sstream>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -17,17 +20,19 @@ class ClientSocket : public ASocket {
 
 	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen);
 	void onWriteReady();
-	void onEpollIn();
-	void onEpollOut();
+	void onEpollIn(WebServer &webServer);
+	void onEpollOut(WebServer &webServer);
 
-	int readCount; // !:! temp
-	bool responseSent; // !:! temp
+	std::stringstream _outBuffer;
+	std::queue<HttpTransaction*> _transactions;
+
+	bool canHandleEpollOut() const;
 
   public:
 	~ClientSocket();
 
-	const struct sockaddr_storage &getAdress() const;
-	socklen_t getAdressLen() const;
+	const struct sockaddr_storage &address() const;
+	socklen_t addressLen() const;
 
 	u_int32_t getHandledEvents() const;
 	void handleEvents(u_int32_t events, WebServer &webServer);

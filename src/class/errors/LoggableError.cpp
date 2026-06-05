@@ -1,5 +1,5 @@
 #include "./WebservErrors.hpp"
 
-using namespace webserv_errors;
+using namespace WebservErrors;
 
 LoggableError::~LoggableError() throw() {}

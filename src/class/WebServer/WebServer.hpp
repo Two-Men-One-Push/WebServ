@@ -1,6 +1,7 @@
 #ifndef WEBSERVER_HPP
 #define WEBSERVER_HPP
 
+#include "AFd/AFd.hpp"
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
@@ -13,11 +14,19 @@ class WebServer {
 	EpollInstance _epoll;
 	std::vector<ListeningSocket *> _listeningSockets;
 	std::vector<ClientSocket *> _clientSockets;
+	std::vector<ClientSocket *> _clientSocketsToDelete;
+
+	void deleteClientSockets();
 
   public:
 	WebServer(Config &config);
-	void addClient(ClientSocket *client);
 	~WebServer();
+
+	void addClient(ClientSocket *client);
+	void removeClient(ClientSocket *client);
+	void updateFd(AFd &fd);
+	void requestDelete(ClientSocket *client);
+
 };
 
 #endif

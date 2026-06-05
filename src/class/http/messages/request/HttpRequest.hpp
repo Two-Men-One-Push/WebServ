@@ -1,0 +1,57 @@
+#ifndef HTTPREQUEST_HPP
+#define HTTPREQUEST_HPP
+
+#include "http/messages/HttpMessage.hpp"
+#include "http/types.hpp"
+#include <cstddef>
+#include <istream>
+#include <map>
+#include <string>
+
+class HttpRequest : public HttpMessage {
+  private:
+	HttpRequest &operator=(const HttpRequest &other);
+
+	HttpMethod _method;
+	std::string _uri;
+
+	enum FirstLineParsingState {
+		REQUEST_METHOD,
+		REQUEST_URI,
+		REQUEST_VERSION,
+	};
+
+	FirstLineParsingState _firstLineState;
+
+	size_t _maxMethodSize;
+	static size_t _maxUriSize;
+	static size_t _maxVersionSize;
+
+	size_t getMaxMethodSize();
+
+	bool parseRequestMethod(std::istream &input);
+	bool parseRequestUri(std::istream &input);
+	bool parseRequestVersion(std::istream &input);
+
+  protected:
+	// Each one of the functions below return if they had enough content to finish their task
+	bool appendMessageTypes(std::istream &input);
+	void loadTypeUsedHeaders();
+
+  public:
+	static std::map<std::string, HttpMethod> implementedHttpMethod;
+	static std::string getAllowHeader();
+
+	HttpRequest(HttpTransaction &transaction);
+	HttpRequest(const HttpRequest &other, HttpTransaction &transaction);
+	~HttpRequest();
+
+	HttpMethod method() const;
+	std::string methodStr() const;
+
+	const std::string &uri() const;
+
+	std::ostream &printTypeInfo(std::ostream &os) const;
+};
+
+#endif
