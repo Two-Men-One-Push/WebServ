@@ -134,7 +134,9 @@ bool HttpMessage::extractMessageHeaders(std::istream &input) {
 		if (c == std::stringstream::traits_type::eof())
 			return false;
 		buffer += static_cast<char>(c);
-		if (buffer.size() >= 4 && buffer.compare(buffer.size() - 4, 4, "\r\n\r\n") == 0) {
+
+		if ((buffer.size() == 2 && buffer == "\r\n") || // Case where there is no header (will mostly be a 400 Bad Request), the first "\r\n was on the first line
+			(buffer.size() >= 4 && buffer.compare(buffer.size() - 4, 4, "\r\n\r\n") == 0)) { //
 			return true;
 		}
 	}
