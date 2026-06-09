@@ -15,11 +15,11 @@ ListeningSocket::ListeningSocket(int socketFd, const sockaddr &address, socklen_
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	if (bind(_fd, &address, addressLen) < 0) {
-		throw webserv_errors::SysError("bind", errno);
+		throw WebservErrors::SysError("bind", errno);
 	}
 
 	if (listen(_fd, SOMAXCONN) < 0) {
-		throw webserv_errors::SysError("listen", errno);
+		throw WebservErrors::SysError("listen", errno);
 	}
 }
 
@@ -34,7 +34,7 @@ ListeningSocket ListeningSocket::create(const sockaddr &addr, socklen_t addressl
 	const int socketFd = socket(addr.sa_family, SOCK_STREAM, 0);
 
 	if (socketFd < 0) {
-		throw webserv_errors::SysError("socket", errno);
+		throw WebservErrors::SysError("socket", errno);
 	}
 
 	return ListeningSocket(socketFd, addr, addresslen);
@@ -45,7 +45,7 @@ ListeningSocket *ListeningSocket::createNew(const sockaddr &addr, socklen_t addr
 	const int socketFd = socket(addr.sa_family, SOCK_STREAM, 0);
 
 	if (socketFd < 0) {
-		throw webserv_errors::SysError("socket", errno);
+		throw WebservErrors::SysError("socket", errno);
 	}
 
 	return new ListeningSocket(socketFd, addr, addresslen);

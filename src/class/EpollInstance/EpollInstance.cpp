@@ -12,7 +12,7 @@ EpollInstance::~EpollInstance() {}
 EpollInstance EpollInstance::create() {
 	const int epollFd = epoll_create(1);
 	if (epollFd < 0) {
-		throw webserv_errors::SysError("epoll", errno);
+		throw WebservErrors::SysError("epoll", errno);
 	}
 
 	return EpollInstance(epollFd);
@@ -26,7 +26,7 @@ void EpollInstance::registerFd(AFd &fd) const {
 		},
 	};
 
-	epoll_ctl(_fd, EPOLL_CTL_ADD, fd.getFd(), &epollEvent);
+	epoll_ctl(_fd, EPOLL_CTL_ADD, fd.fd(), &epollEvent);
 }
 
 void EpollInstance::updateFd(AFd &fd) const {
@@ -37,7 +37,7 @@ void EpollInstance::updateFd(AFd &fd) const {
 		},
 	};
 
-	epoll_ctl(_fd, EPOLL_CTL_MOD, fd.getFd(), &epollEvent);
+	epoll_ctl(_fd, EPOLL_CTL_MOD, fd.fd(), &epollEvent);
 }
 
 #define MAX_EVENTS 10
@@ -47,7 +47,7 @@ void EpollInstance::wait(std::vector<EpollEvent> &result) const {
 
 	int eventCount = epoll_wait(_fd, epollEventBuffer, MAX_EVENTS, -1);
 
-	if (eventCount < 0) throw webserv_errors::SysError("epoll_wait", errno);
+	if (eventCount < 0) throw WebservErrors::SysError("epoll_wait", errno);
 
 	result.reserve(eventCount);
 

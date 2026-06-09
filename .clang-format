@@ -2,5 +2,6 @@ IndentWidth: 4
 TabWidth: 4
 UseTab: Always
 SeparateDefinitionBlocks: Always
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AlwaysBreakTemplateDeclarations: Yes
 ColumnLimit: 0

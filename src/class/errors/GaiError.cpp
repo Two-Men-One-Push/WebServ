@@ -1,7 +1,7 @@
 #include "./WebservErrors.hpp"
 #include <netdb.h>
 
-using namespace webserv_errors;
+using namespace WebservErrors;
 
 GaiError::GaiError(int err) : _err(err), _context(""), _cause(""), _msg(gai_strerror(err)) {
 }

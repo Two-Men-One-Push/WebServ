@@ -60,6 +60,7 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 			it->fd->handleEvents(it->events, *this);
 		}
 
+		this->deleteClientSockets();
 		// char buffer[4096];
 
 		// errno = 0;
@@ -81,7 +82,7 @@ void startCgi(void) {
 	Pipe pipe = Pipe::createPipe();
 
 	pid_t pid = fork();
-	if (pid < 0) throw webserv_errors::SysError("fork", errno);
+	if (pid < 0) throw WebservErrors::SysError("fork", errno);
 	if (pid) {
 		const char *path = "/usr/bin/python";
 		char *const argv[] = {"/usr/bin/python", NULL};
@@ -91,4 +92,26 @@ void startCgi(void) {
 		int stats;
 		waitpid(pid, &stats, options);
 	}
+}
+
+void WebServer::updateFd(AFd &fd) {
+	this->_epoll.updateFd(fd);
+}
+
+void WebServer::requestDelete(ClientSocket *client) {
+	this->_clientSocketsToDelete.push_back(client);
+}
+
+void WebServer::deleteClientSockets() {
+	for (std::vector<ClientSocket*>::iterator dit = this->_clientSocketsToDelete.begin(); dit != _clientSocketsToDelete.end(); ++dit) {
+		ClientSocket *cs = *dit;
+		for (std::vector<ClientSocket *>::iterator it = _clientSockets.begin(); it != _clientSockets.end(); ++it) {
+			if (*it == cs) {
+				_clientSockets.erase(it);
+				break;
+			}
+		}
+		delete cs;
+	}
+	_clientSocketsToDelete.clear();
 }
