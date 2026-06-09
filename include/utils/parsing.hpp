@@ -5,9 +5,9 @@
 #include <vector>
 
 
-bool ishighhchar(char c);
-bool islowhchar(char c);
-bool ishex(char c);
+bool ishighhexchar(char c);
+bool islowhexchar(char c);
+bool ishexdigit(char c);
 bool isseparator(char c);
 bool istokenc(char c);
 bool istoken(const std::string &s);

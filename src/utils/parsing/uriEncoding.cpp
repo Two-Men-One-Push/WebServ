@@ -18,11 +18,11 @@ std::string uriDecode(const std::string &s) {
 			char fromHexByte = 0;
 			++it;
 			if (it == s.end()) throw std::invalid_argument("Unexpected input end");
-			if (!ishex(*it)) throw std::invalid_argument("Expected hexadecimal character");
+			if (!ishexdigit(*it)) throw std::invalid_argument("Expected hexadecimal character");
 			fromHexByte += htoc(*it) * 16;
 			++it;
 			if (it == s.end()) throw std::invalid_argument("Unexpected input end");
-			if (!ishex(*it)) throw std::invalid_argument("Expected hexadecimal character");
+			if (!ishexdigit(*it)) throw std::invalid_argument("Expected hexadecimal character");
 			fromHexByte += htoc(*it);
 			if (fromHexByte == '\0') throw std::invalid_argument("Unexpected encoded null byte");
 			result += fromHexByte;

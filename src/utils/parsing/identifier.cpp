@@ -1,16 +1,16 @@
 #include <cctype>
 #include <string>
 
-bool ishighhchar(char c) {
+bool ishighhexchar(char c) {
 	return c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F';
 }
 
-bool islowhchar(char c) {
+bool islowhexchar(char c) {
 	return c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f';
 }
 
-bool ishex(char c) {
-	return std::isdigit(c) || islowhchar(c) || ishighhchar(c);
+bool ishexdigit(char c) {
+	return std::isdigit(c) || islowhexchar(c) || ishighhexchar(c);
 }
 
 bool isseparator(char c) {
