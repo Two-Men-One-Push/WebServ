@@ -6,21 +6,20 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include <list>
+#include "AST.hpp"
 
 class	Parser
 {
 	private:
-		std::vector<Directive>	_directives;
-
-		Directive	parseDirective(std::vector<Token>::const_iterator &it, std::vector<Token>::const_iterator &end);
-		void		parseBlock(std::vector<Token>::const_iterator &it, std::vector<Token>::const_iterator &end, std::vector<Directive> &directives);
-		void		parseListDirective(std::vector<Token>::const_iterator &it, std::vector<Token>::const_iterator &end, std::vector<Directive> &directives);
-
+		static Directive	parseDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end);
+		static void		parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives);
+		static void		parseListDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives);
 	public:
+		Parser();
 		~Parser();
-		Parser(const Lexer &lexer);
 
-		const std::vector<Directive>	&getDirectives() const;
+		static AST	parse(const TokenStream &token_stream);
 
 		class	ParserUnexpectedToken: public std::exception
 		{

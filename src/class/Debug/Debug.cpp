@@ -1,30 +1,39 @@
 #include "Debug.hpp"
 #include "Segment.hpp"
 #include "Token.hpp"
-#include "Lexer.hpp"
+#include "TokenStream.hpp"
 #include "Directive.hpp"
-#include "Parser.hpp"
+#include "AST.hpp"
+#include <iostream>
+#include <list>
 
 void	Debug::printSegment(std::ostream &os, const Segment &segment)
 {
-	os << segment.getFilename() << ":" << segment.getLineNumber() << ":" << segment.getColumnNumber() << "	[" << segment.getTypeString() << " \"" << segment.getContent() << "\"]" << std::endl;
+	os << segment.getFilename() << ":" << segment.getLineNumber() << ":" << segment.getColumnNumber() << "		Segment:[" << segment.getRawContent() << " | " << segment.getContent() << "]" << std::endl;
+}
+
+void	Debug::printWord(std::ostream &os, const Word &word)
+{
+	os << word.getFilename() << ":" << word.getLineNumber() << ":" << word.getColumnNumber() << "	Content:[" << word.getRawContent() << " | " << word.getContent() << "]" << std::endl;
+	const std::vector<Segment>	&segments = word.getSegments();
+	for (size_t i = 0; i < segments.size(); ++i)
+	{
+		printSegment(os, segments[i]);
+	}
 }
 
 void	Debug::printToken(std::ostream &os, const Token &token)
 {
 	os << token.getFilename() << ":" << token.getLineNumber() << ":" << token.getColumnNumber() << "	" << token.getTypeString() << std::endl;
-	for (size_t j = 0; j < token.getSegments().size(); ++j)
-	{
-		const Segment &segment = token.getSegments()[j];
-		printSegment(os, segment);
-	}
+	if (token.getType() == Token::WORD)
+		printWord(os, token.getWord());
 }
 
-void	Debug::printLexer(std::ostream &os, const Lexer &lexer)
+void	Debug::printTokenStream(std::ostream &os, const TokenStream &token_stream)
 {
-	const std::vector<Token>	&tokens = lexer.getTokens();
+	const std::vector<Token>	&tokens = token_stream.getTokens();
 
-	os << "Lexer:" << std::endl;
+	os << "TokenStream:" << std::endl;
 	for (size_t i = 0; i < tokens.size(); ++i)
 	{
 		const Token &token = tokens[i];
@@ -38,38 +47,47 @@ void	Debug::printDirective(std::ostream &os, const Directive &directive, size_t 
 	os << directive.getFilename() << ":" << directive.getLineNumber() << ":" << directive.getColumnNumber() << "	";
 	for (size_t i = 0; i < indent; ++i)
 		os << "	";
-	os << "DIRECTIVE [" << directive.getName()[0].getContent() << "]" << std::endl;
+	os << "Directive: [" << directive.getName().getRawContent() << "] [" << directive.getName().getContent() << "]" << std::endl;
 	for (size_t i = 0; i < directive.getArgs().size(); ++i)
 	{
-		for (size_t j = 0; j < indent + 3; ++j)
+		const Word &arg = directive.getArgs()[i];
+		os << arg.getFilename() << ":" << arg.getLineNumber() << ":" << arg.getColumnNumber() << "	";
+		for (size_t j = 0; j < indent + 1; ++j)
 			os << "	";
-		os << "Arg: ";
-		for (size_t j = 0; j < directive.getArgs()[i].size(); ++j)
-		{
-			os << directive.getArgs()[i][j].getContent() << "";
-		}
-		os << std::endl;
+		os << "Arg: [" << arg.getRawContent() << "] [" << arg.getContent() << "]" << std::endl;
 	}
 	if (directive.getChildren().size() > 0)
 	{
-		for (size_t i = 0; i < indent + 3; ++i)
+		for (size_t i = 0; i < indent + 2; ++i)
 			os << "	";
 		os << "Children:" << std::endl;
 	}
-	for (size_t i = 0; i < directive.getChildren().size(); ++i)
+	for (std::list<Directive>::const_iterator it = directive.getChildren().begin(); it != directive.getChildren().end(); ++it)
 	{
-		printDirective(os, directive.getChildren()[i], indent + 1);
+		printDirective(os, *it, indent + 1);
 	}
 }
 
-void	Debug::printParser(std::ostream &os, const Parser &parser)
+void	Debug::printAST(std::ostream &os, const AST &ast)
 {
-	const std::vector<Directive>	&directives = parser.getDirectives();
+	const std::list<Directive>	&directives = ast.getDirectives();
 
-	os << "Parser:" << std::endl;
-	for (size_t i = 0; i < directives.size(); ++i)
+	os << "AST:" << std::endl;
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		printDirective(os, directives[i], 0);
+		printDirective(os, *it, 0);
+	}
+	os << std::endl;
+}
+
+void	Debug::printPreprocessedAST(std::ostream &os, const AST &ast)
+{
+	const std::list<Directive>	&directives = ast.getDirectives();
+
+	os << "Preprocessed AST:" << std::endl;
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
+	{
+		printDirective(os, *it, 0);
 	}
 	os << std::endl;
 }

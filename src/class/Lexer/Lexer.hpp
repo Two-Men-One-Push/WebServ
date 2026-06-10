@@ -1,32 +1,18 @@
 #pragma once
 
-#include <fstream>
-#include <vector>
+#include "TokenStream.hpp"
 #include "Token.hpp"
 #include <iterator>
+#include <fstream>
+#include <vector>
 
 class	Lexer
 {
-	private:
-		enum	LexerState
-		{
-			DEFAULT,
-			DEFAULT_ESCAPE,
-			SQUOTE,
-			SQUOTE_ESCAPE,
-			DQUOTE,
-			DQUOTE_ESCAPE,
-			COMMENT,
-		};
-		std::vector<Token>	_tokens;
-
-		void	flush_segment(Token &token, Segment &segment);
-		void	flush_token(std::vector<Token> &_tokens, Token &token);
 	public:
+		Lexer();
 		~Lexer();
-		Lexer(const std::string &filename);
 
-		const std::vector<Token>	&getTokens() const;
+		static TokenStream	tokenize(const std::string &filename);
 
 		class	LexerUnexpectedControlCharacter: public std::exception
 		{
@@ -43,7 +29,7 @@ class	Lexer
 				std::string	_message;
 			public:
 				virtual ~LexerUnexpectedEndOfFile() throw();
-				LexerUnexpectedEndOfFile(const std::string &message, const std::string &filename, size_t line_number, size_t column_number);
+				LexerUnexpectedEndOfFile(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
 				virtual const char	*what() const throw();
 		};
 };

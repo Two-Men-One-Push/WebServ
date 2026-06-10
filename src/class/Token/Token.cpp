@@ -1,18 +1,23 @@
 #include "Token.hpp"
 
+Token::Token(): _type(NONE), _word(), _filename(), _line_number(0), _column_number(0)
+{
+}
+
 Token::~Token()
 {
 }
 
-Token::Token(): _type(NONE), _segments(), _filename(), _line_number(0), _column_number(0)
+Token::Token(Type type, const std::string &filename, size_t line_number, size_t column_number): _type(type), _word(), _filename(filename), _line_number(line_number), _column_number(column_number)
 {
 }
 
-Token::Token(Type type, const std::string &filename, size_t line_number, size_t column_number): _type(type), _segments(), _filename(filename), _line_number(line_number), _column_number(column_number)
+Token::Token(Word &word): _type(WORD), _word(word), _filename(word.getFilename()), _line_number(word.getLineNumber()), _column_number(word.getColumnNumber())
 {
+	word.clear();
 }
 
-Token::Token(const Token &copy): _type(copy._type), _segments(copy._segments), _filename(copy._filename), _line_number(copy._line_number), _column_number(copy._column_number)
+Token::Token(const Token &copy): _type(copy._type), _word(copy._word), _filename(copy._filename), _line_number(copy._line_number), _column_number(copy._column_number)
 {
 }
 
@@ -21,7 +26,7 @@ Token	&Token::operator=(const Token &other)
 	if (this != &other)
 	{
 		_type = other._type;
-		_segments = other._segments;
+		_word = other._word;
 		_filename = other._filename;
 		_line_number = other._line_number;
 		_column_number = other._column_number;
@@ -29,16 +34,10 @@ Token	&Token::operator=(const Token &other)
 	return *this;
 }
 
-Token	&Token::operator+=(const Segment &segment)
-{
-	_segments.push_back(segment);
-	return *this;
-}
-
 void	Token::clear()
 {
 	_type = NONE;
-	_segments.clear();
+	_word.clear();
 	_filename.clear();
 	_line_number = 0;
 	_column_number = 0;
@@ -72,9 +71,9 @@ Token::Type	Token::getType() const
 	return _type;
 }
 
-const std::vector<Segment>	&Token::getSegments() const
+const Word	&Token::getWord() const
 {
-	return _segments;
+	return _word;
 }
 
 const std::string	&Token::getFilename() const
@@ -95,6 +94,11 @@ size_t	Token::getColumnNumber() const
 void	Token::setFilename(const std::string &filename)
 {
 	_filename = filename;
+}
+
+void	Token::setWord(const Word &word)
+{
+	_word = word;
 }
 
 void	Token::setType(Type type)

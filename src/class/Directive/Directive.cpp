@@ -4,7 +4,7 @@ Directive::~Directive()
 {
 }
 
-Directive::Directive(const std::vector<Segment> &name, const std::string &filename, size_t line_number, size_t column_number): _name(name), _args(), _children(), _filename(filename), _line_number(line_number), _column_number(column_number)
+Directive::Directive(const Word &name, const std::string &filename, size_t line_number, size_t column_number): _name(name), _args(), _children(), _filename(filename), _line_number(line_number), _column_number(column_number)
 {
 }
 
@@ -26,22 +26,22 @@ Directive	&Directive::operator=(const Directive &other)
 	return (*this);
 }
 
-const std::vector<Segment>	&Directive::getName() const
+const Word	&Directive::getName() const
 {
 	return (_name);
 }
 
-const std::vector<std::vector<Segment> >	&Directive::getArgs() const
+const std::vector<Word>	&Directive::getArgs() const
 {
 	return (_args);
 }
 
-const std::vector<Directive>	&Directive::getChildren() const
+const std::list<Directive>	&Directive::getChildren() const
 {
 	return (_children);
 }
 
-std::vector<Directive>	&Directive::getChildrenRef()
+std::list<Directive>	&Directive::getChildrenRef()
 {
 	return (_children);
 }
@@ -61,7 +61,7 @@ size_t	Directive::getColumnNumber() const
 	return (_column_number);
 }
 
-void	Directive::addArg(const std::vector<Segment> &arg)
+void	Directive::addArg(const Word &arg)
 {
 	_args.push_back(arg);
 }

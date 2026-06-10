@@ -6,30 +6,38 @@
 #include <assert.h>
 #include <sstream>
 #include <iostream>
+#include <list>
+
+Parser::Parser()
+{
+}
 
 Parser::~Parser()
 {
 }
 
 /*
-parser := list_directive EOF
+ast := list_directive EOF
 */
-Parser::Parser(const Lexer &lexer): _directives()
+AST	Parser::parse(const TokenStream &token_stream)
 {
-	std::vector<Token>::const_iterator	it = lexer.getTokens().begin();
-	std::vector<Token>::const_iterator	end = lexer.getTokens().end();
+	AST	ast;
+	TokenStream::const_iterator	it = token_stream.begin();
+	TokenStream::const_iterator	end = token_stream.end();
 
-	parseListDirective(it, end, _directives);
+	ast.setFilename(token_stream.getFilename());
+	parseListDirective(it, end, ast.getDirectivesRef());
 	if (it->getType() != Token::_EOF)
 		throw ParserUnexpectedToken("end of file", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+	return (ast);
 }
 
 /*
 directive := WORD WORD* (SEMICOLON | block)
 */
-Directive	Parser::parseDirective(std::vector<Token>::const_iterator &it, std::vector<Token>::const_iterator &end)
+Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end)
 {
-	Directive	directive(it->getSegments(), it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+	Directive	directive(it->getWord(), it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 	it++;
 
 	while (it->getType() != Token::_EOF)
@@ -37,16 +45,16 @@ Directive	Parser::parseDirective(std::vector<Token>::const_iterator &it, std::ve
 		switch (it->getType())
 		{
 			case Token::WORD:
-				directive.addArg(it->getSegments());
+				directive.addArg(it->getWord());
 				it++;
 				break;
 			case Token::SEMICOLON:
 				it++;
-				return directive;
+				return (directive);
 			case Token::NEWLINE:
 			case Token::LBRACE:
 				parseBlock(it, end, directive.getChildrenRef());
-				return directive;
+				return (directive);
 			default:
 				throw ParserUnexpectedToken("directive argument, block start or directive end", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 		}
@@ -57,7 +65,7 @@ Directive	Parser::parseDirective(std::vector<Token>::const_iterator &it, std::ve
 /*
 block := NEWLINE* LBRACE list_directive RBRACE
 */
-void	Parser::parseBlock(std::vector<Token>::const_iterator &it, std::vector<Token>::const_iterator &end, std::vector<Directive> &directives)
+void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives)
 {
 	while (it->getType() != Token::_EOF)
 	{
@@ -84,7 +92,7 @@ void	Parser::parseBlock(std::vector<Token>::const_iterator &it, std::vector<Toke
 /*
 list_directive := directive*
 */
-void	Parser::parseListDirective(std::vector<Token>::const_iterator &it, std::vector<Token>::const_iterator &end, std::vector<Directive> &directives)
+void	Parser::parseListDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives)
 {
 	while (it->getType() != Token::_EOF)
 	{
@@ -100,11 +108,6 @@ void	Parser::parseListDirective(std::vector<Token>::const_iterator &it, std::vec
 				return;
 		}
 	}
-}
-
-const std::vector<Directive>	&Parser::getDirectives() const
-{
-	return _directives;
 }
 
 Parser::ParserUnexpectedToken::~ParserUnexpectedToken() throw()
@@ -131,10 +134,10 @@ Parser::ParserUnexpectedEndOfFile::ParserUnexpectedEndOfFile(const std::string &
 
 const char	*Parser::ParserUnexpectedToken::what() const throw()
 {
-	return _message.c_str();
+	return (_message.c_str());
 }
 
 const char	*Parser::ParserUnexpectedEndOfFile::what() const throw()
 {
-	return _message.c_str();
+	return (_message.c_str());
 }
