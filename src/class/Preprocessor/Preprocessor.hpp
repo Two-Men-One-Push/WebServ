@@ -19,22 +19,22 @@ class Preprocessor
 
 		static AST	preprocess(const AST &ast);
 	
-		class	PreprocessorIncludeDirectiveInvalidArguments: public std::exception
+		class	PreprocessorInvalidArguments: public std::exception
 		{
 			private:
 				std::string	_message;
 			public:
-				virtual ~PreprocessorIncludeDirectiveInvalidArguments() throw();
-				PreprocessorIncludeDirectiveInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				virtual ~PreprocessorInvalidArguments() throw();
+				PreprocessorInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
 				virtual const char	*what() const throw();
 		};
-		class	PreprocessorIncludeDirectiveIllegalBody: public std::exception
+		class	PreprocessorIllegalBody: public std::exception
 		{
 			private:
 				std::string	_message;
 			public:
-				virtual ~PreprocessorIncludeDirectiveIllegalBody() throw();
-				PreprocessorIncludeDirectiveIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				virtual ~PreprocessorIllegalBody() throw();
+				PreprocessorIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
 				virtual const char	*what() const throw();
 		};
 };

@@ -11,6 +11,7 @@ class	Directive
 	private:
 		Word					_name;
 		std::vector<Word>		_args;
+		bool					_has_body;
 		std::list<Directive>	_children;
 		std::string				_filename;
 		size_t					_line_number;
@@ -25,9 +26,11 @@ class	Directive
 		const std::vector<Word>		&getArgs() const;
 		const std::list<Directive>	&getChildren() const;
 		std::list<Directive>		&getChildrenRef();
+		bool						hasBody() const;
 
 		void				addArg(const Word &arg);
 		void				addChild(const Directive &child);
+		void				setHasBody(bool has_body);
 		const std::string	&getFilename() const;
 		size_t				getLineNumber() const;
 		size_t				getColumnNumber() const;

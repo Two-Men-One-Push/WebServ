@@ -32,7 +32,7 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 	std::ifstream	stream(filename.c_str());
 	if (!stream.is_open())
 	{
-		throw std::runtime_error("Failed to open file: " + filename);
+		throw LexerFileOpenFailure("Failed to open file: ", filename);
 	}
 
 	size_t		line_number = 1;
@@ -233,17 +233,33 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 	}
 	if (state == SQUOTE || state == DQUOTE)
 	{
-		throw LexerUnexpectedEndOfFile("Unclosed quote", filename, line_number, column_number);
+		throw LexerUnexpectedEndOfFile("Unclosed quote", segment.getFilename(), segment.getLineNumber(), segment.getColumnNumber());
 	}
 	else if (state == DEFAULT_ESCAPE || state == SQUOTE_ESCAPE || state == DQUOTE_ESCAPE)
 	{
-		throw LexerUnexpectedEndOfFile("Unexpected end of file after escape character", filename, line_number, column_number);
+		throw LexerUnexpectedEndOfFile("Unexpected end of file after escape character", segment.getFilename(), segment.getLineNumber(), segment.getColumnNumber());
 	}
 	word += segment;
 	if (!word.empty())
 		token_stream.addToken(Token(word));
 	token_stream.addToken(Token(Token::_EOF, filename, line_number, column_number));
 	return token_stream;
+}
+
+Lexer::LexerFileOpenFailure::~LexerFileOpenFailure() throw()
+{
+}
+
+Lexer::LexerFileOpenFailure::LexerFileOpenFailure(const std::string &description, const std::string &filename): _message()
+{
+	std::stringstream ss;
+	ss << description << filename;
+	_message = ss.str();
+}
+
+const char	*Lexer::LexerFileOpenFailure::what() const throw()
+{
+	return _message.c_str();
 }
 
 Lexer::LexerUnexpectedControlCharacter::~LexerUnexpectedControlCharacter() throw()

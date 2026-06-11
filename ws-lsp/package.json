@@ -1,0 +1,88 @@
+{
+  "name": "ws-language-server",
+  "displayName": "WS Language Server",
+  "description": "Diagnostics LSP pour les fichiers .ws via un analyseur externe",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ws",
+        "aliases": [
+          "WS",
+          "ws"
+        ],
+        "extensions": [
+          ".ws"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "WS Language Server",
+      "properties": {
+        "wsLanguageServer.executablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Chemin vers votre programme d'analyse (ex: /home/moi/analyseur ou C:\\\\bin\\\\analyseur.exe)."
+        },
+        "wsLanguageServer.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Arguments supplementaires passes AVANT le chemin du fichier."
+        },
+        "wsLanguageServer.oneBasedLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cochez si votre programme compte les lignes a partir de 1 (cas le plus courant)."
+        },
+        "wsLanguageServer.oneBasedColumns": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cochez si votre programme compte les colonnes a partir de 1."
+        },
+        "wsLanguageServer.runOn": {
+          "type": "string",
+          "enum": [
+            "change",
+            "save"
+          ],
+          "default": "change",
+          "description": "Quand lancer l'analyse : a chaque modification (avec un leger delai) ou seulement a la sauvegarde."
+        },
+        "wsLanguageServer.useTempFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Analyser le contenu en cours d'edition via un fichier temporaire (permet les diagnostics meme sans sauvegarder). Mettez sur false si votre analyseur a besoin du vrai chemin du fichier (imports relatifs, etc.)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -5,6 +5,7 @@
 #include "Debug.hpp"
 #include "Preprocessor.hpp"
 #include "Semantic.hpp"
+#include "Config.hpp"
 
 int	main(int argc, char **argv) {
 	if (argc != 2)
@@ -15,9 +16,10 @@ int	main(int argc, char **argv) {
 	try {
 		TokenStream	token_stream = Lexer::tokenize(argv[1]);
 		AST	parser = Parser::parse(token_stream);
-		Debug::printAST(std::cout, parser);
+		//Debug::printAST(std::cout, parser);
 		AST	preprocessed_ast = Preprocessor::preprocess(parser);
-		Debug::printPreprocessedAST(std::cout, preprocessed_ast);
+		//Debug::printPreprocessedAST(std::cout, preprocessed_ast);
+		Config	config = Semantic::analyseAST(preprocessed_ast);
 	}
 	catch(std::exception &e) {
 		std::cout << e.what() << std::endl;

@@ -33,13 +33,13 @@ AST	Preprocessor::expand(const AST &ast, std::stack<std::string> &include_stack)
 		{
 			const std::vector<Word>	&args = it->getArgs();
 
-			if (it->getChildren().size() > 0)
-			{
-				throw PreprocessorIncludeDirectiveIllegalBody("Include directive cannot have a body", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
-			}
 			if (args.size() < 1)
 			{
-				throw PreprocessorIncludeDirectiveInvalidArguments("Include directive requires at least one argument", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw PreprocessorInvalidArguments("Include directive requires at least one argument", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+			}
+			else if (it->hasBody())
+			{
+				throw PreprocessorIllegalBody("Include directive cannot have a body", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 			}
 			for (size_t i = 0; i < args.size(); ++i)
 			{
@@ -47,16 +47,23 @@ AST	Preprocessor::expand(const AST &ast, std::stack<std::string> &include_stack)
 				{
 					if (tmp_stack.top() == args[i].getContent())
 					{
-						throw PreprocessorIncludeDirectiveInvalidArguments("Circular include detected", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+						throw PreprocessorInvalidArguments("Circular include detected", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 					}
 				}
-				include_stack.push(args[i].getContent());
-				AST	included_ast = expand(Parser::parse(Lexer::tokenize(args[i].getContent())), include_stack);
-				include_stack.pop();
-				preprocessed_ast.getDirectivesRef().insert(preprocessed_ast.getDirectivesRef().end(), included_ast.getDirectives().begin(), included_ast.getDirectives().end());
+				try
+				{
+					include_stack.push(args[i].getContent());
+					AST	included_ast = expand(Parser::parse(Lexer::tokenize(args[i].getContent())), include_stack);
+					include_stack.pop();
+					preprocessed_ast.getDirectivesRef().insert(preprocessed_ast.getDirectivesRef().end(), included_ast.getDirectives().begin(), included_ast.getDirectives().end());
+				}
+				catch (const Lexer::LexerFileOpenFailure &e)
+				{
+					throw PreprocessorInvalidArguments(e.what(), it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				}
 			}
 		}
-		else if (it->getChildren().size() > 0)
+		else if (it->hasBody())
 		{
 			Directive	preprocessed_directive = *it;
 
@@ -82,23 +89,30 @@ std::list<Directive>	Preprocessor::expand(const Directive &directive, std::stack
 		{
 			const std::vector<Word>	&args = it->getArgs();
 
-			if (it->getChildren().size() > 0)
-			{
-				throw PreprocessorIncludeDirectiveIllegalBody("Include directive cannot have a body", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
-			}
 			if (args.size() < 1)
 			{
-				throw PreprocessorIncludeDirectiveInvalidArguments("Include directive requires at least one argument", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw PreprocessorInvalidArguments("Include directive requires at least one argument", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+			}
+			else if (it->hasBody())
+			{
+				throw PreprocessorIllegalBody("Include directive cannot have a body", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 			}
 			for (size_t i = 0; i < args.size(); ++i)
 			{
-				include_stack.push(args[i].getContent());
-				AST	included_ast = expand(Parser::parse(Lexer::tokenize(args[i].getContent())), include_stack);
-				include_stack.pop();
-				preprocessed_directives.insert(preprocessed_directives.end(), included_ast.getDirectives().begin(), included_ast.getDirectives().end());
+				try
+				{
+					include_stack.push(args[i].getContent());
+					AST	included_ast = expand(Parser::parse(Lexer::tokenize(args[i].getContent())), include_stack);
+					include_stack.pop();
+					preprocessed_directives.insert(preprocessed_directives.end(), included_ast.getDirectives().begin(), included_ast.getDirectives().end());
+				}
+				catch (const Lexer::LexerFileOpenFailure &e)
+				{
+					throw PreprocessorInvalidArguments(e.what(), it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				}
 			}
 		}
-		else if (it->getChildren().size() > 0)
+		else if (it->hasBody())
 		{
 			Directive	preprocessed_directive = *it;
 
@@ -114,34 +128,34 @@ std::list<Directive>	Preprocessor::expand(const Directive &directive, std::stack
 	return (preprocessed_directives);
 }
 
-Preprocessor::PreprocessorIncludeDirectiveInvalidArguments::~PreprocessorIncludeDirectiveInvalidArguments() throw()
+Preprocessor::PreprocessorInvalidArguments::~PreprocessorInvalidArguments() throw()
 {
 }
 
-Preprocessor::PreprocessorIncludeDirectiveInvalidArguments::PreprocessorIncludeDirectiveInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Preprocessor::PreprocessorInvalidArguments::PreprocessorInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
 {
 	std::stringstream ss;
 	ss << filename << ":" << line_number << ":" << column_number << " " << description;
 	_message = ss.str();
 }
 
-const char	*Preprocessor::PreprocessorIncludeDirectiveInvalidArguments::what() const throw()
+const char	*Preprocessor::PreprocessorInvalidArguments::what() const throw()
 {
 	return _message.c_str();
 }
 
-Preprocessor::PreprocessorIncludeDirectiveIllegalBody::~PreprocessorIncludeDirectiveIllegalBody() throw()
+Preprocessor::PreprocessorIllegalBody::~PreprocessorIllegalBody() throw()
 {
 }
 
-Preprocessor::PreprocessorIncludeDirectiveIllegalBody::PreprocessorIncludeDirectiveIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Preprocessor::PreprocessorIllegalBody::PreprocessorIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
 {
 	std::stringstream ss;
 	ss << filename << ":" << line_number << ":" << column_number << " " << description;
 	_message = ss.str();
 }
 
-const char	*Preprocessor::PreprocessorIncludeDirectiveIllegalBody::what() const throw()
+const char	*Preprocessor::PreprocessorIllegalBody::what() const throw()
 {
 	return _message.c_str();
 }

@@ -11,11 +11,48 @@ class	Semantic
 {
 	private:
 		
-		Server		analyseServer(const std::list<Directive> &directives);
-		Location	analyseLocation(const std::list<Directive> &directives);
+		static Server	analyseServer(const std::list<Directive> &directives);
+		static Location	analyseLocation(const std::list<Directive> &directives);
 	public:
 		Semantic();
 		~Semantic();
 
-		Config	analyseAST(const AST &ast);
+		static Config	analyseAST(const AST &ast);
+
+		class	SemanticUnknownDirective: public std::exception
+		{
+			private:
+				std::string	_message;
+			public:
+				virtual ~SemanticUnknownDirective() throw();
+				SemanticUnknownDirective(const std::string &directive, const std::string &filename, size_t line_number, size_t column_number);
+				virtual const char	*what() const throw();
+		};
+		class	SemanticInvalidArguments: public std::exception
+		{
+			private:
+				std::string	_message;
+			public:
+				virtual ~SemanticInvalidArguments() throw();
+				SemanticInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				virtual const char	*what() const throw();
+		};
+		class	SemanticIllegalBody: public std::exception
+		{
+			private:
+				std::string	_message;
+			public:
+				virtual ~SemanticIllegalBody() throw();
+				SemanticIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				virtual const char	*what() const throw();
+		};
+		class	SemanticBodyNotSpecified: public std::exception
+		{
+			private:
+				std::string	_message;
+			public:
+				virtual ~SemanticBodyNotSpecified() throw();
+				SemanticBodyNotSpecified(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				virtual const char	*what() const throw();
+		};
 };

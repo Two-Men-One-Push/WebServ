@@ -28,7 +28,7 @@ AST	Parser::parse(const TokenStream &token_stream)
 	ast.setFilename(token_stream.getFilename());
 	parseListDirective(it, end, ast.getDirectivesRef());
 	if (it->getType() != Token::_EOF)
-		throw ParserUnexpectedToken("end of file", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 	return (ast);
 }
 
@@ -53,13 +53,14 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 				return (directive);
 			case Token::NEWLINE:
 			case Token::LBRACE:
+				directive.setHasBody(true);
 				parseBlock(it, end, directive.getChildrenRef());
 				return (directive);
 			default:
-				throw ParserUnexpectedToken("directive argument, block start or directive end", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 		}
 	}
-	throw ParserUnexpectedEndOfFile("directive argument, block start or directive end", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+	throw ParserUnexpectedEndOfFile(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 }
 
 /*
@@ -77,16 +78,16 @@ void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iter
 	if (it->getType() == Token::LBRACE)
 		it++;
 	else if (it->getType() == Token::_EOF)
-		throw ParserUnexpectedEndOfFile("block start", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedEndOfFile(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 	else
-		throw ParserUnexpectedToken("block start", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 	parseListDirective(it, end, directives);
 	if (it->getType() == Token::RBRACE)
 		it++;
 	else if (it->getType() == Token::_EOF)
-		throw ParserUnexpectedEndOfFile("}", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedEndOfFile(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 	else
-		throw ParserUnexpectedToken("}", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
 }
 
 /*
@@ -114,10 +115,10 @@ Parser::ParserUnexpectedToken::~ParserUnexpectedToken() throw()
 {
 }
 
-Parser::ParserUnexpectedToken::ParserUnexpectedToken(const std::string &expected, const std::string &filename, size_t line_number, size_t column_number): _message()
+Parser::ParserUnexpectedToken::ParserUnexpectedToken(const std::string &filename, size_t line_number, size_t column_number): _message()
 {
 	std::stringstream	ss;
-	ss << filename << ":" << line_number << ":" << column_number << " Unexpected token (expected: " << expected << ")";
+	ss << filename << ":" << line_number << ":" << column_number << " Unexpected token";
 	_message = ss.str();
 }
 
@@ -125,10 +126,10 @@ Parser::ParserUnexpectedEndOfFile::~ParserUnexpectedEndOfFile() throw()
 {
 }
 
-Parser::ParserUnexpectedEndOfFile::ParserUnexpectedEndOfFile(const std::string &expected, const std::string &filename, size_t line_number, size_t column_number): _message()
+Parser::ParserUnexpectedEndOfFile::ParserUnexpectedEndOfFile(const std::string &filename, size_t line_number, size_t column_number): _message()
 {
 	std::stringstream	ss;
-	ss << filename << ":" << line_number << ":" << column_number << " Unexpected end of file (expected: " << expected << ")";
+	ss << filename << ":" << line_number << ":" << column_number << " Unexpected end of file";
 	_message = ss.str();
 }
 

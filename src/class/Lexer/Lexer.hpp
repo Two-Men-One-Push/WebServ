@@ -14,6 +14,15 @@ class	Lexer
 
 		static TokenStream	tokenize(const std::string &filename);
 
+		class	LexerFileOpenFailure: public std::exception
+		{
+			private:
+				std::string		_message;
+			public:
+				virtual ~LexerFileOpenFailure() throw();
+				LexerFileOpenFailure(const std::string &description, const std::string &filename);
+				virtual const char	*what() const throw();
+		};
 		class	LexerUnexpectedControlCharacter: public std::exception
 		{
 			private:
