@@ -25,7 +25,7 @@ class	Semantic
 				std::string	_message;
 			public:
 				virtual ~SemanticUnknownDirective() throw();
-				SemanticUnknownDirective(const std::string &directive, const std::string &filename, size_t line_number, size_t column_number);
+				SemanticUnknownDirective(const std::string &directive, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 		class	SemanticInvalidArguments: public std::exception
@@ -34,7 +34,7 @@ class	Semantic
 				std::string	_message;
 			public:
 				virtual ~SemanticInvalidArguments() throw();
-				SemanticInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				SemanticInvalidArguments(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 		class	SemanticIllegalBody: public std::exception
@@ -43,7 +43,7 @@ class	Semantic
 				std::string	_message;
 			public:
 				virtual ~SemanticIllegalBody() throw();
-				SemanticIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				SemanticIllegalBody(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 		class	SemanticBodyNotSpecified: public std::exception
@@ -52,7 +52,7 @@ class	Semantic
 				std::string	_message;
 			public:
 				virtual ~SemanticBodyNotSpecified() throw();
-				SemanticBodyNotSpecified(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				SemanticBodyNotSpecified(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 };

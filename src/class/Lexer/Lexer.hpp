@@ -1,7 +1,9 @@
 #pragma once
 
 #include "TokenStream.hpp"
+#include "ErrorInfo.hpp"
 #include "Token.hpp"
+#include <exception>
 #include <iterator>
 #include <fstream>
 #include <vector>

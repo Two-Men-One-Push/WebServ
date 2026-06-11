@@ -1,6 +1,6 @@
 #include "Word.hpp"
 
-Word::Word()
+Word::Word(): ErrorInfo()
 {
 }
 
@@ -8,7 +8,7 @@ Word::~Word()
 {
 }
 
-Word::Word(const Word &copy): _segments(copy._segments)
+Word::Word(const Word &copy): ErrorInfo(copy), _segments(copy._segments)
 {
 }
 
@@ -16,6 +16,7 @@ Word	&Word::operator=(const Word &other)
 {
 	if (this != &other)
 	{
+		ErrorInfo::operator=(other);
 		_segments = other._segments;
 	}
 	return (*this);
@@ -24,6 +25,7 @@ Word	&Word::operator=(const Word &other)
 void	Word::clear()
 {
 	_segments.clear();
+	ErrorInfo::clear();
 }
 
 bool	Word::empty() const
@@ -37,9 +39,7 @@ void	Word::addSegment(Segment &segment)
 		return ;
 	if (_segments.size() == 0)
 	{
-		_filename = segment.getFilename();
-		_line_number = segment.getLineNumber();
-		_column_number = segment.getColumnNumber();
+		ErrorInfo::operator=(segment);
 	}
 	_segments.push_back(segment);
 	segment.clear();
@@ -76,28 +76,4 @@ std::string	Word::getRawContent() const
 const std::vector<Segment>	&Word::getSegments() const
 {
 	return (_segments);
-}
-
-const std::string	&Word::getFilename() const
-{
-	if (_segments.size() > 0)
-		return (_segments[0].getFilename());
-	else
-		return (_filename);
-}
-
-size_t	Word::getLineNumber() const
-{
-	if (_segments.size() > 0)
-		return (_segments[0].getLineNumber());
-	else
-		return (_line_number);
-}
-
-size_t	Word::getColumnNumber() const
-{
-	if (_segments.size() > 0)
-		return (_segments[0].getColumnNumber());
-	else
-		return (_column_number);
 }

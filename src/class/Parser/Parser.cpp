@@ -28,7 +28,7 @@ AST	Parser::parse(const TokenStream &token_stream)
 	ast.setFilename(token_stream.getFilename());
 	parseListDirective(it, end, ast.getDirectivesRef());
 	if (it->getType() != Token::_EOF)
-		throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedToken("Unexpected token expected directive or EOF", *it);
 	return (ast);
 }
 
@@ -57,10 +57,10 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 				parseBlock(it, end, directive.getChildrenRef());
 				return (directive);
 			default:
-				throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw ParserUnexpectedToken("Unexpected token expected argument or directive end or block", *it);
 		}
 	}
-	throw ParserUnexpectedEndOfFile(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+	throw ParserUnexpectedEndOfFile("Unexpected end of file expected argument or directive end or block", *it);
 }
 
 /*
@@ -78,16 +78,16 @@ void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iter
 	if (it->getType() == Token::LBRACE)
 		it++;
 	else if (it->getType() == Token::_EOF)
-		throw ParserUnexpectedEndOfFile(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedEndOfFile("Unexpected end of file expected '{' or ';'", *it);
 	else
-		throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedToken("Unexpected token expected '{' or ';'", *it);
 	parseListDirective(it, end, directives);
 	if (it->getType() == Token::RBRACE)
 		it++;
 	else if (it->getType() == Token::_EOF)
-		throw ParserUnexpectedEndOfFile(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedEndOfFile("Unexpected end of file expected '}'", *it);
 	else
-		throw ParserUnexpectedToken(it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+		throw ParserUnexpectedToken("Unexpected token expected '}'", *it);
 }
 
 /*
@@ -115,10 +115,10 @@ Parser::ParserUnexpectedToken::~ParserUnexpectedToken() throw()
 {
 }
 
-Parser::ParserUnexpectedToken::ParserUnexpectedToken(const std::string &filename, size_t line_number, size_t column_number): _message()
+Parser::ParserUnexpectedToken::ParserUnexpectedToken(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream	ss;
-	ss << filename << ":" << line_number << ":" << column_number << " Unexpected token";
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 
@@ -126,10 +126,10 @@ Parser::ParserUnexpectedEndOfFile::~ParserUnexpectedEndOfFile() throw()
 {
 }
 
-Parser::ParserUnexpectedEndOfFile::ParserUnexpectedEndOfFile(const std::string &filename, size_t line_number, size_t column_number): _message()
+Parser::ParserUnexpectedEndOfFile::ParserUnexpectedEndOfFile(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream	ss;
-	ss << filename << ":" << line_number << ":" << column_number << " Unexpected end of file";
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 

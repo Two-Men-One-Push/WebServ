@@ -35,11 +35,11 @@ AST	Preprocessor::expand(const AST &ast, std::stack<std::string> &include_stack)
 
 			if (args.size() < 1)
 			{
-				throw PreprocessorInvalidArguments("Include directive requires at least one argument", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw PreprocessorInvalidArguments("Include directive requires at least one argument", *it);
 			}
 			else if (it->hasBody())
 			{
-				throw PreprocessorIllegalBody("Include directive cannot have a body", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw PreprocessorIllegalBody("Include directive cannot have a body", *it);
 			}
 			for (size_t i = 0; i < args.size(); ++i)
 			{
@@ -47,7 +47,7 @@ AST	Preprocessor::expand(const AST &ast, std::stack<std::string> &include_stack)
 				{
 					if (tmp_stack.top() == args[i].getContent())
 					{
-						throw PreprocessorInvalidArguments("Circular include detected", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+						throw PreprocessorInvalidArguments("Circular include detected", *it);
 					}
 				}
 				try
@@ -59,7 +59,7 @@ AST	Preprocessor::expand(const AST &ast, std::stack<std::string> &include_stack)
 				}
 				catch (const Lexer::LexerFileOpenFailure &e)
 				{
-					throw PreprocessorInvalidArguments(e.what(), it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+					throw PreprocessorInvalidArguments(e.what(), *it);
 				}
 			}
 		}
@@ -91,11 +91,11 @@ std::list<Directive>	Preprocessor::expand(const Directive &directive, std::stack
 
 			if (args.size() < 1)
 			{
-				throw PreprocessorInvalidArguments("Include directive requires at least one argument", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw PreprocessorInvalidArguments("Include directive requires at least one argument", *it);
 			}
 			else if (it->hasBody())
 			{
-				throw PreprocessorIllegalBody("Include directive cannot have a body", it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+				throw PreprocessorIllegalBody("Include directive cannot have a body", *it);
 			}
 			for (size_t i = 0; i < args.size(); ++i)
 			{
@@ -108,7 +108,7 @@ std::list<Directive>	Preprocessor::expand(const Directive &directive, std::stack
 				}
 				catch (const Lexer::LexerFileOpenFailure &e)
 				{
-					throw PreprocessorInvalidArguments(e.what(), it->getFilename(), it->getLineNumber(), it->getColumnNumber());
+					throw PreprocessorInvalidArguments(e.what(), *it);
 				}
 			}
 		}
@@ -132,10 +132,10 @@ Preprocessor::PreprocessorInvalidArguments::~PreprocessorInvalidArguments() thro
 {
 }
 
-Preprocessor::PreprocessorInvalidArguments::PreprocessorInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Preprocessor::PreprocessorInvalidArguments::PreprocessorInvalidArguments(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " " << description;
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 
@@ -148,10 +148,10 @@ Preprocessor::PreprocessorIllegalBody::~PreprocessorIllegalBody() throw()
 {
 }
 
-Preprocessor::PreprocessorIllegalBody::PreprocessorIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Preprocessor::PreprocessorIllegalBody::PreprocessorIllegalBody(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " " << description;
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 

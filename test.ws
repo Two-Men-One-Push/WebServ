@@ -1,13 +1,8 @@
 server
 {
-	location uri {
-		include test2.ws test3.ws;
-
-
-
-
-
-
-
+	listen 80;
+	location /
+	{
+		include test2.ws;
 	}
 }

@@ -3,13 +3,10 @@
 #include "Segment.hpp"
 #include <vector>
 
-class	Word
+class	Word: public ErrorInfo
 {
 	private:
 		std::vector<Segment>	_segments;
-		std::string				_filename;
-		size_t					_line_number;
-		size_t					_column_number;
 	public:
 		Word();
 		~Word();
@@ -24,7 +21,4 @@ class	Word
 		std::string					getContent() const;
 		std::string					getRawContent() const;
 		const std::vector<Segment>	&getSegments() const;
-		const std::string			&getFilename() const;
-		size_t						getLineNumber() const;
-		size_t						getColumnNumber() const;
 };

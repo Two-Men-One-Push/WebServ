@@ -27,7 +27,7 @@ class	Parser
 				std::string		_message;
 			public:
 				virtual ~ParserUnexpectedToken() throw();
-				ParserUnexpectedToken(const std::string &filename, size_t line_number, size_t column_number);
+				ParserUnexpectedToken(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 		class	ParserUnexpectedEndOfFile: public std::exception
@@ -36,7 +36,7 @@ class	Parser
 				std::string	_message;
 			public:
 				virtual ~ParserUnexpectedEndOfFile() throw();
-				ParserUnexpectedEndOfFile(const std::string &filename, size_t line_number, size_t column_number);
+				ParserUnexpectedEndOfFile(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 };

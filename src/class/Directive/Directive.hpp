@@ -1,21 +1,19 @@
 #pragma once
 
+#include "ErrorInfo.hpp"
 #include "Segment.hpp"
 #include "Word.hpp"
 #include <vector>
 #include <list>
 #include <string>
 
-class	Directive
+class	Directive: public ErrorInfo
 {
 	private:
 		Word					_name;
 		std::vector<Word>		_args;
 		bool					_has_body;
 		std::list<Directive>	_children;
-		std::string				_filename;
-		size_t					_line_number;
-		size_t					_column_number;
 	public:
 		~Directive();
 		Directive(const Word &name, const std::string &filename, size_t line_number, size_t column_number);
@@ -31,7 +29,4 @@ class	Directive
 		void				addArg(const Word &arg);
 		void				addChild(const Directive &child);
 		void				setHasBody(bool has_body);
-		const std::string	&getFilename() const;
-		size_t				getLineNumber() const;
-		size_t				getColumnNumber() const;
 };

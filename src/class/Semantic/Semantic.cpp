@@ -25,18 +25,18 @@ Config	Semantic::analyseAST(const AST &ast)
 		{
 			if (directive.getArgs().size() > 0)
 			{
-				throw SemanticInvalidArguments("Server directive cannot have arguments", directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+				throw SemanticInvalidArguments("Server directive cannot have arguments", directive);
 			}
 			else if (!directive.hasBody())
 			{
-				throw SemanticBodyNotSpecified("Server directive must have a body", directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+				throw SemanticBodyNotSpecified("Server directive must have a body", directive);
 			}
 			Server	server = analyseServer(directive.getChildren());
 			config.addServer(server);
 		}
 		else
 		{
-			throw SemanticUnknownDirective(directive.getName().getRawContent(), directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+			throw SemanticUnknownDirective(directive.getName().getRawContent(), directive);
 		}
 	}
 	return (config);
@@ -49,22 +49,34 @@ Server	Semantic::analyseServer(const std::list<Directive> &directives)
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const Directive	&directive = *it;
-		if (directive.getName().getRawContent().compare("location") == 0)
+		if (directive.getName().getRawContent().compare("listen") == 0)
 		{
 			if (directive.getArgs().size() != 1)
 			{
-				throw SemanticInvalidArguments("Location directive requires exactly one argument", directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+				throw SemanticInvalidArguments("Listen directive requires exactly one argument", directive);
+			}
+			else if (directive.hasBody())
+			{
+				throw SemanticIllegalBody("Listen directive cannot have a body", directive);
+			}
+			//set listen
+		}
+		else if (directive.getName().getRawContent().compare("location") == 0)
+		{
+			if (directive.getArgs().size() != 1)
+			{
+				throw SemanticInvalidArguments("Location directive requires exactly one argument", directive);
 			}
 			else if (!directive.hasBody())
 			{
-				throw SemanticBodyNotSpecified("Location directive must have a body", directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+				throw SemanticBodyNotSpecified("Location directive must have a body", directive);
 			}
 			Location	location = analyseLocation(directive.getChildren());
 			server.addLocation(location);
 		}
 		else
 		{
-			throw SemanticUnknownDirective(directive.getName().getRawContent(), directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+			throw SemanticUnknownDirective(directive.getName().getRawContent(), directive);
 		}
 	}
 	return (server);
@@ -81,18 +93,18 @@ Location	Semantic::analyseLocation(const std::list<Directive> &directives)
 		{
 			if (directive.getArgs().size() != 1)
 			{
-				throw SemanticInvalidArguments("Location directive requires exactly one argument", directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+				throw SemanticInvalidArguments("Location directive requires exactly one argument", directive);
 			}
 			else if (!directive.hasBody())
 			{
-				throw SemanticBodyNotSpecified("Location directive must have a body", directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+				throw SemanticBodyNotSpecified("Location directive must have a body", directive);
 			}
 			Location	location = analyseLocation(directive.getChildren());
 			location.addLocation(location);
 		}
 		else
 		{
-			throw SemanticUnknownDirective(directive.getName().getRawContent(), directive.getFilename(), directive.getLineNumber(), directive.getColumnNumber());
+			throw SemanticUnknownDirective(directive.getName().getRawContent(), directive);
 		}
 	}
 	return (location);
@@ -102,10 +114,10 @@ Semantic::SemanticUnknownDirective::~SemanticUnknownDirective() throw()
 {
 }
 
-Semantic::SemanticUnknownDirective::SemanticUnknownDirective(const std::string &directive, const std::string &filename, size_t line_number, size_t column_number)
+Semantic::SemanticUnknownDirective::SemanticUnknownDirective(const std::string &directive, const ErrorInfo &error_info) : _message()
 {
 	std::stringstream	ss;
-	ss << filename << ":" << line_number << ":" << column_number << " Unknown directive '" << directive << "'";
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " Unknown directive '" << directive << "'";
 	_message = ss.str();
 }
 
@@ -118,10 +130,10 @@ Semantic::SemanticInvalidArguments::~SemanticInvalidArguments() throw()
 {
 }
 
-Semantic::SemanticInvalidArguments::SemanticInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Semantic::SemanticInvalidArguments::SemanticInvalidArguments(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " " << description;
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 
@@ -134,10 +146,10 @@ Semantic::SemanticIllegalBody::~SemanticIllegalBody() throw()
 {
 }
 
-Semantic::SemanticIllegalBody::SemanticIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Semantic::SemanticIllegalBody::SemanticIllegalBody(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " " << description;
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 
@@ -150,10 +162,10 @@ Semantic::SemanticBodyNotSpecified::~SemanticBodyNotSpecified() throw()
 {
 }
 
-Semantic::SemanticBodyNotSpecified::SemanticBodyNotSpecified(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
+Semantic::SemanticBodyNotSpecified::SemanticBodyNotSpecified(const std::string &description, const ErrorInfo &error_info): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " " << description;
+	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
 	_message = ss.str();
 }
 

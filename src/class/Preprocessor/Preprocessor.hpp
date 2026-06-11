@@ -4,6 +4,7 @@
 #include "Lexer.hpp"
 #include "AST.hpp"
 #include "Directive.hpp"
+#include "ErrorInfo.hpp"
 #include <exception>
 #include <string>
 #include <stack>
@@ -25,7 +26,7 @@ class Preprocessor
 				std::string	_message;
 			public:
 				virtual ~PreprocessorInvalidArguments() throw();
-				PreprocessorInvalidArguments(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				PreprocessorInvalidArguments(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 		class	PreprocessorIllegalBody: public std::exception
@@ -34,7 +35,7 @@ class Preprocessor
 				std::string	_message;
 			public:
 				virtual ~PreprocessorIllegalBody() throw();
-				PreprocessorIllegalBody(const std::string &description, const std::string &filename, size_t line_number, size_t column_number);
+				PreprocessorIllegalBody(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 };
