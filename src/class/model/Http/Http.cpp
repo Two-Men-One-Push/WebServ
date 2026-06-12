@@ -1,6 +1,6 @@
 #include "Http.hpp"
 
-Http::Http(): _servers(), _mimeType()
+Http::Http(): _servers(), _mimetype()
 {
 }
 
@@ -8,7 +8,7 @@ Http::~Http()
 {
 }
 
-Http::Http(const Http &copy): _servers(copy._servers), _mimeType(copy._mimeType)
+Http::Http(const Http &copy): _servers(copy._servers), _mimetype(copy._mimetype)
 {
 }
 
@@ -17,27 +17,27 @@ Http	&Http::operator=(const Http &other)
 	if (this != &other)
 	{
 		this->_servers = other._servers;
-		this->_mimeType = other._mimeType;
+		this->_mimetype = other._mimetype;
 	}
 	return (*this);
 }
 
-void	Http::addServer(const Server &server)
-{
-	this->_servers.push_back(server);
-}
-
-const std::vector<Server>	&Http::getServers() const
+const std::vector<Server>	&Http::servers() const
 {
 	return (this->_servers);
 }
 
-const MimeType	&Http::getMimeType() const
+std::vector<Server>	&Http::servers()
 {
-	return (this->_mimeType);
+	return (this->_servers);
 }
 
-void	Http::setMimeType(const MimeType &mimeType)
+const MimeType	&Http::mimetype() const
 {
-	this->_mimeType = mimeType;
+	return (this->_mimetype);
+}
+
+MimeType	&Http::mimetype()
+{
+	return (this->_mimetype);
 }

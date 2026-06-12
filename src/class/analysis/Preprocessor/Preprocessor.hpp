@@ -12,13 +12,22 @@
 class Preprocessor
 {
 	private:
-		static std::list<Directive>	expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack);
+		static std::list<Directive>	expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack, bool &error_occurred);
 	public:
 		Preprocessor();
 		~Preprocessor();
 
 		static AST	preprocess(const AST &ast);
 	
+		class	PreprocessorError: public std::exception
+		{
+			private:
+				std::string	_message;
+			public:
+				virtual ~PreprocessorError() throw();
+				PreprocessorError(const std::string &description);
+				virtual const char	*what() const throw();
+		};
 		class	PreprocessorInvalidArguments: public std::exception
 		{
 			private:

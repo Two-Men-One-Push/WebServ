@@ -21,12 +21,12 @@ MimeType	&MimeType::operator=(const MimeType &other)
 	return (*this);
 }
 
-const std::map<std::string, std::string>	&MimeType::getMimeTypes() const
+const std::map<std::string, std::string>	&MimeType::mimetypes() const
 {
 	return (this->_mimeTypes);
 }
 
-void	MimeType::addMimeType(const std::string &extension, const std::string &mimeType)
+std::map<std::string, std::string>	&MimeType::mimetypes()
 {
-	this->_mimeTypes[extension] = mimeType;
+	return (this->_mimeTypes);
 }

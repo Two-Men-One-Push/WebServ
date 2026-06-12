@@ -2,7 +2,7 @@
 #include "Http.hpp"
 #include "MimeType.hpp"
 
-Config::Config(): _http(), _httpSet(false), _mimeType()
+Config::Config(): _http()
 {
 }
 
@@ -10,28 +10,25 @@ Config::~Config()
 {
 }
 
-const Http	&Config::getHttp() const
+Config::Config(const Config &copy): _http(copy._http)
+{
+}
+
+Config	&Config::operator=(const Config &other)
+{
+	if (this != &other)
+	{
+		this->_http = other._http;
+	}
+	return (*this);
+}
+
+const Http	&Config::http() const
 {
 	return (this->_http);
 }
 
-const MimeType	&Config::getMimeType() const
+Http	&Config::http()
 {
-	return (this->_mimeType);
-}
-
-bool	Config::isHttpSet() const
-{
-	return (this->_httpSet);
-}
-
-void	Config::setHttp(const Http &http)
-{
-	this->_http = http;
-	this->_httpSet = true;
-}
-
-void	Config::setMimeType(const MimeType &mimeType)
-{
-	this->_mimeType = mimeType;
+	return (this->_http);
 }

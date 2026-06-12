@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(): _locations(), _mimeType()
+Server::Server(): _locations(), _listen(), _mimeType()
 {
 }
 
@@ -8,32 +8,37 @@ Server::~Server()
 {
 }
 
-void	Server::addLocation(const Location &location)
+Server::Server(const Server &copy): _locations(copy._locations), _listen(copy._listen), _mimeType(copy._mimeType)
 {
-	_locations.push_back(location);
 }
 
-const std::vector<Location>	&Server::getLocations() const
+Server	&Server::operator=(const Server &other)
 {
-	return (_locations);
+	if (this != &other)
+	{
+		this->_locations = other._locations;
+		this->_listen = other._listen;
+		this->_mimeType = other._mimeType;
+	}
+	return (*this);
 }
 
-const MimeType	&Server::getMimeType() const
+const std::vector<Location>	&Server::locations() const
+{
+	return (this->_locations);
+}
+
+std::vector<Location>	&Server::locations()
+{
+	return (this->_locations);
+}
+
+const MimeType	&Server::mimetype() const
 {
 	return (this->_mimeType);
 }
 
-void	Server::setMimeType(const MimeType &mimeType)
+MimeType	&Server::mimetype()
 {
-	this->_mimeType = mimeType;
-}
-
-void	Server::addListen(const std::string &listen)
-{
-	this->_listen.push_back(listen);
-}
-
-const std::vector<std::string>	&Server::getListen() const
-{
-	return (this->_listen);
+	return (this->_mimeType);
 }

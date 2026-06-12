@@ -12,59 +12,22 @@
 class	Semantic
 {
 	private:
+		
 		static Http		analyseHttp(const std::list<Directive> &directives);
 		static Server	analyseServer(const std::list<Directive> &directives);
 		static Location	analyseLocation(const std::list<Directive> &directives);
 		static MimeType	analyseMimeType(const std::list<Directive> &directives);
+		static void		analyseDirective(const Directive &directive, Config &config);
 	public:
 		Semantic();
 		~Semantic();
 
 		static Config	analyseAST(const AST &ast);
 
-		class	SemanticUnknownDirective: public std::exception
+		class	SemanticError: public std::exception
 		{
-			private:
-				std::string	_message;
 			public:
-				virtual ~SemanticUnknownDirective() throw();
-				SemanticUnknownDirective(const std::string &directive, const ErrorInfo &error_info);
-				virtual const char	*what() const throw();
-		};
-		class	SemanticInvalidDirective: public std::exception
-		{
-			private:
-				std::string	_message;
-			public:
-				virtual ~SemanticInvalidDirective() throw();
-				SemanticInvalidDirective(const std::string &description, const ErrorInfo &error_info);
-				virtual const char	*what() const throw();
-		};
-		class	SemanticInvalidArguments: public std::exception
-		{
-			private:
-				std::string	_message;
-			public:
-				virtual ~SemanticInvalidArguments() throw();
-				SemanticInvalidArguments(const std::string &description, const ErrorInfo &error_info);
-				virtual const char	*what() const throw();
-		};
-		class	SemanticIllegalBody: public std::exception
-		{
-			private:
-				std::string	_message;
-			public:
-				virtual ~SemanticIllegalBody() throw();
-				SemanticIllegalBody(const std::string &description, const ErrorInfo &error_info);
-				virtual const char	*what() const throw();
-		};
-		class	SemanticBodyNotSpecified: public std::exception
-		{
-			private:
-				std::string	_message;
-			public:
-				virtual ~SemanticBodyNotSpecified() throw();
-				SemanticBodyNotSpecified(const std::string &description, const ErrorInfo &error_info);
+				virtual ~SemanticError() throw();
 				virtual const char	*what() const throw();
 		};
 };

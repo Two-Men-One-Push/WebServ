@@ -6,17 +6,13 @@
 class	Config
 {
 	private:
-		bool		_error;
 		Http		_http;
-		bool		_httpSet;
-		MimeType	_mimeType;
 	public:
 		Config();
 		~Config();
+		Config(const Config &copy);
+		Config	&operator=(const Config &other);
 
-		const Http	&getHttp() const;
-		const MimeType	&getMimeType() const;
-		bool	isHttpSet() const;
-		void	setHttp(const Http &http);
-		void	setMimeType(const MimeType &mimeType);
+		const Http	&http() const;
+		Http		&http();
 };

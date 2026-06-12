@@ -7,17 +7,16 @@
 class	Http
 {
 	private:
-		bool				_error;
 		std::vector<Server>	_servers;
-		MimeType			_mimeType;
+		MimeType			_mimetype;
 	public:
 		Http();
 		~Http();
 		Http(const Http &copy);
 		Http	&operator=(const Http &other);
 
-		void	addServer(const Server &server);
-		const std::vector<Server>	&getServers() const;
-		const MimeType	&getMimeType() const;
-		void	setMimeType(const MimeType &mimeType);
+		const std::vector<Server>	&servers() const;
+		std::vector<Server>			&servers();
+		const MimeType				&mimetype() const;
+		MimeType					&mimetype();
 };

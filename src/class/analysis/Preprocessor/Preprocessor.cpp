@@ -19,15 +19,20 @@ Preprocessor::~Preprocessor()
 AST	Preprocessor::preprocess(const AST &ast)
 {
 	std::stack<std::string>	include_stack;
+	bool	error_occurred = false;
 	AST	preprocessed_ast;
 
 	include_stack.push(ast.getFilename());
 	preprocessed_ast.setFilename(ast.getFilename());
-	preprocessed_ast.getDirectivesRef() = expand(ast.getDirectives(), include_stack);
+	preprocessed_ast.getDirectivesRef() = expand(ast.getDirectives(), include_stack, error_occurred);
+	if (error_occurred)
+	{
+		throw PreprocessorError("Errors occurred during preprocessing");
+	}
 	return (preprocessed_ast);
 }
 
-std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack)
+std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack, bool &error_occurred)
 {
 	std::list<Directive>	preprocessed_directives;
 
@@ -40,11 +45,13 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 			if (directive_it->hasBody())
 			{
 				std::cerr << PreprocessorIllegalBody("Include directive cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
+				error_occurred = true;
 			}
 			if (directive_it->getArgs().size() < 1)
 			{
 				std::cerr << PreprocessorInvalidArguments("Include directive requires at least one argument", *directive_it).what() << std::endl;
 				canProcess = false;
+				error_occurred = true;
 			}
 			if (canProcess)
 			{
@@ -57,6 +64,7 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 						{
 							std::cerr << PreprocessorInvalidArguments("Circular include detected", *arg_it).what() << std::endl;
 							circular_include = true;
+							error_occurred = true;
 							break;
 						}
 					}
@@ -67,13 +75,14 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 						include_stack.push(arg_it->getContent());
 						AST	included_ast;
 						included_ast.setFilename(arg_it->getContent());
-						included_ast.getDirectivesRef() = expand(Parser::parse(Lexer::tokenize(arg_it->getContent())).getDirectives(), include_stack);
+						included_ast.getDirectivesRef() = expand(Parser::parse(Lexer::tokenize(arg_it->getContent())).getDirectives(), include_stack, error_occurred);
 						include_stack.pop();
 						preprocessed_directives.insert(preprocessed_directives.end(), included_ast.getDirectives().begin(), included_ast.getDirectives().end());
 					}
 					catch (const Lexer::LexerFileOpenFailure &e)
 					{
 						std::cerr << PreprocessorInvalidArguments(e.what(), *arg_it).what() << std::endl;
+						error_occurred = true;
 					}
 				}
 			}
@@ -83,7 +92,7 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 			Directive	preprocessed_directive(*directive_it);
 
 			preprocessed_directive.getChildrenRef().clear();
-			preprocessed_directive.getChildrenRef() = expand(directive_it->getChildren(), include_stack);
+			preprocessed_directive.getChildrenRef() = expand(directive_it->getChildren(), include_stack, error_occurred);
 			preprocessed_directives.push_back(preprocessed_directive);
 		}
 		else
@@ -92,6 +101,19 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 		}
 	}
 	return (preprocessed_directives);
+}
+
+Preprocessor::PreprocessorError::~PreprocessorError() throw()
+{
+}
+
+Preprocessor::PreprocessorError::PreprocessorError(const std::string &description): _message(description)
+{
+}
+
+const char	*Preprocessor::PreprocessorError::what() const throw()
+{
+	return _message.c_str();
 }
 
 Preprocessor::PreprocessorInvalidArguments::~PreprocessorInvalidArguments() throw()

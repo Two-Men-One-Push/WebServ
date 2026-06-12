@@ -8,22 +8,36 @@ Location::~Location()
 {
 }
 
-void	Location::addLocation(const Location &location)
+Location::Location(const Location &copy): _locations(copy._locations), _mimeType(copy._mimeType)
 {
-	_locations.push_back(location);
 }
 
-const std::vector<Location>	&Location::getLocations() const
+Location	&Location::operator=(const Location &other)
 {
-	return (_locations);
+	if (this != &other)
+	{
+		this->_locations = other._locations;
+		this->_mimeType = other._mimeType;
+	}
+	return (*this);
 }
 
-const MimeType	&Location::getMimeType() const
+const std::vector<Location>	&Location::locations() const
+{
+	return (this->_locations);
+}
+
+std::vector<Location>	&Location::locations()
+{
+	return (this->_locations);
+}
+
+const MimeType	&Location::mimetype() const
 {
 	return (this->_mimeType);
 }
 
-void	Location::setMimeType(const MimeType &mimeType)
+MimeType	&Location::mimetype()
 {
-	this->_mimeType = mimeType;
+	return (this->_mimeType);
 }
