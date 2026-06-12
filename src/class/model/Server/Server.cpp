@@ -23,6 +23,16 @@ Server	&Server::operator=(const Server &other)
 	return (*this);
 }
 
+const std::vector<std::string>	&Server::listen() const
+{
+	return (this->_listen);
+}
+
+std::vector<std::string>	&Server::listen()
+{
+	return (this->_listen);
+}
+
 const std::vector<Location>	&Server::locations() const
 {
 	return (this->_locations);

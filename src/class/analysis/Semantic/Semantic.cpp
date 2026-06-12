@@ -1,12 +1,5 @@
 #include "Semantic.hpp"
-#include "Config.hpp"
-#include "Server.hpp"
-#include "Location.hpp"
-#include "Directive.hpp"
 #include "Word.hpp"
-#include <iostream>
-#include <sstream>
-#include <vector>
 
 Semantic::Semantic()
 {
@@ -16,283 +9,154 @@ Semantic::~Semantic()
 {
 }
 
-Config	Semantic::analyseAST(const AST &ast)
+bool	Semantic::checkShape(const Directive &d, ArgShape args, BodyShape body, DiagnosticContext &diag)
 {
-	Config	config;
+	bool		canProcess = true;
+	std::string	name = d.getName().getRawContent();
+
+	if (args == ARGS_FORBIDDEN && !d.getArgs().empty())
+	{
+		for (std::vector<Word>::const_iterator it = d.getArgs().begin(); it != d.getArgs().end(); ++it)
+			diag.report("'" + name + "' directive does not take arguments", *it);
+	}
+	else if (args == ARGS_REQUIRED && d.getArgs().empty())
+	{
+		diag.report("'" + name + "' directive requires at least one argument", d);
+		canProcess = false;
+	}
+	else if (args == ARGS_EXACT_ONE && d.getArgs().size() != 1)
+	{
+		diag.report("'" + name + "' directive requires exactly one argument", d);
+		if (d.getArgs().empty())
+			canProcess = false;
+	}
+
+	if (body == BODY_FORBIDDEN && d.hasBody())
+		diag.report("'" + name + "' directive cannot have a body", d.getBlockErrorInfo());
+	else if (body == BODY_REQUIRED && !d.hasBody())
+	{
+		diag.report("'" + name + "' directive requires a body", d);
+		canProcess = false;
+	}
+
+	return canProcess;
+}
+
+Config	Semantic::analyseAST(const AST &ast, DiagnosticContext &diag)
+{
+	Config config;
 
 	for (std::list<Directive>::const_iterator it = ast.getDirectives().begin(); it != ast.getDirectives().end(); ++it)
 	{
-		this->
-	}
-	return (config);
-}
-
-Http	Semantic::analyseHttp(const std::list<Directive> &directives)
-{
-	Http	http;
-
-	for (std::list<Directive>::const_iterator directive_it = directives.begin(); directive_it != directives.end(); ++directive_it)
-	{
-		if (directive_it->getName().getRawContent().compare("server") == 0)
+		const std::string name = it->getName().getRawContent();
+		if (name == "http")
 		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() > 0)
-			{
-				for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
-				{
-					std::cerr << SemanticError("Server directive cannot have arguments", *arg_it).what() << std::endl;
-					http.setError(true);
-				}
-			}
-			else if (!directive_it->hasBody())
-			{
-				std::cerr << SemanticError("Server directive must have a body", *directive_it).what() << std::endl;
-				canProcess = false;
-				http.setError(true);
-			}
-			if (canProcess)
-			{
-				http.addServer(analyseServer(directive_it->getChildren()));
-				if (http.getServers().back().hasError())
-				{
-					http.setError(true);
-				}
-			}
-		}
-		else if (directive_it->getName().getRawContent().compare("mimetype") == 0)
-		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() > 0)
-			{
-				for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
-				{
-					std::cerr << SemanticError("MimeType directive cannot have arguments", *arg_it).what() << std::endl;
-					http.setError(true);
-				}
-			}
-			if (directive_it->hasBody())
-			{
-				std::cerr << SemanticError("MimeType directive cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-				http.setError(true);
-			}
-			if (canProcess)
-			{
-				http.setMimeType(analyseMimeType(directive_it->getChildren()));
-				if (http.getMimeType().hasError())
-				{
-					http.setError(true);
-				}
-			}
+			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
+				config.http() = analyseHttp(it->getChildren(), diag);
 		}
 		else
-		{
-			std::cerr << SemanticError(directive_it->getName().getRawContent(), *directive_it).what() << std::endl;
-			http.setError(true);
-		}
+			diag.report("unknown directive '" + name + "'", *it);
 	}
-	return (http);
+	return config;
 }
 
-Server	Semantic::analyseServer(const std::list<Directive> &directives)
+Http	Semantic::analyseHttp(const std::list<Directive> &directives, DiagnosticContext &diag)
 {
-	Server	server;
+	Http http;
 
-	for (std::list<Directive>::const_iterator directive_it = directives.begin(); directive_it != directives.end(); ++directive_it)
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		if (directive_it->getName().getRawContent().compare("listen") == 0)
+		const std::string name = it->getName().getRawContent();
+		if (name == "server")
 		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() < 1)
-			{
-				std::cerr << SemanticError("Listen directive requires at least one argument", *directive_it).what() << std::endl;
-				canProcess = false;
-				server.setError(true);
-			}
-			if (directive_it->hasBody())
-			{
-				std::cerr << SemanticError("Listen directive cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-				server.setError(true);
-			}
-			if (canProcess)
-			{
-				for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
-				{
-					//check if the port is a valid number between 1 and 65535
-					server.addListen(arg_it->getContent());
-				}
-			}
+			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
+				http.servers().push_back(analyseServer(it->getChildren(), diag));
 		}
-		else if (directive_it->getName().getRawContent().compare("location") == 0)
+		else if (name == "mimetype")
 		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() != 1)
-			{
-				std::cerr << SemanticError("Location directive requires exactly one argument", *directive_it).what() << std::endl;
-				server.setError(true);
-			}
-			if (!directive_it->hasBody())
-			{
-				std::cerr << SemanticError("Location directive must have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-				canProcess = false;
-				server.setError(true);
-			}
-			if (canProcess)
-			{
-				server.addLocation(analyseLocation(directive_it->getChildren()));
-				if (server.getLocations().back().hasError())
-				{
-					server.setError(true);
-				}
-			}
-		}
-		else if (directive_it->getName().getRawContent().compare("mimetype") == 0)
-		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() > 0)
-			{
-				for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
-				{
-					std::cerr << SemanticError("MimeType directive cannot have arguments", *arg_it).what() << std::endl;
-					server.setError(true);
-				}
-			}
-			if (directive_it->hasBody())
-			{
-				std::cerr << SemanticError("MimeType directive cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-				server.setError(true);
-			}
-			if (canProcess)
-			{
-				server.setMimeType(analyseMimeType(directive_it->getChildren()));
-				if (server.getMimeType().hasError())
-				{
-					server.setError(true);
-				}
-			}
+			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
+				http.mimetype() = analyseMimeType(it->getChildren(), diag);
 		}
 		else
-		{
-			std::cerr << SemanticError(directive_it->getName().getRawContent(), *directive_it).what() << std::endl;
-			server.setError(true);
-		}
+			diag.report("unknown directive '" + name + "'", *it);
 	}
-	if (server.getListen().empty())
-	{
-		server.addListen("80");
-	}
-	return (server);
+	return http;
 }
 
-Location	Semantic::analyseLocation(const std::list<Directive> &directives)
+Server	Semantic::analyseServer(const std::list<Directive> &directives, DiagnosticContext &diag)
 {
-	Location	location;
+	Server server;
 
-	for (std::list<Directive>::const_iterator directive_it = directives.begin(); directive_it != directives.end(); ++directive_it)
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		if (directive_it->getName().getRawContent().compare("location") == 0)
+		const std::string name = it->getName().getRawContent();
+		if (name == "listen")
 		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() != 1)
+			if (checkShape(*it, ARGS_REQUIRED, BODY_FORBIDDEN, diag))
 			{
-				std::cerr << SemanticError("Location directive requires exactly one argument", *directive_it).what() << std::endl;
-				location.setError(true);
-			}
-			if (!directive_it->hasBody())
-			{
-				std::cerr << SemanticBodyNotSpecified("Location directive must have a body", *directive_it).what() << std::endl;
-				canProcess = false;
-				location.setError(true);
-			}
-			if (canProcess)
-			{
-				location.addLocation(analyseLocation(directive_it->getChildren()));
-				if (location.getLocations().back().hasError())
-				{
-					location.setError(true);
-				}
+				for (std::vector<Word>::const_iterator arg = it->getArgs().begin(); arg != it->getArgs().end(); ++arg)
+					server.listen().push_back(arg->getContent());
 			}
 		}
-		else if (directive_it->getName().getRawContent().compare("mimetype") == 0)
+		else if (name == "location")
 		{
-			bool	canProcess = true;
-			if (directive_it->getArgs().size() > 0)
-			{
-				for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
-				{
-					std::cerr << SemanticInvalidArguments("MimeType directive cannot have arguments", *arg_it).what() << std::endl;
-					location.setError(true);
-				}
-			}
-			if (directive_it->hasBody())
-			{
-				std::cerr << SemanticIllegalBody("MimeType directive cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-				location.setError(true);
-			}
-			if (canProcess)
-			{
-				location.setMimeType(analyseMimeType(directive_it->getChildren()));
-				if (location.getMimeType().hasError())
-				{
-					location.setError(true);
-				}
-			}
+			if (checkShape(*it, ARGS_EXACT_ONE, BODY_REQUIRED, diag))
+				server.locations().push_back(analyseLocation(it->getChildren(), diag));
+		}
+		else if (name == "mimetype")
+		{
+			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
+				server.mimetype() = analyseMimeType(it->getChildren(), diag);
 		}
 		else
-		{
-			std::cerr << SemanticUnknownDirective(directive_it->getName().getRawContent(), *directive_it).what() << std::endl;
-			location.setError(true);
-		}
+			diag.report("unknown directive '" + name + "'", *it);
 	}
-	return (location);
+	if (server.listen().empty())
+		server.listen().push_back("80");
+	return server;
 }
 
-MimeType	Semantic::analyseMimeType(const std::list<Directive> &directives)
+Location	Semantic::analyseLocation(const std::list<Directive> &directives, DiagnosticContext &diag)
 {
-	MimeType	mimeType;
+	Location location;
 
-	for (std::list<Directive>::const_iterator directive_it = directives.begin(); directive_it != directives.end(); ++directive_it)
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		bool	canProcess = true;
-		if (directive_it->getArgs().size() < 1)
+		const std::string name = it->getName().getRawContent();
+		if (name == "location")
 		{
-			std::cerr << SemanticInvalidArguments("MimeType requires at least one arguments", *directive_it).what() << std::endl;
-			canProcess = false;
-			mimeType.setError(true);
+			if (checkShape(*it, ARGS_EXACT_ONE, BODY_REQUIRED, diag))
+				location.locations().push_back(analyseLocation(it->getChildren(), diag));
 		}
-		if (directive_it->hasBody())
+		else if (name == "mimetype")
 		{
-			std::cerr << SemanticIllegalBody("MimeType cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-			mimeType.setError(true);
+			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
+				location.mimetype() = analyseMimeType(it->getChildren(), diag);
 		}
-		if (canProcess)
+		else
+			diag.report("unknown directive '" + name + "'", *it);
+	}
+	return location;
+}
+
+MimeType	Semantic::analyseMimeType(const std::list<Directive> &directives, DiagnosticContext &diag)
+{
+	MimeType mimeType;
+
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
+	{
+		if (!checkShape(*it, ARGS_REQUIRED, BODY_FORBIDDEN, diag))
+			continue;
+
+		const std::string mime = it->getName().getRawContent();
+		for (std::vector<Word>::const_iterator arg = it->getArgs().begin(); arg != it->getArgs().end(); ++arg)
 		{
-			for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
-			{
-				if (mimeType.getMimeTypes().find(arg_it->getContent()) != mimeType.getMimeTypes().end())
-				{
-					std::cerr << SemanticInvalidArguments("MimeType for extension '" + arg_it->getContent() + "' already specified", *arg_it).what() << std::endl;
-					mimeType.setError(true);
-				}
-				else
-				{
-					mimeType.addMimeType(arg_it->getContent(), arg_it->getContent());
-				}
-			}
+			const std::string ext = arg->getContent();
+			if (mimeType.mimetypes().count(ext))
+				diag.report("duplicate extension '" + ext + "'", *arg);
+			else
+				mimeType.mimetypes()[ext] = mime;
 		}
 	}
-	return (mimeType);
-}
-
-void	Semantic::analyseDirective(const Directive &directive, Config &config)
-{
-	
-}
-
-Semantic::SemanticError::~SemanticError() throw()
-{
-}
-
-const char	*Semantic::SemanticError::what() const throw()
-{
-	return "Semantic analyzer found errors in the configuration";
+	return mimeType;
 }

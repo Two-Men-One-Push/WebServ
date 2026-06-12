@@ -1,12 +1,9 @@
 #include "Preprocessor.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"
-#include "Debug.hpp"
-#include <sstream>
 #include <iostream>
 #include <string>
 #include <stack>
-#include <iostream>
 
 Preprocessor::Preprocessor()
 {
@@ -16,134 +13,79 @@ Preprocessor::~Preprocessor()
 {
 }
 
-AST	Preprocessor::preprocess(const AST &ast)
+AST	Preprocessor::preprocess(const AST &ast, DiagnosticContext &diag)
 {
 	std::stack<std::string>	include_stack;
-	bool	error_occurred = false;
-	AST	preprocessed_ast;
+	AST						preprocessed_ast;
 
 	include_stack.push(ast.getFilename());
 	preprocessed_ast.setFilename(ast.getFilename());
-	preprocessed_ast.getDirectivesRef() = expand(ast.getDirectives(), include_stack, error_occurred);
-	if (error_occurred)
-	{
-		throw PreprocessorError("Errors occurred during preprocessing");
-	}
-	return (preprocessed_ast);
+	preprocessed_ast.getDirectivesRef() = expand(ast.getDirectives(), include_stack, diag);
+	return preprocessed_ast;
 }
 
-std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack, bool &error_occurred)
+std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack, DiagnosticContext &diag)
 {
-	std::list<Directive>	preprocessed_directives;
+	std::list<Directive>	result;
 
-	for (std::list<Directive>::const_iterator directive_it = directives.begin(); directive_it != directives.end(); ++directive_it)
+	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		if (directive_it->getName().getRawContent().compare("include") == 0)
+		if (it->getName().getRawContent() != "include")
 		{
-			bool	canProcess = true;
+			if (it->hasBody())
+			{
+				Directive expanded(*it);
+				expanded.getChildrenRef().clear();
+				expanded.getChildrenRef() = expand(it->getChildren(), include_stack, diag);
+				result.push_back(expanded);
+			}
+			else
+				result.push_back(*it);
+			continue;
+		}
 
-			if (directive_it->hasBody())
+		if (it->hasBody())
+			diag.report("'include' directive cannot have a body", it->getBlockErrorInfo());
+
+		if (it->getArgs().empty())
+		{
+			diag.report("'include' directive requires at least one argument", *it);
+			continue;
+		}
+
+		for (std::vector<Word>::const_iterator arg = it->getArgs().begin(); arg != it->getArgs().end(); ++arg)
+		{
+			bool circular = false;
+			for (std::stack<std::string> tmp = include_stack; !tmp.empty(); tmp.pop())
 			{
-				std::cerr << PreprocessorIllegalBody("Include directive cannot have a body", directive_it->getBlockErrorInfo()).what() << std::endl;
-				error_occurred = true;
-			}
-			if (directive_it->getArgs().size() < 1)
-			{
-				std::cerr << PreprocessorInvalidArguments("Include directive requires at least one argument", *directive_it).what() << std::endl;
-				canProcess = false;
-				error_occurred = true;
-			}
-			if (canProcess)
-			{
-				for (std::vector<Word>::const_iterator arg_it = directive_it->getArgs().begin(); arg_it != directive_it->getArgs().end(); ++arg_it)
+				if (tmp.top() == arg->getContent())
 				{
-					bool circular_include = false;
-					for (std::stack<std::string> tmp_stack = include_stack; !tmp_stack.empty(); tmp_stack.pop())
-					{
-						if (tmp_stack.top() == arg_it->getContent())
-						{
-							std::cerr << PreprocessorInvalidArguments("Circular include detected", *arg_it).what() << std::endl;
-							circular_include = true;
-							error_occurred = true;
-							break;
-						}
-					}
-					if (circular_include)
-						continue;
-					try
-					{
-						include_stack.push(arg_it->getContent());
-						AST	included_ast;
-						included_ast.setFilename(arg_it->getContent());
-						included_ast.getDirectivesRef() = expand(Parser::parse(Lexer::tokenize(arg_it->getContent())).getDirectives(), include_stack, error_occurred);
-						include_stack.pop();
-						preprocessed_directives.insert(preprocessed_directives.end(), included_ast.getDirectives().begin(), included_ast.getDirectives().end());
-					}
-					catch (const Lexer::LexerFileOpenFailure &e)
-					{
-						std::cerr << PreprocessorInvalidArguments(e.what(), *arg_it).what() << std::endl;
-						error_occurred = true;
-					}
+					diag.report("circular include detected", *arg);
+					circular = true;
+					break;
 				}
 			}
-		}
-		else if (directive_it->hasBody())
-		{
-			Directive	preprocessed_directive(*directive_it);
+			if (circular)
+				continue;
 
-			preprocessed_directive.getChildrenRef().clear();
-			preprocessed_directive.getChildrenRef() = expand(directive_it->getChildren(), include_stack, error_occurred);
-			preprocessed_directives.push_back(preprocessed_directive);
-		}
-		else
-		{
-			preprocessed_directives.push_back(*directive_it);
+			try
+			{
+				include_stack.push(arg->getContent());
+				AST included;
+				included.setFilename(arg->getContent());
+				included.getDirectivesRef() = expand(
+					Parser::parse(Lexer::tokenize(arg->getContent())).getDirectives(),
+					include_stack,
+					diag
+				);
+				include_stack.pop();
+				result.insert(result.end(), included.getDirectives().begin(), included.getDirectives().end());
+			}
+			catch (const Lexer::LexerFileOpenFailure &e)
+			{
+				diag.report(e.what(), *arg);
+			}
 		}
 	}
-	return (preprocessed_directives);
-}
-
-Preprocessor::PreprocessorError::~PreprocessorError() throw()
-{
-}
-
-Preprocessor::PreprocessorError::PreprocessorError(const std::string &description): _message(description)
-{
-}
-
-const char	*Preprocessor::PreprocessorError::what() const throw()
-{
-	return _message.c_str();
-}
-
-Preprocessor::PreprocessorInvalidArguments::~PreprocessorInvalidArguments() throw()
-{
-}
-
-Preprocessor::PreprocessorInvalidArguments::PreprocessorInvalidArguments(const std::string &description, const ErrorInfo &error_info): _message()
-{
-	std::stringstream ss;
-	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
-	_message = ss.str();
-}
-
-const char	*Preprocessor::PreprocessorInvalidArguments::what() const throw()
-{
-	return _message.c_str();
-}
-
-Preprocessor::PreprocessorIllegalBody::~PreprocessorIllegalBody() throw()
-{
-}
-
-Preprocessor::PreprocessorIllegalBody::PreprocessorIllegalBody(const std::string &description, const ErrorInfo &error_info): _message()
-{
-	std::stringstream ss;
-	ss << error_info.getFilename() << ":" << error_info.getLineNumber() << ":" << error_info.getColumnNumber() << " " << description;
-	_message = ss.str();
-}
-
-const char	*Preprocessor::PreprocessorIllegalBody::what() const throw()
-{
-	return _message.c_str();
+	return result;
 }

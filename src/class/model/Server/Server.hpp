@@ -15,9 +15,11 @@ class	Server
 		~Server();
 		Server(const Server &copy);
 		Server	&operator=(const Server &other);
-	
-		const std::vector<Location>	&locations() const;
-		std::vector<Location>		&locations();
-		const MimeType				&mimetype() const;
-		MimeType					&mimetype();
+
+		const std::vector<std::string>	&listen() const;
+		std::vector<std::string>		&listen();
+		const std::vector<Location>		&locations() const;
+		std::vector<Location>			&locations();
+		const MimeType					&mimetype() const;
+		MimeType						&mimetype();
 };

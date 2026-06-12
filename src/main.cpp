@@ -1,28 +1,35 @@
-#include <iostream>
-#include <sstream>
 #include "Lexer.hpp"
 #include "Parser.hpp"
-#include "Debug.hpp"
 #include "Preprocessor.hpp"
 #include "Semantic.hpp"
-#include "Config.hpp"
+#include "DiagnosticContext.hpp"
+#include <iostream>
 
-int	main(int argc, char **argv) {
+int	main(int argc, char **argv)
+{
 	if (argc != 2)
 	{
-		std::cout << "Usage: " << argv[0] << " <config_file>" << std::endl;
-		return (1);
+		std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
+		return 1;
 	}
-	try {
-		TokenStream	token_stream = Lexer::tokenize(argv[1]);
-		AST	parser = Parser::parse(token_stream);
-		//Debug::printAST(std::cout, parser);
-		AST	preprocessed_ast = Preprocessor::preprocess(parser);
-		//Debug::printPreprocessedAST(std::cout, preprocessed_ast);
-		Config	config = Semantic::analyseAST(preprocessed_ast);
+	try
+	{
+		DiagnosticContext	diag;
+		TokenStream			tokens = Lexer::tokenize(argv[1]);
+		AST					ast = Parser::parse(tokens);
+		AST					preprocessed = Preprocessor::preprocess(ast, diag);
+		Config				config = Semantic::analyseAST(preprocessed, diag);
+		if (diag.hasError())
+		{
+			std::cerr << "configuration has errors, cannot continue" << std::endl;
+			return 1;
+		}
+		(void)config;
 	}
-	catch(std::exception &e) {
-		std::cout << e.what() << std::endl;
+	catch (const std::exception &e)
+	{
+		std::cerr << e.what() << std::endl;
+		return 1;
 	}
-	return (0);
+	return 0;
 }

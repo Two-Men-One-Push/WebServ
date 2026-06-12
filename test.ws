@@ -4,14 +4,5 @@ http{
 		location uri
 		{
 		}
-		ok;
-		ok;
-		ok;
-		ok;
-		ok;
-		ok;
-		ok;
-		ok;
-		
 	}
 }

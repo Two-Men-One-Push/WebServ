@@ -1,33 +1,29 @@
 #pragma once
 
+#include "AST.hpp"
 #include "Config.hpp"
+#include "Http.hpp"
 #include "Server.hpp"
 #include "Location.hpp"
-#include "Directive.hpp"
-#include "Parser.hpp"
 #include "MimeType.hpp"
-#include "Http.hpp"
-#include <vector>
+#include "Directive.hpp"
+#include "DiagnosticContext.hpp"
+#include <list>
 
-class	Semantic
+class Semantic
 {
-	private:
-		
-		static Http		analyseHttp(const std::list<Directive> &directives);
-		static Server	analyseServer(const std::list<Directive> &directives);
-		static Location	analyseLocation(const std::list<Directive> &directives);
-		static MimeType	analyseMimeType(const std::list<Directive> &directives);
-		static void		analyseDirective(const Directive &directive, Config &config);
-	public:
-		Semantic();
-		~Semantic();
+	enum ArgShape  { ARGS_FORBIDDEN, ARGS_REQUIRED, ARGS_EXACT_ONE };
+	enum BodyShape { BODY_FORBIDDEN, BODY_REQUIRED };
 
-		static Config	analyseAST(const AST &ast);
+	static bool		checkShape(const Directive &d, ArgShape args, BodyShape body, DiagnosticContext &diag);
 
-		class	SemanticError: public std::exception
-		{
-			public:
-				virtual ~SemanticError() throw();
-				virtual const char	*what() const throw();
-		};
+	static Http		analyseHttp(const std::list<Directive> &directives, DiagnosticContext &diag);
+	static Server	analyseServer(const std::list<Directive> &directives, DiagnosticContext &diag);
+	static Location	analyseLocation(const std::list<Directive> &directives, DiagnosticContext &diag);
+	static MimeType	analyseMimeType(const std::list<Directive> &directives, DiagnosticContext &diag);
+public:
+	Semantic();
+	~Semantic();
+
+	static Config	analyseAST(const AST &ast, DiagnosticContext &diag);
 };
