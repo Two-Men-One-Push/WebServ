@@ -45,6 +45,11 @@ std::list<Directive>	&Directive::getChildrenRef()
 	return (_children);
 }
 
+const ErrorInfo	&Directive::getBlockErrorInfo() const
+{
+	return (_block_error_info);
+}
+
 bool	Directive::hasBody() const
 {
 	return (_has_body);
@@ -63,4 +68,9 @@ void	Directive::addArg(const Word &arg)
 void	Directive::addChild(const Directive &child)
 {
 	_children.push_back(child);
+}
+
+void	Directive::setBlockErrorInfo(const ErrorInfo &error_info)
+{
+	_block_error_info = error_info;
 }

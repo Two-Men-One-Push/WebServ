@@ -1,6 +1,6 @@
 #include "Location.hpp"
 
-Location::Location(): _locations()
+Location::Location(): _locations(), _mimeType()
 {
 }
 
@@ -16,4 +16,14 @@ void	Location::addLocation(const Location &location)
 const std::vector<Location>	&Location::getLocations() const
 {
 	return (_locations);
+}
+
+const MimeType	&Location::getMimeType() const
+{
+	return (this->_mimeType);
+}
+
+void	Location::setMimeType(const MimeType &mimeType)
+{
+	this->_mimeType = mimeType;
 }

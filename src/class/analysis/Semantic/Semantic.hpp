@@ -5,14 +5,17 @@
 #include "Location.hpp"
 #include "Directive.hpp"
 #include "Parser.hpp"
+#include "MimeType.hpp"
+#include "Http.hpp"
 #include <vector>
 
 class	Semantic
 {
 	private:
-		
+		static Http		analyseHttp(const std::list<Directive> &directives);
 		static Server	analyseServer(const std::list<Directive> &directives);
 		static Location	analyseLocation(const std::list<Directive> &directives);
+		static MimeType	analyseMimeType(const std::list<Directive> &directives);
 	public:
 		Semantic();
 		~Semantic();
@@ -26,6 +29,15 @@ class	Semantic
 			public:
 				virtual ~SemanticUnknownDirective() throw();
 				SemanticUnknownDirective(const std::string &directive, const ErrorInfo &error_info);
+				virtual const char	*what() const throw();
+		};
+		class	SemanticInvalidDirective: public std::exception
+		{
+			private:
+				std::string	_message;
+			public:
+				virtual ~SemanticInvalidDirective() throw();
+				SemanticInvalidDirective(const std::string &description, const ErrorInfo &error_info);
 				virtual const char	*what() const throw();
 		};
 		class	SemanticInvalidArguments: public std::exception

@@ -14,6 +14,7 @@ class	Directive: public ErrorInfo
 		std::vector<Word>		_args;
 		bool					_has_body;
 		std::list<Directive>	_children;
+		ErrorInfo				_block_error_info;
 	public:
 		~Directive();
 		Directive(const Word &name, const std::string &filename, size_t line_number, size_t column_number);
@@ -24,9 +25,11 @@ class	Directive: public ErrorInfo
 		const std::vector<Word>		&getArgs() const;
 		const std::list<Directive>	&getChildren() const;
 		std::list<Directive>		&getChildrenRef();
+		const ErrorInfo				&getBlockErrorInfo() const;
 		bool						hasBody() const;
 
 		void				addArg(const Word &arg);
 		void				addChild(const Directive &child);
 		void				setHasBody(bool has_body);
+		void				setBlockErrorInfo(const ErrorInfo &error_info);
 };

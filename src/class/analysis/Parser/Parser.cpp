@@ -53,8 +53,7 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 				return (directive);
 			case Token::NEWLINE:
 			case Token::LBRACE:
-				directive.setHasBody(true);
-				parseBlock(it, end, directive.getChildrenRef());
+				parseBlock(it, end, directive);
 				return (directive);
 			default:
 				throw ParserUnexpectedToken("Unexpected token expected argument or directive end or block", *it);
@@ -66,7 +65,7 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 /*
 block := NEWLINE* LBRACE list_directive RBRACE
 */
-void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives)
+void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, Directive &directive)
 {
 	while (it->getType() != Token::_EOF)
 	{
@@ -76,12 +75,16 @@ void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iter
 			break;
 	}
 	if (it->getType() == Token::LBRACE)
+	{
+		directive.setHasBody(true);
+		directive.setBlockErrorInfo(*it);
 		it++;
+	}
 	else if (it->getType() == Token::_EOF)
 		throw ParserUnexpectedEndOfFile("Unexpected end of file expected '{' or ';'", *it);
 	else
 		throw ParserUnexpectedToken("Unexpected token expected '{' or ';'", *it);
-	parseListDirective(it, end, directives);
+	parseListDirective(it, end, directive.getChildrenRef());
 	if (it->getType() == Token::RBRACE)
 		it++;
 	else if (it->getType() == Token::_EOF)

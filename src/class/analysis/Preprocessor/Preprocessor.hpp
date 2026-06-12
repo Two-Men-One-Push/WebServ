@@ -12,8 +12,7 @@
 class Preprocessor
 {
 	private:
-		static AST	expand(const AST &ast, std::stack<std::string> &include_stack);
-		static std::list<Directive>	expand(const Directive &directive, std::stack<std::string> &include_stack);
+		static std::list<Directive>	expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack);
 	public:
 		Preprocessor();
 		~Preprocessor();

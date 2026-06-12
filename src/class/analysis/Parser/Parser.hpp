@@ -3,18 +3,18 @@
 #include "Directive.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
+#include "AST.hpp"
 #include <vector>
 #include <exception>
 #include <string>
 #include <list>
-#include "AST.hpp"
 
 class	Parser
 {
 	private:
 		static Directive	parseDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end);
-		static void		parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives);
-		static void		parseListDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives);
+		static void			parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, Directive &directive);
+		static void			parseListDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives);
 	public:
 		Parser();
 		~Parser();
