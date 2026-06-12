@@ -28,15 +28,13 @@ class	Segment: public ErrorInfo
 
 		Segment	&operator+=(const char c);
 		Segment	&operator<<(const char c);
-		void	clear();
-	
-		const std::string	getTypeString() const;
 
-		Type				getType() const;
-		const std::string	&getContent() const;
-		const std::string	&getRawContent() const;
-	
-		void	setType(Type type);
-		void	setContent(const std::string &content);
-		void	setRawContent(const std::string &raw_content);
+		void	clear();
+
+		std::string	typeString() const;
+		Type		type() const;
+		Type		&type();
+
+		const std::string	&content() const;
+		const std::string	&rawContent() const;
 };

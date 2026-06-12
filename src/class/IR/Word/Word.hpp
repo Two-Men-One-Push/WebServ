@@ -18,7 +18,7 @@ class	Word: public ErrorInfo
 		bool	empty() const;
 		void	addSegment(Segment &segment);
 
-		std::string					getContent() const;
-		std::string					getRawContent() const;
-		const std::vector<Segment>	&getSegments() const;
+		std::string					content() const;
+		std::string					rawContent() const;
+		const std::vector<Segment>	&segments() const;
 };

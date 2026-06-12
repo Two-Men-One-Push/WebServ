@@ -1,11 +1,9 @@
 #include "Lexer.hpp"
+#include "Segment.hpp"
 #include "Token.hpp"
-#include "Segment.hpp"
 #include "Word.hpp"
-#include "Segment.hpp"
-#include <sstream>
 #include <fstream>
-#include <iterator>
+#include <sstream>
 
 enum	LexerState
 {
@@ -30,20 +28,18 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 {
 	TokenStream		token_stream;
 	std::ifstream	stream(filename.c_str());
+
 	if (!stream.is_open())
-	{
 		throw LexerFileOpenFailure("Failed to open file: ", filename);
-	}
 
 	size_t		line_number = 1;
 	size_t		column_number = 1;
-
 	LexerState	state = DEFAULT;
 	Word		word;
 	Segment		segment;
 	char		c;
 
-	token_stream.setFilename(filename);
+	token_stream.filename() = filename;
 	while (stream.get(c))
 	{
 		switch (state)
@@ -94,49 +90,47 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 				else if (c == '"')
 				{
 					word += segment;
-					segment.setLineNumber(line_number);
-					segment.setColumnNumber(column_number);
-					segment.setFilename(filename);
-					segment.setType(Segment::DQUOTE);
+					segment.filename() = filename;
+					segment.lineNumber() = line_number;
+					segment.columnNumber() = column_number;
+					segment.type() = Segment::DQUOTE;
 					segment << c;
 					state = DQUOTE;
 				}
 				else if (c == '\'')
 				{
 					word += segment;
-					segment.setLineNumber(line_number);
-					segment.setColumnNumber(column_number);
-					segment.setFilename(filename);
-					segment.setType(Segment::SQUOTE);
+					segment.filename() = filename;
+					segment.lineNumber() = line_number;
+					segment.columnNumber() = column_number;
+					segment.type() = Segment::SQUOTE;
 					segment << c;
 					state = SQUOTE;
 				}
 				else if (c == '\\')
 				{
 					word += segment;
-					segment.setLineNumber(line_number);
-					segment.setColumnNumber(column_number);
-					segment.setFilename(filename);
-					segment.setType(Segment::DEFAULT_ESCAPED);
+					segment.filename() = filename;
+					segment.lineNumber() = line_number;
+					segment.columnNumber() = column_number;
+					segment.type() = Segment::DEFAULT_ESCAPED;
 					segment << c;
 					state = DEFAULT_ESCAPE;
 				}
 				else if (isgraph(static_cast<unsigned char>(c)) || static_cast<unsigned char>(c) >= 128)
 				{
-					if (segment.getType() == Segment::NONE)
+					if (segment.type() == Segment::NONE)
 					{
-						segment.setLineNumber(line_number);
-						segment.setColumnNumber(column_number);
-						segment.setFilename(filename);
-						segment.setType(Segment::DEFAULT);
+						segment.filename() = filename;
+						segment.lineNumber() = line_number;
+						segment.columnNumber() = column_number;
+						segment.type() = Segment::DEFAULT;
 					}
 					segment += c;
 					segment << c;
 				}
 				else
-				{
 					throw LexerUnexpectedControlCharacter(filename, line_number, column_number);
-				}
 				break;
 			case SQUOTE:
 				if (c == '\'')
@@ -148,10 +142,10 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 				else if (c == '\\')
 				{
 					word += segment;
-					segment.setLineNumber(line_number);
-					segment.setColumnNumber(column_number);
-					segment.setFilename(filename);
-					segment.setType(Segment::SQUOTE_ESCAPED);
+					segment.filename() = filename;
+					segment.lineNumber() = line_number;
+					segment.columnNumber() = column_number;
+					segment.type() = Segment::SQUOTE_ESCAPED;
 					segment << c;
 					state = SQUOTE_ESCAPE;
 				}
@@ -171,10 +165,10 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 				else if (c == '\\')
 				{
 					word += segment;
-					segment.setLineNumber(line_number);
-					segment.setColumnNumber(column_number);
-					segment.setFilename(filename);
-					segment.setType(Segment::DQUOTE_ESCAPED);
+					segment.filename() = filename;
+					segment.lineNumber() = line_number;
+					segment.columnNumber() = column_number;
+					segment.type() = Segment::DQUOTE_ESCAPED;
 					segment << c;
 					state = DQUOTE_ESCAPE;
 				}
@@ -188,37 +182,35 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 				segment += c;
 				segment << c;
 				word += segment;
-				segment.setType(Segment::DEFAULT);
-				segment.setLineNumber(line_number);
-				segment.setColumnNumber(column_number + 1);
-				segment.setFilename(filename);
+				segment.type() = Segment::DEFAULT;
+				segment.filename() = filename;
+				segment.lineNumber() = line_number;
+				segment.columnNumber() = column_number + 1;
 				state = DEFAULT;
 				break;
 			case SQUOTE_ESCAPE:
 				segment += c;
 				segment << c;
 				word += segment;
-				segment.setType(Segment::SQUOTE);
-				segment.setLineNumber(line_number);
-				segment.setColumnNumber(column_number + 1);
-				segment.setFilename(filename);
+				segment.type() = Segment::SQUOTE;
+				segment.filename() = filename;
+				segment.lineNumber() = line_number;
+				segment.columnNumber() = column_number + 1;
 				state = SQUOTE;
 				break;
 			case DQUOTE_ESCAPE:
 				segment += c;
 				segment << c;
 				word += segment;
-				segment.setType(Segment::DQUOTE);
-				segment.setLineNumber(line_number);
-				segment.setColumnNumber(column_number + 1);
-				segment.setFilename(filename);
+				segment.type() = Segment::DQUOTE;
+				segment.filename() = filename;
+				segment.lineNumber() = line_number;
+				segment.columnNumber() = column_number + 1;
 				state = DQUOTE;
 				break;
 			case COMMENT:
 				if (c == '\n')
-				{
 					state = DEFAULT;
-				}
 				break;
 			default:
 				break;
@@ -232,22 +224,14 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 			column_number++;
 	}
 	if (state == SQUOTE || state == DQUOTE)
-	{
-		throw LexerUnexpectedEndOfFile("Unclosed quote", segment.getFilename(), segment.getLineNumber(), segment.getColumnNumber());
-	}
+		throw LexerUnexpectedEndOfFile("Unclosed quote", segment.filename(), segment.lineNumber(), segment.columnNumber());
 	else if (state == DEFAULT_ESCAPE || state == SQUOTE_ESCAPE || state == DQUOTE_ESCAPE)
-	{
-		throw LexerUnexpectedEndOfFile("Unexpected end of file after escape character", segment.getFilename(), segment.getLineNumber(), segment.getColumnNumber());
-	}
+		throw LexerUnexpectedEndOfFile("Unexpected end of file after escape character", segment.filename(), segment.lineNumber(), segment.columnNumber());
 	word += segment;
 	if (!word.empty())
 		token_stream.addToken(Token(word));
 	token_stream.addToken(Token(Token::_EOF, filename, line_number, column_number));
 	return token_stream;
-}
-
-Lexer::LexerFileOpenFailure::~LexerFileOpenFailure() throw()
-{
 }
 
 Lexer::LexerFileOpenFailure::LexerFileOpenFailure(const std::string &description, const std::string &filename): _message()
@@ -257,20 +241,24 @@ Lexer::LexerFileOpenFailure::LexerFileOpenFailure(const std::string &description
 	_message = ss.str();
 }
 
+Lexer::LexerFileOpenFailure::~LexerFileOpenFailure() throw()
+{
+}
+
 const char	*Lexer::LexerFileOpenFailure::what() const throw()
 {
 	return _message.c_str();
 }
 
-Lexer::LexerUnexpectedControlCharacter::~LexerUnexpectedControlCharacter() throw()
-{
-}
-
 Lexer::LexerUnexpectedControlCharacter::LexerUnexpectedControlCharacter(const std::string &filename, size_t line_number, size_t column_number): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " Unexpected control character";
+	ss << filename << ":" << line_number << ":" << column_number << ": error: unexpected control character";
 	_message = ss.str();
+}
+
+Lexer::LexerUnexpectedControlCharacter::~LexerUnexpectedControlCharacter() throw()
+{
 }
 
 const char	*Lexer::LexerUnexpectedControlCharacter::what() const throw()
@@ -278,15 +266,15 @@ const char	*Lexer::LexerUnexpectedControlCharacter::what() const throw()
 	return _message.c_str();
 }
 
-Lexer::LexerUnexpectedEndOfFile::~LexerUnexpectedEndOfFile() throw()
-{
-}
-
 Lexer::LexerUnexpectedEndOfFile::LexerUnexpectedEndOfFile(const std::string &description, const std::string &filename, size_t line_number, size_t column_number): _message()
 {
 	std::stringstream ss;
-	ss << filename << ":" << line_number << ":" << column_number << " " << description;
+	ss << filename << ":" << line_number << ":" << column_number << ": error: " << description;
 	_message = ss.str();
+}
+
+Lexer::LexerUnexpectedEndOfFile::~LexerUnexpectedEndOfFile() throw()
+{
 }
 
 const char	*Lexer::LexerUnexpectedEndOfFile::what() const throw()

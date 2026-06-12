@@ -2,21 +2,21 @@
 
 #include "Directive.hpp"
 #include <list>
+#include <string>
 
-class AST
+class	AST
 {
-	std::list<Directive>	_directives;
-	std::string				_filename;
-
+	private:
+		std::list<Directive>	_directives;
+		std::string				_filename;
 	public:
 		AST();
 		~AST();
 		AST(const AST &copy);
 		AST	&operator=(const AST &other);
 
-		const std::list<Directive>	&getDirectives() const;
-		std::list<Directive>		&getDirectivesRef();
-		const std::string			&getFilename() const;
-
-		void	setFilename(const std::string &filename);
+		const std::list<Directive>	&directives() const;
+		std::list<Directive>		&directives();
+		const std::string			&filename() const;
+		std::string					&filename();
 };

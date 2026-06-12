@@ -1,6 +1,6 @@
 #include "TokenStream.hpp"
 
-TokenStream::TokenStream(): _tokens()
+TokenStream::TokenStream(): _tokens(), _filename()
 {
 }
 
@@ -8,7 +8,7 @@ TokenStream::~TokenStream()
 {
 }
 
-TokenStream::TokenStream(const TokenStream &copy): _tokens(copy._tokens)
+TokenStream::TokenStream(const TokenStream &copy): _tokens(copy._tokens), _filename(copy._filename)
 {
 }
 
@@ -17,33 +17,9 @@ TokenStream	&TokenStream::operator=(const TokenStream &other)
 	if (this != &other)
 	{
 		_tokens = other._tokens;
+		_filename = other._filename;
 	}
 	return *this;
-}
-
-const std::vector<Token>	&TokenStream::getTokens() const
-{
-	return _tokens;
-}
-
-std::vector<Token>	&TokenStream::getTokensRef()
-{
-	return _tokens;
-}
-
-const std::string	&TokenStream::getFilename() const
-{
-	return _filename;
-}
-
-void	TokenStream::setFilename(const std::string &filename)
-{
-	_filename = filename;
-}
-
-void	TokenStream::addToken(const Token &token)
-{
-	_tokens.push_back(token);
 }
 
 TokenStream::iterator	TokenStream::begin()
@@ -64,4 +40,29 @@ TokenStream::const_iterator	TokenStream::begin() const
 TokenStream::const_iterator	TokenStream::end() const
 {
 	return _tokens.end();
+}
+
+const std::vector<Token>	&TokenStream::tokens() const
+{
+	return _tokens;
+}
+
+std::vector<Token>	&TokenStream::tokens()
+{
+	return _tokens;
+}
+
+const std::string	&TokenStream::filename() const
+{
+	return _filename;
+}
+
+std::string	&TokenStream::filename()
+{
+	return _filename;
+}
+
+void	TokenStream::addToken(const Token &token)
+{
+	_tokens.push_back(token);
 }

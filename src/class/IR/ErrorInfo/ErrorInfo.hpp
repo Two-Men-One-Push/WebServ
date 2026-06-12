@@ -17,11 +17,10 @@ class	ErrorInfo
 
 		void	clear();
 
-		void	setFilename(const std::string &filename);
-		void	setLineNumber(size_t line_number);
-		void	setColumnNumber(size_t column_number);
-
-		const std::string	&getFilename() const;
-		size_t				getLineNumber() const;
-		size_t				getColumnNumber() const;
+		const std::string	&filename() const;
+		std::string			&filename();
+		size_t				lineNumber() const;
+		size_t				&lineNumber();
+		size_t				columnNumber() const;
+		size_t				&columnNumber();
 };

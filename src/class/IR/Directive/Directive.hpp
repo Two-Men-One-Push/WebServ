@@ -1,11 +1,9 @@
 #pragma once
 
 #include "ErrorInfo.hpp"
-#include "Segment.hpp"
 #include "Word.hpp"
-#include <vector>
 #include <list>
-#include <string>
+#include <vector>
 
 class	Directive: public ErrorInfo
 {
@@ -13,23 +11,23 @@ class	Directive: public ErrorInfo
 		Word					_name;
 		std::vector<Word>		_args;
 		bool					_has_body;
-		std::list<Directive>	_children;
 		ErrorInfo				_block_error_info;
+		std::list<Directive>	_children;
 	public:
-		~Directive();
 		Directive(const Word &name, const std::string &filename, size_t line_number, size_t column_number);
+		~Directive();
 		Directive(const Directive &copy);
 		Directive	&operator=(const Directive &other);
 
-		const Word					&getName() const;
-		const std::vector<Word>		&getArgs() const;
-		const std::list<Directive>	&getChildren() const;
-		std::list<Directive>		&getChildrenRef();
-		const ErrorInfo				&getBlockErrorInfo() const;
+		const Word					&name() const;
+		const std::vector<Word>		&args() const;
 		bool						hasBody() const;
+		const ErrorInfo				&blockErrorInfo() const;
+		const std::list<Directive>	&children() const;
+		std::list<Directive>		&children();
 
-		void				addArg(const Word &arg);
-		void				addChild(const Directive &child);
-		void				setHasBody(bool has_body);
-		void				setBlockErrorInfo(const ErrorInfo &error_info);
+		void	addArg(const Word &arg);
+		void	addChild(const Directive &child);
+		void	setHasBody(bool has_body);
+		void	setBlockErrorInfo(const ErrorInfo &error_info);
 };

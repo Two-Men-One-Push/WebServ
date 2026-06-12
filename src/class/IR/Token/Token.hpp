@@ -17,8 +17,8 @@ class	Token: public ErrorInfo
 			_EOF,
 		};
 	private:
-		Type					_type;
-		Word					_word;
+		Type	_type;
+		Word	_word;
 	public:
 		Token();
 		~Token();
@@ -29,10 +29,7 @@ class	Token: public ErrorInfo
 
 		void	clear();
 
-		const std::string			getTypeString() const;
-		Type						getType() const;
-		const Word					&getWord() const;
-
-		void	setType(Type type);
-		void	setWord(const Word &word);
+		std::string	typeString() const;
+		Type		type() const;
+		const Word	&word() const;
 };

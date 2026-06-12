@@ -19,13 +19,19 @@ Word	&Word::operator=(const Word &other)
 		ErrorInfo::operator=(other);
 		_segments = other._segments;
 	}
-	return (*this);
+	return *this;
+}
+
+Word	&Word::operator+=(Segment &segment)
+{
+	addSegment(segment);
+	return *this;
 }
 
 void	Word::clear()
 {
-	_segments.clear();
 	ErrorInfo::clear();
+	_segments.clear();
 }
 
 bool	Word::empty() const
@@ -35,45 +41,33 @@ bool	Word::empty() const
 
 void	Word::addSegment(Segment &segment)
 {
-	if (segment.getType() == Segment::NONE)
-		return ;
-	if (_segments.size() == 0)
-	{
+	if (segment.type() == Segment::NONE)
+		return;
+	if (_segments.empty())
 		ErrorInfo::operator=(segment);
-	}
 	_segments.push_back(segment);
 	segment.clear();
 }
 
-Word	&Word::operator+=(Segment &segment)
-{
-	addSegment(segment);
-	return (*this);
-}
-
-std::string	Word::getContent() const
+std::string	Word::content() const
 {
 	std::string	str;
 
 	for (size_t i = 0; i < _segments.size(); ++i)
-	{
-		str += _segments[i].getContent();
-	}
-	return (str);
+		str += _segments[i].content();
+	return str;
 }
 
-std::string	Word::getRawContent() const
+std::string	Word::rawContent() const
 {
 	std::string	str;
 
 	for (size_t i = 0; i < _segments.size(); ++i)
-	{
-		str += _segments[i].getRawContent();
-	}
-	return (str);
+		str += _segments[i].rawContent();
+	return str;
 }
 
-const std::vector<Segment>	&Word::getSegments() const
+const std::vector<Segment>	&Word::segments() const
 {
-	return (_segments);
+	return _segments;
 }

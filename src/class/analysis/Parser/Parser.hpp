@@ -1,13 +1,10 @@
 #pragma once
 
-#include "Directive.hpp"
-#include "Token.hpp"
-#include "Lexer.hpp"
 #include "AST.hpp"
-#include <vector>
+#include "Directive.hpp"
+#include "TokenStream.hpp"
 #include <exception>
 #include <string>
-#include <list>
 
 class	Parser
 {
@@ -24,10 +21,10 @@ class	Parser
 		class	ParserUnexpectedToken: public std::exception
 		{
 			private:
-				std::string		_message;
+				std::string	_message;
 			public:
-				virtual ~ParserUnexpectedToken() throw();
 				ParserUnexpectedToken(const std::string &description, const ErrorInfo &error_info);
+				virtual ~ParserUnexpectedToken() throw();
 				virtual const char	*what() const throw();
 		};
 		class	ParserUnexpectedEndOfFile: public std::exception
@@ -35,8 +32,8 @@ class	Parser
 			private:
 				std::string	_message;
 			public:
-				virtual ~ParserUnexpectedEndOfFile() throw();
 				ParserUnexpectedEndOfFile(const std::string &description, const ErrorInfo &error_info);
+				virtual ~ParserUnexpectedEndOfFile() throw();
 				virtual const char	*what() const throw();
 		};
 };

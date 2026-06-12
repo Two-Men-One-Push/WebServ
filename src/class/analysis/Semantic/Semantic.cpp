@@ -12,30 +12,30 @@ Semantic::~Semantic()
 bool	Semantic::checkShape(const Directive &d, ArgShape args, BodyShape body, DiagnosticContext &diag)
 {
 	bool		canProcess = true;
-	std::string	name = d.getName().getRawContent();
+	std::string	n = d.name().rawContent();
 
-	if (args == ARGS_FORBIDDEN && !d.getArgs().empty())
+	if (args == ARGS_FORBIDDEN && !d.args().empty())
 	{
-		for (std::vector<Word>::const_iterator it = d.getArgs().begin(); it != d.getArgs().end(); ++it)
-			diag.report("'" + name + "' directive does not take arguments", *it);
+		for (std::vector<Word>::const_iterator it = d.args().begin(); it != d.args().end(); ++it)
+			diag.report("'" + n + "' directive does not take arguments", *it);
 	}
-	else if (args == ARGS_REQUIRED && d.getArgs().empty())
+	else if (args == ARGS_REQUIRED && d.args().empty())
 	{
-		diag.report("'" + name + "' directive requires at least one argument", d);
+		diag.report("'" + n + "' directive requires at least one argument", d);
 		canProcess = false;
 	}
-	else if (args == ARGS_EXACT_ONE && d.getArgs().size() != 1)
+	else if (args == ARGS_EXACT_ONE && d.args().size() != 1)
 	{
-		diag.report("'" + name + "' directive requires exactly one argument", d);
-		if (d.getArgs().empty())
+		diag.report("'" + n + "' directive requires exactly one argument", d);
+		if (d.args().empty())
 			canProcess = false;
 	}
 
 	if (body == BODY_FORBIDDEN && d.hasBody())
-		diag.report("'" + name + "' directive cannot have a body", d.getBlockErrorInfo());
+		diag.report("'" + n + "' directive cannot have a body", d.blockErrorInfo());
 	else if (body == BODY_REQUIRED && !d.hasBody())
 	{
-		diag.report("'" + name + "' directive requires a body", d);
+		diag.report("'" + n + "' directive requires a body", d);
 		canProcess = false;
 	}
 
@@ -46,13 +46,13 @@ Config	Semantic::analyseAST(const AST &ast, DiagnosticContext &diag)
 {
 	Config config;
 
-	for (std::list<Directive>::const_iterator it = ast.getDirectives().begin(); it != ast.getDirectives().end(); ++it)
+	for (std::list<Directive>::const_iterator it = ast.directives().begin(); it != ast.directives().end(); ++it)
 	{
-		const std::string name = it->getName().getRawContent();
+		const std::string name = it->name().rawContent();
 		if (name == "http")
 		{
 			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-				config.http() = analyseHttp(it->getChildren(), diag);
+				config.http() = analyseHttp(it->children(), diag);
 		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
@@ -66,16 +66,16 @@ Http	Semantic::analyseHttp(const std::list<Directive> &directives, DiagnosticCon
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		const std::string name = it->getName().getRawContent();
+		const std::string name = it->name().rawContent();
 		if (name == "server")
 		{
 			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-				http.servers().push_back(analyseServer(it->getChildren(), diag));
+				http.servers().push_back(analyseServer(it->children(), diag));
 		}
 		else if (name == "mimetype")
 		{
 			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-				http.mimetype() = analyseMimeType(it->getChildren(), diag);
+				http.mimetype() = analyseMimeType(it->children(), diag);
 		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
@@ -89,24 +89,24 @@ Server	Semantic::analyseServer(const std::list<Directive> &directives, Diagnosti
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		const std::string name = it->getName().getRawContent();
+		const std::string name = it->name().rawContent();
 		if (name == "listen")
 		{
 			if (checkShape(*it, ARGS_REQUIRED, BODY_FORBIDDEN, diag))
 			{
-				for (std::vector<Word>::const_iterator arg = it->getArgs().begin(); arg != it->getArgs().end(); ++arg)
-					server.listen().push_back(arg->getContent());
+				for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
+					server.listen().push_back(arg->content());
 			}
 		}
 		else if (name == "location")
 		{
 			if (checkShape(*it, ARGS_EXACT_ONE, BODY_REQUIRED, diag))
-				server.locations().push_back(analyseLocation(it->getChildren(), diag));
+				server.locations().push_back(analyseLocation(it->children(), diag));
 		}
 		else if (name == "mimetype")
 		{
 			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-				server.mimetype() = analyseMimeType(it->getChildren(), diag);
+				server.mimetype() = analyseMimeType(it->children(), diag);
 		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
@@ -122,16 +122,16 @@ Location	Semantic::analyseLocation(const std::list<Directive> &directives, Diagn
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
-		const std::string name = it->getName().getRawContent();
+		const std::string name = it->name().rawContent();
 		if (name == "location")
 		{
 			if (checkShape(*it, ARGS_EXACT_ONE, BODY_REQUIRED, diag))
-				location.locations().push_back(analyseLocation(it->getChildren(), diag));
+				location.locations().push_back(analyseLocation(it->children(), diag));
 		}
 		else if (name == "mimetype")
 		{
 			if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-				location.mimetype() = analyseMimeType(it->getChildren(), diag);
+				location.mimetype() = analyseMimeType(it->children(), diag);
 		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
@@ -147,11 +147,10 @@ MimeType	Semantic::analyseMimeType(const std::list<Directive> &directives, Diagn
 	{
 		if (!checkShape(*it, ARGS_REQUIRED, BODY_FORBIDDEN, diag))
 			continue;
-
-		const std::string mime = it->getName().getRawContent();
-		for (std::vector<Word>::const_iterator arg = it->getArgs().begin(); arg != it->getArgs().end(); ++arg)
+		const std::string mime = it->name().rawContent();
+		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
-			const std::string ext = arg->getContent();
+			const std::string ext = arg->content();
 			if (mimeType.mimetypes().count(ext))
 				diag.report("duplicate extension '" + ext + "'", *arg);
 			else

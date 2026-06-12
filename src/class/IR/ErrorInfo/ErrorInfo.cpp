@@ -1,10 +1,10 @@
 #include "ErrorInfo.hpp"
 
-ErrorInfo::~ErrorInfo()
+ErrorInfo::ErrorInfo(): _filename(), _line_number(0), _column_number(0)
 {
 }
 
-ErrorInfo::ErrorInfo()
+ErrorInfo::~ErrorInfo()
 {
 }
 
@@ -16,13 +16,6 @@ ErrorInfo::ErrorInfo(const std::string &filename, size_t line_number, size_t col
 {
 }
 
-void	ErrorInfo::clear()
-{
-	_filename.clear();
-	_line_number = 0;
-	_column_number = 0;
-}
-
 ErrorInfo	&ErrorInfo::operator=(const ErrorInfo &other)
 {
 	if (this != &other)
@@ -31,35 +24,42 @@ ErrorInfo	&ErrorInfo::operator=(const ErrorInfo &other)
 		_line_number = other._line_number;
 		_column_number = other._column_number;
 	}
-	return (*this);
+	return *this;
 }
 
-void	ErrorInfo::setFilename(const std::string &filename)
+void	ErrorInfo::clear()
 {
-	_filename = filename;
+	_filename.clear();
+	_line_number = 0;
+	_column_number = 0;
 }
 
-void	ErrorInfo::setLineNumber(size_t line_number)
+const std::string	&ErrorInfo::filename() const
 {
-	_line_number = line_number;
+	return _filename;
 }
 
-void	ErrorInfo::setColumnNumber(size_t column_number)
+std::string	&ErrorInfo::filename()
 {
-	_column_number = column_number;
+	return _filename;
 }
 
-const std::string	&ErrorInfo::getFilename() const
+size_t	ErrorInfo::lineNumber() const
 {
-	return (_filename);
+	return _line_number;
 }
 
-size_t	ErrorInfo::getLineNumber() const
+size_t	&ErrorInfo::lineNumber()
 {
-	return (_line_number);
+	return _line_number;
 }
 
-size_t	ErrorInfo::getColumnNumber() const
+size_t	ErrorInfo::columnNumber() const
 {
-	return (_column_number);
+	return _column_number;
+}
+
+size_t	&ErrorInfo::columnNumber()
+{
+	return _column_number;
 }
