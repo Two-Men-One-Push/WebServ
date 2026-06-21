@@ -1,9 +1,11 @@
 #include "./AFd.hpp"
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-	AFd::AFd(int fd) : _fd(fd) {
+AFd::AFd(int fd) : _fd(fd) {
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
 AFd::~AFd() {

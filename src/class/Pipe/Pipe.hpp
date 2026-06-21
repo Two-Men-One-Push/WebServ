@@ -5,38 +5,61 @@
 #include <fcntl.h>
 #include <stdint.h>
 
+class CGIInterface;
+
 class Pipe {
+  public:
+	class IPipeWriter {
+	  public:
+		virtual void onPipeIn(const AFd &pipeIn) = 0;
+	};
+
+	class IPipeReader {
+	  public:
+		virtual void onPipeOut(const AFd &pipeOut) = 0;
+	};
+
   private:
-	class PipeIn : public AFd {
-	  public:
-		PipeIn(int fd);
-		~PipeIn();
+	class In : public AFd {
+	  private:
+		IPipeWriter &_target;
 
-		uint32_t getHandledEvents() const; // Subject to change
-		void handleEvents(uint32_t events, WebServer &webServer); // Subject to change
+	  public:
+		In(int fd, IPipeWriter &target);
+		~In();
+
+		uint32_t getHandledEvents() const;
+		void handleEvents(uint32_t events, WebServer &webServer);
 	};
 
-	class PipeOut : public AFd {
-	  public:
-		PipeOut(int fd);
-		~PipeOut();
+	class Out : public AFd {
+	  private:
+		IPipeReader &_target;
 
-		uint32_t getHandledEvents() const; // Subject to change
-		void handleEvents(uint32_t events, WebServer &webServer); // Subject to change
+	  public:
+		Out(int fd, IPipeReader &target);
+		~Out();
+
+		uint32_t getHandledEvents() const;
+		void handleEvents(uint32_t events, WebServer &webServer);
 	};
 
-	PipeIn _in;
-	PipeOut _out;
+	In *_in;
+	Out *_out;
 
-	Pipe(int fdIn, int fdOut);
+	Pipe(int fdIn, int fdOut, Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget);
 
   public:
 	~Pipe();
 
-	const PipeIn &in() const;
-	const PipeOut &out() const;
+	const In &in() const;
+	const Out &out() const;
 
-	static Pipe createPipe();
+	void releaseIn();
+	void releaseOut();
+
+	static Pipe createPipe(Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget);
+	static Pipe createCGIPipe(CGIInterface &cgi);
 };
 
 #endif

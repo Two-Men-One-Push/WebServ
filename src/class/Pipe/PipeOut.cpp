@@ -2,18 +2,18 @@
 #include <iostream>
 #include <sys/epoll.h>
 
-Pipe::PipeOut::PipeOut(int fd) : AFd(fd) {}
+Pipe::Out::Out(int fd, Pipe::IPipeReader &target) : AFd(fd), _target(target) {}
 
-Pipe::PipeOut::~PipeOut() {}
+Pipe::Out::~Out() {}
 
-uint32_t Pipe::PipeOut::getHandledEvents() const {
+uint32_t Pipe::Out::getHandledEvents() const {
 	return EPOLLIN;
 }
 
-void Pipe::PipeOut::handleEvents(uint32_t events, WebServer &webServer) {
+void Pipe::Out::handleEvents(uint32_t events, WebServer &webServer) {
 	(void)webServer;
-	if (events & EPOLLOUT) {
-		std::cerr << "EPOLLOUT unused by PipeIn instance" << std::endl;
+	if (events & EPOLLIN) {
+		this->_target.onPipeOut(*this);
 	} else if (events & EPOLLERR) {
 		std::cerr << "EPOLLERR unused by PipeIn instance" << std::endl;
 	} else if (events & EPOLLHUP) {

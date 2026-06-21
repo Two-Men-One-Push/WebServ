@@ -3,7 +3,6 @@
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
-#include "Pipe/Pipe.hpp"
 #include "config/MainContext/MainContext.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cstring>
@@ -14,8 +13,8 @@
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
 
@@ -79,18 +78,18 @@ void WebServer::addClient(ClientSocket *client) {
 }
 
 void startCgi(void) {
-	Pipe pipe = Pipe::createPipe();
+	// CGI cgi("");
 
 	pid_t pid = fork();
 	if (pid < 0) throw WebservErrors::SysError("fork", errno);
 	if (pid) {
 		const char *path = "/usr/bin/python";
-		char *const argv[] = {"/usr/bin/python", NULL};
+		char *const argv[] = {(char *)"/usr/bin/python", (char *)"./www/cgi/test/py", NULL};
 		char *const envp[] = {NULL};
 		execve(path, argv, envp);
 	} else {
 		int stats;
-		waitpid(pid, &stats, options);
+		waitpid(pid, &stats, 0);
 	}
 }
 
@@ -103,7 +102,7 @@ void WebServer::requestDelete(ClientSocket *client) {
 }
 
 void WebServer::deleteClientSockets() {
-	for (std::vector<ClientSocket*>::iterator dit = this->_clientSocketsToDelete.begin(); dit != _clientSocketsToDelete.end(); ++dit) {
+	for (std::vector<ClientSocket *>::iterator dit = this->_clientSocketsToDelete.begin(); dit != _clientSocketsToDelete.end(); ++dit) {
 		ClientSocket *cs = *dit;
 		for (std::vector<ClientSocket *>::iterator it = _clientSockets.begin(); it != _clientSockets.end(); ++it) {
 			if (*it == cs) {
