@@ -7,9 +7,14 @@
 class	Server
 {
 	private:
-		std::vector<Location>		_locations;
 		std::vector<std::string>	_listen;
+		std::vector<std::string>	_server_names;
+		std::string					_root;
+		std::vector<std::string>	_index_files;
+		std::map<int, std::string>	_error_pages;
+		size_t						_client_max_body_size;
 		MimeType					_mimeType;
+		std::vector<Location>		_locations;
 	public:
 		Server();
 		~Server();
