@@ -100,7 +100,7 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	std::stringstream inBuffer;
 
 	errno = 0;
-	ssize_t readLen = read(_fd, buffer, BUFFER_SIZE);
+	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
 	if (!readLen) this->_closed = true;
 	if (readLen < 0) {
@@ -123,7 +123,7 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	}
 
 	if (this->canHandleEpollOut()) {
-		webServer.updateFd(*this);
+		webServer.epoll().updateFd(*this);
 	}
 }
 
@@ -139,6 +139,6 @@ void ClientSocket::onEpollOut(WebServer &webServer) {
 		this->_transactions.pop();
 	}
 	if (!this->canHandleEpollOut()) {
-		webServer.updateFd(*this);
+		webServer.epoll().updateFd(*this);
 	}
 }

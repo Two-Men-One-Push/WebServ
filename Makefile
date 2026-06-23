@@ -22,7 +22,7 @@ $(NAME): $(OBJS)
 
 $(BUILD_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CPP) $(CPPFLAGS) $(INCLUDE) -MD -MP -c $< -o $@
+	$(CPP) $(CPPFLAGS) $(INCLUDE) -MD -MP -g3 -c $< -o $@
 
 clangd:
 	@echo "$(CPPFLAGS) $(INCLUDE)" | tr ' ' '\n' > compile_flags.txt

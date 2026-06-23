@@ -11,12 +11,12 @@ class Pipe {
   public:
 	class IPipeWriter {
 	  public:
-		virtual void onPipeIn(const AFd &pipeIn) = 0;
+		virtual void inPipeEvent(const AFd &pipeIn, uint32_t events, WebServer &webServer) = 0;
 	};
 
 	class IPipeReader {
 	  public:
-		virtual void onPipeOut(const AFd &pipeOut) = 0;
+		virtual void outPipeEvent(const AFd &pipeOut, uint32_t events, WebServer &webServer) = 0;
 	};
 
   private:
@@ -44,18 +44,27 @@ class Pipe {
 		void handleEvents(uint32_t events, WebServer &webServer);
 	};
 
-	In *_in;
+	/** The AFd you read from */
 	Out *_out;
 
-	Pipe(int fdIn, int fdOut, Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget);
+	/** The AFd you write in */
+	In *_in;
+
+	Pipe(int fdOut, int fdIn, Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget);
 
   public:
 	~Pipe();
 
-	const In &in() const;
-	const Out &out() const;
+	/** The AFd you write in */
+	In &in();
 
+	/** The AFd you read from */
+	Out &out();
+
+	/** Delete the the AFd you write in */
 	void releaseIn();
+
+	/** Delete the the AFd you read from */
 	void releaseOut();
 
 	static Pipe createPipe(Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget);

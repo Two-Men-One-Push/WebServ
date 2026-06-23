@@ -1,10 +1,11 @@
 #include "./WebServer.hpp"
 #include "AFd/AFd.hpp"
+#include "CGI/CGIInterface.hpp"
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "config/MainContext/MainContext.hpp"
-#include "errors/WebservErrors.hpp"
+#include "http/HttpTransaction.hpp"
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
@@ -52,6 +53,11 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 
 	std::cout << "Listening http://" << ipAddress << ":" << port << std::endl;
 
+
+	HttpTransaction testTransaction;
+	// CGIInterface test("./www/cgi/test-test.py", testTransaction, *this);
+	CGIInterface test("/bin/cat", testTransaction, *this);
+
 	while (true) {
 		std::vector<EpollEvent> events;
 		_epoll.wait(events);
@@ -60,13 +66,6 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 		}
 
 		this->deleteClientSockets();
-		// char buffer[4096];
-
-		// errno = 0;
-		// while (errno != EAGAIN) {
-		// 	ssize_t readLen = read(test.getFd(), buffer, 4096);
-		// 	std::cout.write(buffer, readLen);
-		// }
 	}
 }
 
@@ -77,24 +76,8 @@ void WebServer::addClient(ClientSocket *client) {
 	_epoll.registerFd(*client);
 }
 
-void startCgi(void) {
-	// CGI cgi("");
-
-	pid_t pid = fork();
-	if (pid < 0) throw WebservErrors::SysError("fork", errno);
-	if (pid) {
-		const char *path = "/usr/bin/python";
-		char *const argv[] = {(char *)"/usr/bin/python", (char *)"./www/cgi/test/py", NULL};
-		char *const envp[] = {NULL};
-		execve(path, argv, envp);
-	} else {
-		int stats;
-		waitpid(pid, &stats, 0);
-	}
-}
-
-void WebServer::updateFd(AFd &fd) {
-	this->_epoll.updateFd(fd);
+const EpollInstance &WebServer::epoll() const {
+	return this->_epoll;
 }
 
 void WebServer::requestDelete(ClientSocket *client) {
