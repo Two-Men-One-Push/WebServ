@@ -23,6 +23,7 @@ class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
 
 	void startInterface(HttpTransaction &httpTransaction, WebServer &server);
 	void startCgi(HttpRequest &request);
+	void setupEnv(std::vector<std::string> &env, HttpRequest &request);
 
   public:
 	CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server);

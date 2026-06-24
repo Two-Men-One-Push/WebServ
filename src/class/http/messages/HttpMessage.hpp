@@ -59,7 +59,6 @@ class HttpMessage {
 	bool collectBody(std::istream &input);
 	bool collectRawBody(std::istream &input);
 
-
 	bool extractMessageHeaders(std::istream &input);
 
   public:
@@ -82,6 +81,8 @@ class HttpMessage {
 
 	const HeaderMap &headers() const;
 	HeaderMap &headers();
+
+	size_t contentLength() const { return _contentLength; }
 
 	TransferEncoding transferEncoding() const;
 	std::string transferEncodingStr() const;
