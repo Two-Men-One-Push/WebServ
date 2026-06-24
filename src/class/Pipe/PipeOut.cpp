@@ -1,7 +1,8 @@
+#include "EpollInstance/EpollWatchable.hpp"
 #include "Pipe.hpp"
 #include <sys/epoll.h>
 
-Pipe::Out::Out(int fd, Pipe::IPipeReader &target) : AFd(fd), _target(target) {}
+Pipe::Out::Out(int fd, Pipe::IPipeReader &target) : AEpollWatchable(fd), _target(target) {}
 
 Pipe::Out::~Out() {}
 

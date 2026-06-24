@@ -1,4 +1,5 @@
 #include "./ClientSocket.hpp"
+#include "EpollInstance/EpollWatchable.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
@@ -16,7 +17,7 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {}
+	: AEpollWatchable(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {}
 
 ClientSocket::~ClientSocket() {
 	while (!this->_transactions.empty()) {
@@ -123,7 +124,7 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	}
 
 	if (this->canHandleEpollOut()) {
-		webServer.epoll().updateFd(*this);
+		webServer.epoll().mod(*this);
 	}
 }
 
@@ -139,6 +140,6 @@ void ClientSocket::onEpollOut(WebServer &webServer) {
 		this->_transactions.pop();
 	}
 	if (!this->canHandleEpollOut()) {
-		webServer.epoll().updateFd(*this);
+		webServer.epoll().mod(*this);
 	}
 }

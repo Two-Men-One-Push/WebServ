@@ -31,8 +31,8 @@ class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
 	const std::string &execPath() const;
 
 
-	void inPipeEvent(const AFd &pipeIn, uint32_t events, WebServer &webServer);
-	void outPipeEvent(const AFd &pipeOut, uint32_t events, WebServer &webServer);
+	void inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer);
+	void outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebServer &webServer);
 
 	Pipe &in();
 	Pipe &out();

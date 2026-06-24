@@ -2,7 +2,6 @@
 #include "CGI/CGIInterface.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cstddef>
-#include <iostream>
 #include <netinet/in.h>
 #include <unistd.h>
 
@@ -42,7 +41,6 @@ Pipe Pipe::createPipe(Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &reader
 
 
 	if (pipe(pipeFds) < 0) throw WebservErrors::SysError("pipe", errno);
-	std::cout << pipeFds[0] << ":" << pipeFds[1] << std::endl;
 	return Pipe(pipeFds[0], pipeFds[1], writerTarget, readerTarget);
 }
 
@@ -51,6 +49,5 @@ Pipe Pipe::createCGIPipe(CGIInterface &cgi) {
 
 
 	if (pipe(pipeFds) < 0) throw WebservErrors::SysError("pipe", errno);
-	std::cout << pipeFds[0] << ":" << pipeFds[1] << std::endl;
 	return Pipe(pipeFds[0], pipeFds[1], cgi, cgi);
 }

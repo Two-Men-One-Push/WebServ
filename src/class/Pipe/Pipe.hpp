@@ -1,6 +1,7 @@
 #ifndef PIPE_HPP
 #define PIPE_HPP
 
+#include "EpollInstance/EpollWatchable.hpp"
 #include "WebServer/WebServer.hpp"
 #include <fcntl.h>
 #include <stdint.h>
@@ -9,18 +10,20 @@ class CGIInterface;
 
 class Pipe {
   public:
+  	class In;
+  	class Out;
+
 	class IPipeWriter {
 	  public:
-		virtual void inPipeEvent(const AFd &pipeIn, uint32_t events, WebServer &webServer) = 0;
+		virtual void inPipeEvent(const In &pipeIn, uint32_t events, WebServer &webServer) = 0;
 	};
 
 	class IPipeReader {
 	  public:
-		virtual void outPipeEvent(const AFd &pipeOut, uint32_t events, WebServer &webServer) = 0;
+		virtual void outPipeEvent(const Out &pipeOut, uint32_t events, WebServer &webServer) = 0;
 	};
 
-  private:
-	class In : public AFd {
+	class In : public AEpollWatchable {
 	  private:
 		IPipeWriter &_target;
 
@@ -30,9 +33,11 @@ class Pipe {
 
 		uint32_t getHandledEvents() const;
 		void handleEvents(uint32_t events, WebServer &webServer);
+
+		int fd() const { return _fd; }
 	};
 
-	class Out : public AFd {
+	class Out : public AEpollWatchable {
 	  private:
 		IPipeReader &_target;
 
@@ -42,8 +47,11 @@ class Pipe {
 
 		uint32_t getHandledEvents() const;
 		void handleEvents(uint32_t events, WebServer &webServer);
+
+		int fd() const { return _fd; }
 	};
 
+  private:
 	/** The AFd you read from */
 	Out *_out;
 
@@ -53,6 +61,7 @@ class Pipe {
 	Pipe(int fdOut, int fdIn, Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget);
 
   public:
+
 	~Pipe();
 
 	/** The AFd you write in */

@@ -1,6 +1,8 @@
 #include "./EpollInstance.hpp"
 #include "AFd/AFd.hpp"
+#include "EpollInstance/EpollWatchable.hpp"
 #include "errors/WebservErrors.hpp"
+#include <cassert>
 #include <cerrno>
 #include <sys/epoll.h>
 #include <vector>
@@ -18,26 +20,43 @@ EpollInstance EpollInstance::create() {
 	return EpollInstance(epollFd);
 }
 
-void EpollInstance::registerFd(AFd &fd) const {
+void EpollInstance::add(AEpollWatchable &watchable) const {
+	if (watchable.epoll() != NULL) throw WebservErrors::Runtime("EpollWatchable is already registered to epoll");
+
 	epoll_event epollEvent = {
-		.events =  fd.getHandledEvents(),
-		.data = {
-			.ptr = (&fd),
-		},
+		.events = watchable.getHandledEvents(),
+		.data = {.ptr = (&watchable)},
 	};
 
-	epoll_ctl(_fd, EPOLL_CTL_ADD, fd.fd(), &epollEvent);
+	errno = 0;
+	if (epoll_ctl(_fd, EPOLL_CTL_ADD, watchable.fd(), &epollEvent)) throw WebservErrors::SysError("epoll_ctl", errno);
+	watchable.epoll(this);
 }
 
-void EpollInstance::updateFd(AFd &fd) const {
+void EpollInstance::mod(AEpollWatchable &watchable) const {
+	if (watchable.epoll() == NULL) throw WebservErrors::Runtime("EpollWatchable has not been registered to epoll yet");
+
 	epoll_event epollEvent = {
-		.events =  fd.getHandledEvents(),
-		.data = {
-			.ptr = (&fd),
-		},
+		.events = watchable.getHandledEvents(),
+		.data = {.ptr = (&watchable)},
 	};
 
-	epoll_ctl(_fd, EPOLL_CTL_MOD, fd.fd(), &epollEvent);
+	errno = 0;
+	if (epoll_ctl(_fd, EPOLL_CTL_MOD, watchable.fd(), &epollEvent) == -1) throw WebservErrors::SysError("epoll_ctl", errno);
+	watchable.epoll(this);
+}
+
+void EpollInstance::del(int fd) const {
+	errno = 0;
+	if (epoll_ctl(_fd, EPOLL_CTL_DEL, fd, NULL) == -1) throw WebservErrors::SysError("epoll_ctl", errno);
+}
+
+void EpollInstance::del(AEpollWatchable &watchable) const {
+	if (watchable.epoll() == NULL) throw WebservErrors::Runtime("EpollWatchable is not registered to epoll");
+
+	errno = 0;
+	if (epoll_ctl(_fd, EPOLL_CTL_DEL, watchable.fd(), NULL) == -1) throw WebservErrors::SysError("epoll_ctl", errno);
+	watchable.epoll(NULL);
 }
 
 #define MAX_EVENTS 10
@@ -54,7 +73,6 @@ void EpollInstance::wait(std::vector<EpollEvent> &result) const {
 	for (int i = 0; i < eventCount; i++) {
 		result.push_back((EpollEvent){
 			epollEventBuffer[i].events,
-			static_cast<AFd *>(epollEventBuffer[i].data.ptr)
-		});
+			static_cast<AEpollWatchable *>(epollEventBuffer[i].data.ptr)});
 	}
 }

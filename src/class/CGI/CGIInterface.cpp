@@ -21,8 +21,8 @@ CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTra
 
 	if (pid == -1) throw WebservErrors::SysError("fork", errno);
 
-	this->_cgiPid = pid;
 	if (pid) {
+		this->_cgiPid = pid;
 		this->startInterface(httpTransaction, server);
 	} else {
 		this->startCgi(httpTransaction.request());
@@ -42,11 +42,11 @@ void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &s
 	this->_outPipe.releaseOut();
 	this->_inPipe.releaseIn();
 
-	AFd &out = this->_outPipe.in();
-	AFd &in = this->_inPipe.out();
+	Pipe::In &out = this->_outPipe.in();
+	Pipe::Out &in = this->_inPipe.out();
 
-	server.epoll().registerFd(out);
-	server.epoll().registerFd(in);
+	server.epoll().add(out);
+	server.epoll().add(in);
 
 	int status = 0;
 
@@ -86,37 +86,25 @@ void CGIInterface::startCgi(HttpRequest &request) {
 	_exit(1);
 }
 
-void CGIInterface::inPipeEvent(const AFd &pipeIn, uint32_t events, WebServer &webServer) {
+void CGIInterface::inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer) {
 	(void)webServer;
 	if (events & EPOLLOUT) {
-		std::string data("abcde");
+		std::string data("123456789123456789123456789");
 		pipeIn.write(data.c_str(), data.size());
 		this->_outPipe.releaseIn();
 	} else {
-		if (events & EPOLLERR) {
-			std::cout << "pipeIn EPOLLERR" << std::endl;
-		}
-		if (events & EPOLLHUP) {
-			std::cout << "pipeIn EPOLLHUP" << std::endl;
-		}
 		this->_outPipe.releaseIn();
 	}
 }
 
-void CGIInterface::outPipeEvent(const AFd &pipeOut, uint32_t events, WebServer &webServer) {
+void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebServer &webServer) {
 	(void)webServer;
 	if (events & EPOLLIN) {
-		std::cout << "pipeOut EPOLLIN" << std::endl;
 		char buffer[8];
 		ssize_t size = pipeOut.read(buffer, 8);
-		write(1, buffer, size);
+		std::string input(buffer, size);
+		std::cout << input << std::endl;
 	} else {
-		if (events & EPOLLERR) {
-			std::cout << "pipeOut EPOLLERR" << std::endl;
-		}
-		if (events & EPOLLHUP) {
-			std::cout << "pipeOut EPOLLHUP" << std::endl;
-		}
 		this->_inPipe.releaseOut();
 	}
 }

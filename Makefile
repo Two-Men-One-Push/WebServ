@@ -11,7 +11,8 @@ DEPS		=	$(OBJS:.o=.d)
 EXTCPP		?=	c++
 CPP			=	$(EXTCPP)
 
-CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
+CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98 -O3
+#-g -fsanitize=address -fno-omit-frame-pointer
 
 NAME		=	webserv
 

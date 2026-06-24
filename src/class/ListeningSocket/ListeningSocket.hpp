@@ -1,7 +1,7 @@
 #ifndef LISTENINGSOCKET_HPP
 #define LISTENINGSOCKET_HPP
 
-#include "ASocket/ASocket.hpp"
+#include "EpollInstance/EpollWatchable.hpp"
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -9,7 +9,7 @@
 
 class ClientSocket;
 
-class ListeningSocket : public ASocket {
+class ListeningSocket : public AEpollWatchable {
   private:
 	ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen);
 	void onEpollIn(WebServer &webServer) const;
@@ -21,6 +21,8 @@ class ListeningSocket : public ASocket {
 
 	void handleEvents(u_int32_t events, WebServer &webServer);
 	u_int32_t getHandledEvents() const;
+
+	int fd() const { return _fd; }
 
 	static ListeningSocket create(const sockaddr &addr, socklen_t addresslen);
 	static ListeningSocket *createNew(const sockaddr &addr, socklen_t addresslen);

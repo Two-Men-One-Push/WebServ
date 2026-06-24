@@ -22,9 +22,6 @@ class AFd {
 
 	int dup2(int fd) const;
 
-	virtual void handleEvents(u_int32_t events, WebServer &webServer) = 0;
-	virtual u_int32_t getHandledEvents() const = 0;
-
 	virtual ~AFd();
 };
 

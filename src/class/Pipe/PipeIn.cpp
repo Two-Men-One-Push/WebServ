@@ -1,7 +1,8 @@
+#include "EpollInstance/EpollWatchable.hpp"
 #include "Pipe.hpp"
 #include <sys/epoll.h>
 
-Pipe::In::In(int fd, Pipe::IPipeWriter &target) : AFd(fd), _target(target) {}
+Pipe::In::In(int fd, Pipe::IPipeWriter &target) : AEpollWatchable(fd), _target(target) {}
 
 Pipe::In::~In() {}
 

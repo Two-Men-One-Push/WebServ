@@ -45,7 +45,7 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 	addrinfo *currentAddressInfo = res;
 	while (currentAddressInfo) {
 		_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
-		_epoll.registerFd(*_listeningSockets.back());
+		_epoll.add(*_listeningSockets.back());
 		currentAddressInfo = currentAddressInfo->ai_next;
 	}
 
@@ -73,7 +73,7 @@ WebServer::~WebServer() {}
 
 void WebServer::addClient(ClientSocket *client) {
 	_clientSockets.push_back(client);
-	_epoll.registerFd(*client);
+	_epoll.add(*client);
 }
 
 const EpollInstance &WebServer::epoll() const {
