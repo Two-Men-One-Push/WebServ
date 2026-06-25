@@ -21,6 +21,11 @@ MimeTypes	&MimeTypes::operator=(const MimeTypes &other)
 	return (*this);
 }
 
+void	MimeTypes::clear()
+{
+	this->_types.clear();
+}
+
 const std::map<std::string, std::string>	&MimeTypes::types() const
 {
 	return (this->_types);

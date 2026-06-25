@@ -6,6 +6,7 @@
 #include "TokenStream.hpp"
 #include "Directive.hpp"
 #include "AST.hpp"
+#include "Config.hpp"
 #include <ostream>
 
 class	Debug
@@ -18,4 +19,5 @@ class	Debug
 		static void	printDirective(std::ostream &os, const Directive &directive, size_t indent);
 		static void	printAST(std::ostream &os, const AST &ast);
 		static void	printPreprocessedAST(std::ostream &os, const AST &ast);
+		static void	printConfig(std::ostream &os, const Config &config);
 };

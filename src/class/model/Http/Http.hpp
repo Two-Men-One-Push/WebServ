@@ -10,9 +10,9 @@ class	Http
 {
 	private:
 		size_t										_client_max_body_size;
-		std::map<int, std::pair<int, std::string>>	_error_pages;
-		std::vector<Server>							_servers;
+		std::map<int, std::pair<int, std::string> >	_error_pages;
 		MimeTypes									_types;
+		std::vector<Server>							_servers;
 	public:
 		Http();
 		~Http();
@@ -21,10 +21,10 @@ class	Http
 
 		const size_t										&clientMaxBodySize() const;
 		size_t												&clientMaxBodySize();
-		const std::map<int, std::pair<int, std::string>>	&errorPages() const;
-		std::map<int, std::pair<int, std::string>>			&errorPages();
-		const std::vector<Server>							&servers() const;
-		std::vector<Server>									&servers();
+		const std::map<int, std::pair<int, std::string> >	&errorPages() const;
+		std::map<int, std::pair<int, std::string> >			&errorPages();
 		const MimeTypes										&types() const;
 		MimeTypes											&types();
+		const std::vector<Server>							&servers() const;
+		std::vector<Server>									&servers();
 };

@@ -3,6 +3,8 @@
 #include "Preprocessor.hpp"
 #include "Semantic.hpp"
 #include "DiagnosticContext.hpp"
+#include "Debug.hpp"
+#include "Utils.hpp"
 #include <iostream>
 
 int	main(int argc, char **argv)
@@ -19,6 +21,7 @@ int	main(int argc, char **argv)
 		AST					ast = Parser::parse(tokens);
 		AST					preprocessed = Preprocessor::preprocess(ast, diag);
 		Config				config = Semantic::analyseAST(preprocessed, diag);
+		Debug::printConfig(std::cout, config);
 		if (diag.hasError())
 		{
 			std::cerr << "configuration has errors, cannot continue" << std::endl;

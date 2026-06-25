@@ -1,23 +1,6 @@
 #include "Server.hpp"
 #include "Location.hpp"
 
-template <typename Type>
-Location::Location(Type &parent, std::string path):
-_path(path),
-_root(path),
-_index_files(),
-_error_pages(),
-_client_max_body_size(parent.clientMaxBodySize()),
-_allowed_methods(),
-_autoindex(false),
-_redirection(),
-_cgi(),
-_upload_path(),
-_types(parent.types()),
-_locations()
-{
-}
-
 Location::~Location()
 {
 }
@@ -88,12 +71,12 @@ std::vector<std::string>	&Location::indexFiles()
 	return (this->_index_files);
 }
 
-const std::map<int, std::pair<int, std::string>>	&Location::errorPages() const
+const std::map<int, std::pair<int, std::string> >	&Location::errorPages() const
 {
 	return (this->_error_pages);
 }
 
-std::map<int, std::pair<int, std::string>>	&Location::errorPages()
+std::map<int, std::pair<int, std::string> >	&Location::errorPages()
 {
 	return (this->_error_pages);
 }
@@ -158,14 +141,14 @@ std::string	&Location::uploadPath()
 	return (this->_upload_path);
 }
 
-const MimeType	&Location::mimetype() const
+const MimeTypes	&Location::types() const
 {
-	return (this->_mimeType);
+	return (this->_types);
 }
 
-MimeType	&Location::mimetype()
+MimeTypes	&Location::types()
 {
-	return (this->_mimeType);
+	return (this->_types);
 }
 
 const std::vector<Location>	&Location::locations() const

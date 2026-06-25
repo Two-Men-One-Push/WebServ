@@ -1,6 +1,6 @@
 #include "Http.hpp"
 
-Http::Http(): _client_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE), _error_pages(), _servers(), _types()
+Http::Http(): _client_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE), _error_pages(), _types(), _servers()
 {
 }
 
@@ -8,7 +8,7 @@ Http::~Http()
 {
 }
 
-Http::Http(const Http &copy): _client_max_body_size(copy._client_max_body_size), _error_pages(copy._error_pages), _servers(copy._servers), _types(copy._types)
+Http::Http(const Http &copy): _client_max_body_size(copy._client_max_body_size), _error_pages(copy._error_pages), _types(copy._types), _servers(copy._servers)
 {
 }
 
@@ -18,8 +18,8 @@ Http	&Http::operator=(const Http &other)
 	{
 		this->_client_max_body_size = other._client_max_body_size;
 		this->_error_pages = other._error_pages;
-		this->_servers = other._servers;
 		this->_types = other._types;
+		this->_servers = other._servers;
 	}
 	return (*this);
 }
@@ -34,12 +34,12 @@ size_t	&Http::clientMaxBodySize()
 	return (this->_client_max_body_size);
 }
 
-const std::map<int, std::pair<int, std::string>>	&Http::errorPages() const
+const std::map<int, std::pair<int, std::string> >	&Http::errorPages() const
 {
 	return (this->_error_pages);
 }
 
-std::map<int, std::pair<int, std::string>>	&Http::errorPages()
+std::map<int, std::pair<int, std::string> >	&Http::errorPages()
 {
 	return (this->_error_pages);
 }

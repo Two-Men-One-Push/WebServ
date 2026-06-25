@@ -3,13 +3,15 @@
 #include "MimeTypes.hpp"
 #include <vector>
 
+class	Server;
+
 class	Location
 {
 	private:
 		std::string										_path;
 		std::string										_root;
 		std::vector<std::string>						_index_files;
-		std::map<int, std::pair<int, std::string>>		_error_pages;
+		std::map<int, std::pair<int, std::string> >		_error_pages;
 		size_t											_client_max_body_size;
 		std::vector<std::string>						_allowed_methods;
 		bool											_autoindex;
@@ -20,7 +22,20 @@ class	Location
 		std::vector<Location>							_locations;
 	public:
 		template <typename Type>
-		Location(Type &parent, std::string path);
+		Location(Type &parent, const std::string &path):
+		_path(path),
+		_root(path),
+		_index_files(),
+		_error_pages(parent.errorPages()),
+		_client_max_body_size(parent.clientMaxBodySize()),
+		_allowed_methods(),
+		_autoindex(false),
+		_redirection(0, ""),
+		_cgi(),
+		_upload_path(),
+		_types(parent.types()),
+		_locations()
+		{}
 		~Location();
 		Location(const Location &copy);
 		Location	&operator=(const Location &other);
@@ -31,12 +46,10 @@ class	Location
 		std::string												&root();
 		const std::vector<std::string>							&indexFiles() const;
 		std::vector<std::string>								&indexFiles();
-		const std::map<int, std::pair<int, std::string>>		&errorPages() const;
-		std::map<int, std::pair<int, std::string>>				&errorPages();
+		const std::map<int, std::pair<int, std::string> >		&errorPages() const;
+		std::map<int, std::pair<int, std::string> >			&errorPages();
 		const size_t											&clientMaxBodySize() const;
 		size_t													&clientMaxBodySize();
-		const std::vector<Location>								&locations() const;
-		std::vector<Location>									&locations();
 		const std::vector<std::string>							&allowedMethods() const;
 		std::vector<std::string>								&allowedMethods();
 		const bool												&autoindex() const;

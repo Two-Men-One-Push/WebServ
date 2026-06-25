@@ -1,11 +1,12 @@
 #include "Server.hpp"
+#include "Http.hpp"
 
 Server::Server(Http &http):
 _listen(),
 _server_names(),
 _root(),
 _index_files(),
-_error_pages(),
+_error_pages(http.errorPages()),
 _client_max_body_size(http.clientMaxBodySize()),
 _types(http.types()),
 _locations()
@@ -84,12 +85,12 @@ std::vector<std::string>	&Server::indexFiles()
 	return (this->_index_files);
 }
 
-const std::map<int, std::pair<int, std::string>>	&Server::errorPages() const
+const std::map<int, std::pair<int, std::string> >	&Server::errorPages() const
 {
 	return (this->_error_pages);
 }
 
-std::map<int, std::pair<int, std::string>>	&Server::errorPages()
+std::map<int, std::pair<int, std::string> >	&Server::errorPages()
 {
 	return (this->_error_pages);
 }
