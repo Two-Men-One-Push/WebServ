@@ -31,7 +31,7 @@
  *
  * @see RFC 2616 Section 5.1 https://datatracker.ietf.org/doc/html/rfc2616#section-5.1
  */
-bool HttpRequest::appendMessageTypes(std::istream &input) {
+bool HttpRequest::recvTypeLine(std::istream &input) {
 	switch (this->_firstLineState) {
 	case HttpRequest::REQUEST_METHOD:
 		if (!this->parseRequestMethod(input)) return false;
@@ -48,7 +48,7 @@ bool HttpRequest::appendMessageTypes(std::istream &input) {
 }
 
 bool HttpRequest::parseRequestMethod(std::istream &input) {
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 	std::string part;
 
 	std::getline(input, part, ' ');
@@ -64,7 +64,7 @@ bool HttpRequest::parseRequestMethod(std::istream &input) {
 }
 
 bool HttpRequest::parseRequestUri(std::istream &input) {
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 	std::string part;
 
 	std::getline(input, part, ' ');
@@ -81,7 +81,7 @@ bool HttpRequest::parseRequestUri(std::istream &input) {
 }
 
 bool HttpRequest::parseRequestVersion(std::istream &input) {
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 	std::string part;
 
 	std::getline(input, part, '\n');

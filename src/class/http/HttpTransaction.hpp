@@ -4,6 +4,7 @@
 #include "http/errors/HttpException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
+#include <istream>
 
 class HttpTransaction {
   private:
@@ -15,13 +16,14 @@ class HttpTransaction {
   public:
 	HttpTransaction();
 	HttpTransaction(const HttpTransaction &other);
-	// HttpTransaction &operator=(const HttpTransaction &other);
+	HttpTransaction &operator=(const HttpTransaction &other);
 	~HttpTransaction();
 
-	HttpRequest &request();
 	const HttpRequest &request() const;
-	HttpResponse &response();
 	const HttpResponse &response() const;
+
+	bool appendToRequest(std::istream &input);
+	bool appendToResponse(std::istream &input);
 
 	void error(const HttpException &e);
 };

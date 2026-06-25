@@ -1,13 +1,13 @@
-#ifndef CGIHPP
-#define CGIHPP
+#ifndef CGI_HPP
+#define CGI_HPP
 
 #include "Pipe/Pipe.hpp"
-#include "WebServer/WebServer.hpp"
-#include "http/HttpTransaction.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include <string>
 #include <sys/types.h>
 
+class HttpTransaction;
+class WebServer;
 
 class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
@@ -22,18 +22,20 @@ class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
 	pid_t _cgiPid;
 
 	void startInterface(HttpTransaction &httpTransaction, WebServer &server);
-	void startCgi(HttpRequest &request);
-	void setupEnv(std::vector<std::string> &env, HttpRequest &request);
+	void startCgi(const HttpRequest &request);
+	void setupEnv(std::vector<std::string> &env, const HttpRequest &request);
 
   public:
 	CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server);
-	~CGIInterface();
+	virtual ~CGIInterface();
 
 	const std::string &execPath() const;
 
-
-	void inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer);
+	/** Do you think this is related to _inPipe or _outPipe ? guess */
 	void outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebServer &webServer);
+
+	/** Do you think this is related to _inPipe or _outPipe ? guess */
+	void inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer);
 
 	Pipe &in();
 	Pipe &out();

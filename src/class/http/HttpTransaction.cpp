@@ -4,24 +4,34 @@
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
 
-HttpTransaction::HttpTransaction() : _request(*this), _response(*this), _last(false) {
+HttpTransaction::HttpTransaction() : _request(), _response(), _last(false) {
 	std::cout << "New HTTP transaction created" << std::endl;
 }
 
-HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other._request, *this), _response(other._response, *this), _last(other._last) {}
+HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other._request), _response(other._response), _last(other._last) {}
 
 HttpTransaction::~HttpTransaction() {}
 
-HttpRequest &HttpTransaction::request() {
-	return this->_request;
+bool HttpTransaction::appendToRequest(std::istream &input) {
+	try {
+		return this->_request.recvFrom(input);
+	} catch (const HttpException &e) {
+		this->error(e);
+		return true;
+	}
+}
+
+bool HttpTransaction::appendToResponse(std::istream &input) {
+	try {
+		return this->_request.recvFrom(input);
+	} catch (const HttpException &e) {
+		this->error(e);
+		return true;
+	}
 }
 
 const HttpRequest &HttpTransaction::request() const {
 	return this->_request;
-}
-
-HttpResponse &HttpTransaction::response() {
-	return this->_response;
 }
 
 const HttpResponse &HttpTransaction::response() const {

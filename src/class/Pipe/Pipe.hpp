@@ -2,11 +2,11 @@
 #define PIPE_HPP
 
 #include "EpollInstance/EpollWatchable.hpp"
-#include "WebServer/WebServer.hpp"
 #include <fcntl.h>
 #include <stdint.h>
 
 class CGIInterface;
+class WebServer;
 
 class Pipe {
   public:

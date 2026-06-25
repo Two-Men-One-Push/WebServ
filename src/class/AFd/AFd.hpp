@@ -18,7 +18,7 @@ class AFd {
 	ssize_t recv(void *buf, size_t n, int flags = 0) const;
 
 	ssize_t write(const void *buf, size_t n) const;
-	ssize_t send(const void* buf, size_t len, int flags = 0) const;
+	ssize_t send(const void *buf, size_t len, int flags = 0) const;
 
 	int dup2(int fd) const;
 

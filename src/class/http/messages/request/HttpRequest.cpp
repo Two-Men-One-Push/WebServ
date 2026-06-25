@@ -1,10 +1,10 @@
 #include "./HttpRequest.hpp"
-#include "http/HttpTransaction.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
 #include <cctype>
 #include <cstddef>
 #include <map>
+#include <sstream>
 #include <string>
 #include <utility>
 
@@ -22,20 +22,32 @@ size_t HttpRequest::_maxVersionSize = TMP_HTTP_BUFFER_SIZE;
 
 std::map<std::string, HttpMethod> HttpRequest::implementedHttpMethod(pairs, pairs + httpMethodCount);
 
-HttpRequest::HttpRequest(HttpTransaction &connnection)
-	: HttpMessage(connnection),
+HttpRequest::HttpRequest()
+	: HttpMessage(),
 	  _method(UNKNOWN),
 	  _uri(),
 	  _firstLineState(HttpRequest::REQUEST_METHOD) {
 	this->_maxMethodSize = this->getMaxMethodSize();
+	this->_body = new std::stringstream();
 }
 
-HttpRequest::HttpRequest(const HttpRequest &other, HttpTransaction &connnection)
-	: HttpMessage(other, connnection),
+HttpRequest::HttpRequest(const HttpRequest &other)
+	: HttpMessage(other),
 	  _method(other._method),
 	  _uri(other._uri),
 	  _firstLineState(other._firstLineState),
 	  _maxMethodSize(other._maxMethodSize) {}
+
+// HttpRequest &HttpRequest::operator=(const HttpRequest &other) {
+// 	if (this != &other) {
+// 		this->HttpMessage::operator=(other);
+// 		this->_method = other._method;
+// 		this->_uri = other._uri;
+// 		this->_firstLineState = other._firstLineState;
+// 		this->_maxMethodSize = other._maxMethodSize;
+// 	}
+// 	return *this;
+// }
 
 HttpRequest::~HttpRequest() {}
 

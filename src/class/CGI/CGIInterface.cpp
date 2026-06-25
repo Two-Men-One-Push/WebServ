@@ -19,7 +19,6 @@
 #include <vector>
 
 CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server) : _execPath(execPath), _inPipe(Pipe::createCGIPipe(*this)), _outPipe(Pipe::createCGIPipe(*this)) {
-	errno = 0;
 	int pid = fork();
 
 	if (pid == -1) throw WebservErrors::SysError("fork", errno);
@@ -53,7 +52,6 @@ void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &s
 
 	int status = 0;
 
-	errno = 0;
 	pid_t pid = waitpid(this->_cgiPid, &status, WNOHANG);
 	if (pid == -1) throw WebservErrors::SysError("waitpid", errno);
 	if (pid == 0) return;
@@ -61,20 +59,18 @@ void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &s
 	std::cout << WEXITSTATUS(status) << std::endl;
 }
 
-void CGIInterface::startCgi(HttpRequest &request) {
+void CGIInterface::startCgi(const HttpRequest &request) {
 	this->_outPipe.releaseIn();
 	this->_inPipe.releaseOut();
 
 	AFd &childStdIn = this->_outPipe.out();
 	AFd &childStdOut = this->_inPipe.in();
 
-	errno = 0;
 	if (childStdIn.dup2(0) == -1) {
 		perror("dup2");
 		_exit(1);
 	}
 
-	errno = 0;
 	if (childStdOut.dup2(1) == -1) {
 		perror("dup2");
 		_exit(1);
@@ -93,13 +89,12 @@ void CGIInterface::startCgi(HttpRequest &request) {
 	}
 	envp[i] = NULL;
 
-	errno = 0;
 	execve(this->_execPath.c_str(), argv, envp);
 	perror("execve");
 	_exit(1);
 }
-void CGIInterface::setupEnv(std::vector<std::string> &env, HttpRequest &request) {
-	HeaderMap &headers = request.headers();
+void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &request) {
+	const HeaderMap &headers = request.headers();
 
 	env.push_back("AUTH_TYPE=");
 	env.push_back("REMOTE_IDENT=");

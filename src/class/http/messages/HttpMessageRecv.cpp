@@ -1,6 +1,4 @@
 #include "./HttpMessage.hpp"
-#include "http/HttpTransaction.hpp"
-#include "http/errors/HttpException.hpp"
 #include "http/errors/HttpStandardException.hpp"
 #include "http/types.hpp"
 #include "utils/parsing.hpp"
@@ -14,32 +12,27 @@
 #include <unistd.h>
 #include <utility>
 
-bool HttpMessage::append(std::istream &input) {
-	try {
-		switch (this->_state) {
-		case HttpMessage::MESSAGE_TYPES:
-			if (!this->appendMessageTypes(input)) return false;
-			this->_state = HttpMessage::MESSAGE_HEADERS;
-			// fallthrough
-		case HttpMessage::MESSAGE_HEADERS:
-			if (!this->appendMessageHeaders(input)) return false;
-			this->_state = HttpMessage::LOAD_MESSAGE_HEADERS;
-			// fallthrough
-		case HttpMessage::LOAD_MESSAGE_HEADERS:
-			this->loadBaseUsedHeaders();
-			this->loadTypeUsedHeaders();
-			this->_state = HttpMessage::MESSAGE_BODY;
-			// fallthrough
-		case HttpMessage::MESSAGE_BODY:
-			if (this->hasBody() && !this->collectBody(input)) return false;
-			this->_state = HttpMessage::COMPLETED;
-			std::cout << *this << std::endl;
-			return true;
-		case HttpMessage::COMPLETED:
-			return true;
-		}
-	} catch (const HttpException &e) {
-		this->_transaction.error(e);
+bool HttpMessage::recvFrom(std::istream &input) {
+	switch (this->_inState) {
+	case HttpMessage::RECV_MESSAGE_TYPES:
+		if (!this->recvTypeLine(input)) return false;
+		this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
+		// fallthrough
+	case HttpMessage::RECV_MESSAGE_HEADERS:
+		if (!this->recvMessageHeaders(input)) return false;
+		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
+		// fallthrough
+	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
+		this->loadBaseUsedHeaders();
+		this->loadTypeUsedHeaders();
+		this->_inState = HttpMessage::RECV_MESSAGE_BODY;
+		// fallthrough
+	case HttpMessage::RECV_MESSAGE_BODY:
+		if (this->hasBody() && !this->recvBody(input)) return false;
+		this->_inState = HttpMessage::RECV_COMPLETED;
+		std::cout << *this << std::endl;
+		return true;
+	case HttpMessage::RECV_COMPLETED:
 		return true;
 	}
 }
@@ -70,8 +63,8 @@ bool HttpMessage::hasBody() const {
 	return this->_transferEncoding != TE_UNDEFINED || this->_contentLength != 0;
 }
 
-bool HttpMessage::completed() const {
-	return this->_state == HttpMessage::COMPLETED;
+bool HttpMessage::inCompleted() const {
+	return this->_inState == HttpMessage::RECV_COMPLETED;
 }
 
 /**
@@ -83,12 +76,12 @@ bool HttpMessage::completed() const {
  *						 of token, separators, and quoted-string>
  */
 
-bool HttpMessage::appendMessageHeaders(std::istream &input) {
+bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	if (!this->extractMessageHeaders(input)) {
 		return false;
 	}
 
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 
 	std::pair<std::string, std::string> headerField;
 	// parse message headers
@@ -125,7 +118,7 @@ bool HttpMessage::appendMessageHeaders(std::istream &input) {
 
 bool HttpMessage::extractMessageHeaders(std::istream &input) {
 	// Extract content until end of headers ("\r\n\r\n")
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 
 	while (true) {
 		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
@@ -140,7 +133,7 @@ bool HttpMessage::extractMessageHeaders(std::istream &input) {
 	}
 }
 
-bool HttpMessage::collectBody(std::istream &input) {
+bool HttpMessage::recvBody(std::istream &input) {
 	if (this->_transferEncoding == TE_UNDEFINED) return this->collectRawBody(input);
 	if (this->_transferEncoding == TE_CHUNKED) throw HttpExceptions::NotImplementedException();
 	throw HttpExceptions::NotImplementedException();
@@ -150,7 +143,7 @@ bool HttpMessage::collectRawBody(std::istream &input) {
 	char buffer[4096];
 
 	std::streamsize n = input.readsome(buffer, std::min(sizeof(buffer), this->_contentLength - this->_readContentLength));
-	this->_body.append(buffer, n);
+	this->_body->write(buffer, n);
 	this->_readContentLength += n;
 	if (this->_readContentLength < this->_contentLength) return false;
 	return true;

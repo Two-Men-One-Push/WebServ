@@ -1,69 +1,87 @@
 #ifndef HTTPMESSAGE_HPP
 #define HTTPMESSAGE_HPP
 
+#include "AFd/AFd.hpp"
 #include "http/types.hpp"
 #include <cstddef>
 #include <istream>
 #include <ostream>
 #include <string>
 
-#define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
+#define WRITE_SIZE 4096
 
-class HttpTransaction;
+#define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
 
 class HttpMessage {
   private:
 	HttpMessage &operator=(const HttpMessage &other);
 
-	// parsing data
+	// RECEIVE
 
-	enum ParsingState {
-		MESSAGE_TYPES,
-		MESSAGE_HEADERS,
-		LOAD_MESSAGE_HEADERS,
-		MESSAGE_BODY,
-		COMPLETED,
+	enum InState {
+		RECV_MESSAGE_TYPES,
+		RECV_MESSAGE_HEADERS,
+		RECV_LOAD_MESSAGE_HEADERS,
+		RECV_MESSAGE_BODY,
+		RECV_COMPLETED,
 	};
 
-	ParsingState _state;
+	InState _inState;
 
-	// Each one of the functions below return if they had enough content to finish their task
-	bool appendMessageHeaders(std::istream &input);
+	bool recvMessageHeaders(std::istream &input);
+	bool recvBody(std::istream &input);
 
-  protected:
-	// HTTP message data
-	static HttpVersion parseHttpVersion(const std::string &input);
-
-	HttpVersion _version;
-	HeaderMap _headers;
-	std::string _body;
-
-	std::string _buffer;
-
-	size_t _contentLength;
-	TransferEncoding _transferEncoding;
-
-	HttpTransaction &_transaction;
-
-	virtual bool appendMessageTypes(std::istream &input) = 0;
-	void loadBaseUsedHeaders();
-
-	size_t _readContentLength;
+	bool collectRawBody(std::istream &input);
+	bool extractMessageHeaders(std::istream &input);
 
 	// HEADER LOADER
 
 	void loadTranferEncoding();
 	void loadContentLenght();
 
-	virtual void loadTypeUsedHeaders() = 0;
-	bool collectBody(std::istream &input);
-	bool collectRawBody(std::istream &input);
+	// SEND
 
-	bool extractMessageHeaders(std::istream &input);
+	enum OutState {
+		SEND_HEAD,
+		SEND_BODY,
+		SEND_COMPLETED,
+	};
+
+	OutState _outState;
+	bool _bodyEmpty;
+
+	bool sendHead(AFd &output);
+	bool sendBody(AFd &output);
+
+	void formatHead();
+
+  protected:
+	// HTTP message data
+
+	HttpVersion _version;
+	HeaderMap _headers;
+	std::iostream *_body;
+
+	std::string _inBuffer;
+	std::string _outBuffer;
+
+	size_t _contentLength;
+	TransferEncoding _transferEncoding;
+
+	virtual bool recvTypeLine(std::istream &input) = 0;
+	void loadBaseUsedHeaders();
+
+	size_t _readContentLength;
+
+	virtual void loadTypeUsedHeaders() = 0;
+
+	virtual void formatTypeLine() = 0;
+
+	static HttpVersion parseHttpVersion(const std::string &input);
 
   public:
-	HttpMessage(HttpTransaction &transaction);
-	HttpMessage(const HttpMessage &other, HttpTransaction &transaction);
+	HttpMessage();
+	HttpMessage(const HttpMessage &other);
 	virtual ~HttpMessage();
 
 	HttpVersion version() const;
@@ -73,10 +91,14 @@ class HttpMessage {
 
 	virtual bool hasBody() const;
 
-	bool completed() const;
-	void state(ParsingState state);
+	bool recvFrom(std::istream &input);
+	void inState(InState state);
+	bool inCompleted() const;
 
-	bool append(std::istream &input);
+	bool send(AFd &output);
+	void outState(InState state);
+	bool outCompleted() const;
+
 	void end();
 
 	const HeaderMap &headers() const;

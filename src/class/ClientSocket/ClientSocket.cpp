@@ -54,7 +54,7 @@ uint32_t ClientSocket::getHandledEvents() const {
 }
 
 bool ClientSocket::canHandleEpollOut() const {
-	return !this->_transactions.empty() && this->_transactions.front()->request().completed();
+	return !this->_transactions.empty() && this->_transactions.front()->request().outCompleted();
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
@@ -117,10 +117,10 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	}
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
-		if (this->_transactions.back()->request().completed()) {
+		if (this->_transactions.back()->request().outCompleted()) {
 			this->_transactions.push(new HttpTransaction());
 		}
-		this->_transactions.back()->request().append(inBuffer);
+		this->_transactions.back()->appendToRequest(inBuffer);
 	}
 
 	if (this->canHandleEpollOut()) {
@@ -134,7 +134,7 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 					  "{\"hello\": \"world\"}"
 
 void ClientSocket::onEpollOut(WebServer &webServer) {
-	while (!this->_transactions.empty() && this->_transactions.front()->request().completed()) {
+	while (!this->_transactions.empty() && this->_transactions.front()->request().outCompleted()) {
 		HttpTransaction *transaction = this->_transactions.front();
 		delete transaction;
 		this->_transactions.pop();
