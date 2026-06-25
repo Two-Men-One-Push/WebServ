@@ -1,22 +1,30 @@
 #pragma once
 
 #include "Server.hpp"
-#include "MimeType.hpp"
+#include "MimeTypes.hpp"
 #include <vector>
+
+#define DEFAULT_CLIENT_MAX_BODY_SIZE 1000000
 
 class	Http
 {
 	private:
-		std::vector<Server>	_servers;
-		MimeType			_mimetype;
+		size_t										_client_max_body_size;
+		std::map<int, std::pair<int, std::string>>	_error_pages;
+		std::vector<Server>							_servers;
+		MimeTypes									_types;
 	public:
 		Http();
 		~Http();
 		Http(const Http &copy);
 		Http	&operator=(const Http &other);
 
-		const std::vector<Server>	&servers() const;
-		std::vector<Server>			&servers();
-		const MimeType				&mimetype() const;
-		MimeType					&mimetype();
+		const size_t										&clientMaxBodySize() const;
+		size_t												&clientMaxBodySize();
+		const std::map<int, std::pair<int, std::string>>	&errorPages() const;
+		std::map<int, std::pair<int, std::string>>			&errorPages();
+		const std::vector<Server>							&servers() const;
+		std::vector<Server>									&servers();
+		const MimeTypes										&types() const;
+		MimeTypes											&types();
 };

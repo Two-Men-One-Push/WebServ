@@ -1,18 +1,20 @@
 #pragma once
 
 #include "Http.hpp"
-#include "MimeType.hpp"
 
 class	Config
 {
 	private:
-		Http		_http;
+	DiagnosticContext	_diag;
+	Http				_http;
 	public:
 		Config();
 		~Config();
 		Config(const Config &copy);
 		Config	&operator=(const Config &other);
 
+		const DiagnosticContext	&diag() const;
+		DiagnosticContext	&diag();
 		const Http	&http() const;
 		Http		&http();
 };
