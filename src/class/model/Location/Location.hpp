@@ -28,11 +28,11 @@ class	Location
 		_index_files(),
 		_error_pages(parent.errorPages()),
 		_client_max_body_size(parent.clientMaxBodySize()),
-		_allowed_methods(),
-		_autoindex(false),
+		_allowed_methods(parent.allowedMethods()),
+		_autoindex(parent.autoindex()),
 		_redirection(0, ""),
-		_cgi(),
-		_upload_path(),
+		_cgi(parent.cgi()),
+		_upload_path(parent.uploadPath()),
 		_types(parent.types()),
 		_locations()
 		{}

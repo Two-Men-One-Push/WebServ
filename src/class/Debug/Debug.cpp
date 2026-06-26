@@ -113,10 +113,11 @@ static void	printLocations(std::ostream &os, const std::vector<Location> &locati
 		}
 		else
 			os << "none";
+		os << std::endl;
 		os << std::string(indent + 1, '\t') << "CGI: " << std::endl;
 		for (std::map<std::string, std::string>::const_iterator cgi_it = it->cgi().begin(); cgi_it != it->cgi().end(); ++cgi_it)
 		{
-			os << std::string(indent + 2, '\t') << "extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::string(indent + 2, '\t') << std::endl;
+			os << std::string(indent + 2, '\t') << "extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
 		}
 		os << std::string(indent + 1, '\t') << "Upload Path: " << it->uploadPath() << std::endl;
 		os << std::string(indent + 1, '\t') << "Types:" << std::endl;
@@ -138,6 +139,11 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 	for (std::map<int, std::pair<int, std::string> >::const_iterator it = config.http().errorPages().begin(); it != config.http().errorPages().end(); ++it)
 	{
 		os << "			error code: " << it->first << " response code: " << it->second.first << " page: " << it->second.second << std::endl;
+	}
+	os << "		CGI:" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = config.http().cgi().begin(); it != config.http().cgi().end(); ++it)
+	{
+		os << "			extension: " << it->first << " interpreter: " << it->second << std::endl;
 	}
 	os << "		Types:" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = config.http().types().types().begin(); it != config.http().types().types().end(); ++it)
@@ -179,10 +185,36 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 			os << "					error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
 		}
 		os << "				Client Max Body Size: " << it->clientMaxBodySize() << std::endl;
+		os << "				Allowed Methods: ";
+		for (std::vector<std::string>::const_iterator method_it = it->allowedMethods().begin(); method_it != it->allowedMethods().end(); ++method_it)
+		{
+			if (method_it != it->allowedMethods().begin())
+				os << ", ";
+			os << *method_it;
+		}
+		os << std::endl;
+		os << "				Autoindex: " << (it->autoindex() ? "on" : "off") << std::endl;
+		os << "				Redirection: ";
+		if (it->redirection().first != 0)
+		{
+			if (it->redirection().first >= 300 || it->redirection().first <= 399)
+				os << "code: " << it->redirection().first << " url: " << it->redirection().second;
+			else
+				os << "code: " << it->redirection().first << " message: " << it->redirection().second;
+		}
+		else
+			os << "none";
+		os << std::endl;
+		os << "				CGI:" << std::endl;
+		for (std::map<std::string, std::string>::const_iterator cgi_it = it->cgi().begin(); cgi_it != it->cgi().end(); ++cgi_it)
+		{
+			os << "					extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
+		}
+		os << "				Upload Path: " << it->uploadPath() << std::endl;
 		os << "				Types:" << std::endl;
 		for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
 		{
-			os << "					extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
+			os << "					extension: " << type_it->second << " mimetype: " << type_it->first << std::endl;
 		}
 		printLocations(os, it->locations(), 4);
 	}
