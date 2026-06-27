@@ -1,6 +1,7 @@
 #ifndef CLIENTSOCKET_HPP
 #define CLIENTSOCKET_HPP
 
+#include "ASocket/ASocket.hpp"
 #include "EpollInstance/EpollWatchable.hpp"
 #include "http/HttpTransaction.hpp"
 #include <netinet/in.h>
@@ -12,7 +13,7 @@
 class WebServer;
 class ListeningSocket;
 
-class ClientSocket : public AEpollWatchable {
+class ClientSocket : public ASocket {
   private:
 	struct sockaddr_storage _address;
 	socklen_t _addressLen;

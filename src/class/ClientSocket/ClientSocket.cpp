@@ -1,4 +1,5 @@
 #include "./ClientSocket.hpp"
+#include "ASocket/ASocket.hpp"
 #include "EpollInstance/EpollWatchable.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
@@ -18,7 +19,7 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: AEpollWatchable(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {
+	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {
 		FormattedAddress formattedAddress;
 		formatAddress(address, formattedAddress);
 		std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;

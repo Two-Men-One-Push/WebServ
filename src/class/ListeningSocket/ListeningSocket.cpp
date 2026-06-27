@@ -1,6 +1,5 @@
 #include "./ListeningSocket.hpp"
 #include "ClientSocket/ClientSocket.hpp"
-#include "EpollInstance/EpollWatchable.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cerrno>
@@ -10,7 +9,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
-ListeningSocket::ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen) : AEpollWatchable(socketFd) {
+ListeningSocket::ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen) : ASocket(socketFd) {
 	int opt = 1;
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
