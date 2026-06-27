@@ -5,7 +5,6 @@
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "config/MainContext/MainContext.hpp"
-#include "http/HttpTransaction.hpp"
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
@@ -51,12 +50,11 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 
 	freeaddrinfo(res);
 
-	std::cout << "Listening http://" << ipAddress << ":" << port << std::endl;
+	std::cout << "Listening http://" << ipAddress << ":" << port << ' ' << std::endl;
 
-
-	HttpTransaction testTransaction;
+	// HttpTransaction testTransaction;
 	// CGIInterface test("./www/cgi/test-test.py", testTransaction, *this);
-	CGIInterface test("/bin/cat", testTransaction, *this);
+	// CGIInterface test("/bin/cat", testTransaction, *this);
 
 	while (true) {
 		std::vector<EpollEvent> events;
@@ -65,6 +63,9 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 			it->fd->handleEvents(it->events, *this);
 		}
 
+		for (std::vector<ClientSocket *>::const_iterator it = this->_clientSockets.begin(); it != this->_clientSockets.end(); ++it) {
+			this->_epoll.mod(**it);
+		}
 		this->deleteClientSockets();
 	}
 }

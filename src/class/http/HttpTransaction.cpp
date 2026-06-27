@@ -1,5 +1,8 @@
 #include "./HttpTransaction.hpp"
+#include "CGI/CGIInterface.hpp"
+#include "WebServer/WebServer.hpp"
 #include "http/errors/HttpException.hpp"
+#include "http/errors/HttpStandardException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
@@ -12,22 +15,39 @@ HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other.
 
 HttpTransaction::~HttpTransaction() {}
 
-bool HttpTransaction::appendToRequest(std::istream &input) {
+bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
+	(void)server;
 	try {
-		return this->_request.recvFrom(input);
+		bool result = this->_request.recvFrom(input);
+		if (result) {
+			this->_response.error(HttpExceptions::NoContentException());
+		}
+		return result;
 	} catch (const HttpException &e) {
 		this->error(e);
 		return true;
 	}
 }
 
-bool HttpTransaction::appendToResponse(std::istream &input) {
+bool HttpTransaction::recvResponse(std::istream &input) {
 	try {
-		return this->_request.recvFrom(input);
+		return this->_response.recvFrom(input);
 	} catch (const HttpException &e) {
 		this->error(e);
 		return true;
 	}
+}
+
+bool HttpTransaction::sendRequest(const AFd &output) {
+	return this->_request.sendTo(output);
+}
+
+bool HttpTransaction::sendRequestBody(const AFd &output) {
+	return this->_response.sendBody(output);
+}
+
+bool HttpTransaction::sendResponse(const AFd &output) {
+	return this->_response.sendTo(output);
 }
 
 const HttpRequest &HttpTransaction::request() const {
@@ -41,4 +61,10 @@ const HttpResponse &HttpTransaction::response() const {
 void HttpTransaction::error(const HttpException &e) {
 	this->_response.error(e);
 	this->_last = true;
+}
+
+bool HttpTransaction::last() {
+	return this->_last ||
+		   (this->_response.headers().has("Connection") &&
+			this->_response.headers()["Connection"] == "close");
 }

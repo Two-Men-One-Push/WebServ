@@ -27,6 +27,7 @@ class HttpMessage {
 	};
 
 	InState _inState;
+	size_t _readSize;
 
 	bool recvMessageHeaders(std::istream &input);
 	bool recvBody(std::istream &input);
@@ -37,7 +38,7 @@ class HttpMessage {
 	// HEADER LOADER
 
 	void loadTranferEncoding();
-	void loadContentLenght();
+	void loadContentLength();
 
 	// SEND
 
@@ -48,10 +49,10 @@ class HttpMessage {
 	};
 
 	OutState _outState;
+	std::size_t _sentSize;
 	bool _bodyEmpty;
 
-	bool sendHead(AFd &output);
-	bool sendBody(AFd &output);
+	bool sendHead(const AFd &output);
 
 	void formatHead();
 
@@ -71,7 +72,6 @@ class HttpMessage {
 	virtual bool recvTypeLine(std::istream &input) = 0;
 	void loadBaseUsedHeaders();
 
-	size_t _readContentLength;
 
 	virtual void loadTypeUsedHeaders() = 0;
 
@@ -95,7 +95,8 @@ class HttpMessage {
 	void inState(InState state);
 	bool inCompleted() const;
 
-	bool send(AFd &output);
+	bool sendTo(const AFd &output);
+	bool sendBody(const AFd &output);
 	void outState(InState state);
 	bool outCompleted() const;
 

@@ -11,7 +11,7 @@ void HttpMessage::loadTranferEncoding() {
 	this->_transferEncoding = TE_CHUNKED;
 }
 
-void HttpMessage::loadContentLenght() {
+void HttpMessage::loadContentLength() {
 	HeaderMap &headerMap = this->_headers;
 	if (!headerMap.has("Content-Length")) return;
 	if (this->_transferEncoding != TE_UNDEFINED) throw HttpExceptions::BadRequestException();

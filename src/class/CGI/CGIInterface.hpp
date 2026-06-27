@@ -12,6 +12,7 @@ class WebServer;
 class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
 	std::string _execPath;
+	HttpTransaction &_httpTransaction;
 
 	/* The Pipe the parent process reads from */
 	Pipe _inPipe;

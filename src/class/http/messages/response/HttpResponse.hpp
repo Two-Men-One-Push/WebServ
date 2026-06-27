@@ -21,7 +21,6 @@ class HttpResponse : public HttpMessage {
 	CGIInterface *_cgiInterface;
 
 	void formatHead();
-	bool sendHead(ClientSocket &clientSocket);
 
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
@@ -35,7 +34,7 @@ class HttpResponse : public HttpMessage {
 	HttpResponse(const HttpResponse &other);
 	~HttpResponse();
 
-	int status() const;
+	HttpStatus::Code status() const;
 	void status(int status);
 
 	bool hasBody() const;
@@ -45,9 +44,6 @@ class HttpResponse : public HttpMessage {
 	void error(const HttpException &e);
 
 	bool formatCompleted();
-
-	/** @return true if the full response content was sent, and false otherwise. */
-	bool send(ClientSocket &clientSocket);
 
 	std::ostream &printTypeInfo(std::ostream &os) const;
 };

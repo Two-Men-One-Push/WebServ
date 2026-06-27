@@ -30,8 +30,8 @@ bool HttpMessage::recvFrom(std::istream &input) {
 	case HttpMessage::RECV_MESSAGE_BODY:
 		if (this->hasBody() && !this->recvBody(input)) return false;
 		this->_inState = HttpMessage::RECV_COMPLETED;
-		std::cout << *this << std::endl;
-		return true;
+		std::cerr << *this << std::endl;
+		// fallthrough
 	case HttpMessage::RECV_COMPLETED:
 		return true;
 	}
@@ -56,7 +56,7 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 
 void HttpMessage::loadBaseUsedHeaders() {
 	this->loadTranferEncoding();
-	this->loadContentLenght();
+	this->loadContentLength();
 }
 
 bool HttpMessage::hasBody() const {
@@ -142,9 +142,9 @@ bool HttpMessage::recvBody(std::istream &input) {
 bool HttpMessage::collectRawBody(std::istream &input) {
 	char buffer[4096];
 
-	std::streamsize n = input.readsome(buffer, std::min(sizeof(buffer), this->_contentLength - this->_readContentLength));
+	std::streamsize n = input.readsome(buffer, std::min(sizeof(buffer), this->_contentLength - this->_readSize));
 	this->_body->write(buffer, n);
-	this->_readContentLength += n;
-	if (this->_readContentLength < this->_contentLength) return false;
+	this->_readSize += n;
+	if (this->_readSize < this->_contentLength) return false;
 	return true;
 }

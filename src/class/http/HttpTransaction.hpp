@@ -22,10 +22,16 @@ class HttpTransaction {
 	const HttpRequest &request() const;
 	const HttpResponse &response() const;
 
-	bool appendToRequest(std::istream &input);
-	bool appendToResponse(std::istream &input);
+	bool recvRequest(std::istream &input, WebServer &server);
+	bool recvResponse(std::istream &input);
+
+	bool sendRequest(const AFd &output);
+	bool sendRequestBody(const AFd &output);
+	bool sendResponse(const AFd &output);
 
 	void error(const HttpException &e);
+
+	bool last();
 };
 
 #endif

@@ -3,10 +3,11 @@
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
-#include "http/messages/request/HttpRequest.hpp"
+#include "utils/formatting.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>
+#include <netinet/in.h>
 #include <ostream>
 #include <queue>
 #include <sstream>
@@ -17,7 +18,11 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: AEpollWatchable(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {}
+	: AEpollWatchable(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {
+		FormattedAddress formattedAddress;
+		formatAddress(address, formattedAddress);
+		std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
+	}
 
 ClientSocket::~ClientSocket() {
 	while (!this->_transactions.empty()) {
@@ -54,7 +59,7 @@ uint32_t ClientSocket::getHandledEvents() const {
 }
 
 bool ClientSocket::canHandleEpollOut() const {
-	return !this->_transactions.empty() && this->_transactions.front()->request().outCompleted();
+	return !this->_transactions.empty() && this->_transactions.front()->response().inCompleted();
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
@@ -90,13 +95,13 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			webServer.requestDelete(this);
 		}
 	} else {
-		std::cout << "Unhandled event : " << events << std::endl;
+		std::cerr << "Unhandled event : " << events << std::endl;
 	}
 }
 
 #define BUFFER_SIZE 4096
 
-void ClientSocket::onEpollIn(WebServer &webServer) {
+void ClientSocket::onEpollIn(WebServer &server) {
 	char buffer[BUFFER_SIZE];
 	std::stringstream inBuffer;
 
@@ -117,14 +122,13 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 	}
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
-		if (this->_transactions.back()->request().outCompleted()) {
+		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
 			this->_transactions.push(new HttpTransaction());
 		}
-		this->_transactions.back()->appendToRequest(inBuffer);
 	}
 
 	if (this->canHandleEpollOut()) {
-		webServer.epoll().mod(*this);
+		server.epoll().mod(*this);
 	}
 }
 
@@ -134,8 +138,9 @@ void ClientSocket::onEpollIn(WebServer &webServer) {
 					  "{\"hello\": \"world\"}"
 
 void ClientSocket::onEpollOut(WebServer &webServer) {
-	while (!this->_transactions.empty() && this->_transactions.front()->request().outCompleted()) {
-		HttpTransaction *transaction = this->_transactions.front();
+	HttpTransaction *transaction = this->_transactions.front();
+	if (transaction->sendResponse(*this)) {
+		if (transaction->last()) webServer.requestDelete(this);
 		delete transaction;
 		this->_transactions.pop();
 	}

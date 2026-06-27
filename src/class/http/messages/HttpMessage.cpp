@@ -4,29 +4,33 @@
 
 HttpMessage::HttpMessage()
 	: _inState(HttpMessage::RECV_MESSAGE_TYPES),
+	  _readSize(0),
 	  _outState(SEND_HEAD),
-	  _version(),
+	  _sentSize(0),
+	  _bodyEmpty(false),
+	  _version(HTTP1_1),
 	  _headers(),
 	  _body(NULL),
 	  _inBuffer(),
 	  _outBuffer(),
 	  _contentLength(0),
-	  _transferEncoding(TE_UNDEFINED),
-	  _readContentLength(0) {
+	  _transferEncoding(TE_UNDEFINED) {
 	this->_inBuffer.reserve(TMP_HTTP_BUFFER_SIZE);
 }
 
 HttpMessage::HttpMessage(const HttpMessage &other)
 	: _inState(other._inState),
+	  _readSize(other._readSize),
 	  _outState(other._outState),
+	  _sentSize(other._sentSize),
+	  _bodyEmpty(other._bodyEmpty),
 	  _version(other._version),
 	  _headers(other._headers),
 	  _body(other._body),
 	  _inBuffer(other._inBuffer),
 	  _outBuffer(other._outBuffer),
 	  _contentLength(other._contentLength),
-	  _transferEncoding(other._transferEncoding),
-	  _readContentLength(other._readContentLength) {}
+	  _transferEncoding(other._transferEncoding) {}
 
 // HttpMessage &HttpMessage::operator=(const HttpMessage &other) {
 // 	if (this != &other) {
@@ -92,11 +96,9 @@ std::ostream &HttpMessage::print(std::ostream &os) const {
 	if (headers.has("Content-Length"))
 		os << "content_length = " << this->_contentLength << '\n';
 
-	os << "===HEADERS===\n";
 	for (HeaderMap::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-		os << '"' << it->first << "\": \"" << it->second << "\"\n";
+		os << it->first << ": " << it->second << "\r\n";
 	}
-	if (this->hasBody()) os << "===BODY===\n"
-							<< this->_body;
+	if (this->hasBody()) os << this->_body;
 	return os;
 }

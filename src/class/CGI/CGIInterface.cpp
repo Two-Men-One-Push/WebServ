@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -18,7 +19,8 @@
 #include <unistd.h>
 #include <vector>
 
-CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server) : _execPath(execPath), _inPipe(Pipe::createCGIPipe(*this)), _outPipe(Pipe::createCGIPipe(*this)) {
+CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server)
+	: _execPath(execPath), _httpTransaction(httpTransaction), _inPipe(Pipe::createCGIPipe(*this)), _outPipe(Pipe::createCGIPipe(*this)) {
 	int pid = fork();
 
 	if (pid == -1) throw WebservErrors::SysError("fork", errno);
@@ -47,7 +49,12 @@ void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &s
 	Pipe::In &out = this->_outPipe.in();
 	Pipe::Out &in = this->_inPipe.out();
 
-	server.epoll().add(out);
+	if (httpTransaction.request().hasBody()) {
+		server.epoll().add(out);
+	} else {
+		this->_outPipe.releaseIn();
+	}
+
 	server.epoll().add(in);
 
 	int status = 0;
@@ -93,6 +100,7 @@ void CGIInterface::startCgi(const HttpRequest &request) {
 	perror("execve");
 	_exit(1);
 }
+
 void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &request) {
 	const HeaderMap &headers = request.headers();
 
@@ -115,20 +123,20 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &re
 
 	env.push_back("SCRIPT_NAME=" + this->_execPath);
 	// TODO
-	env.push_back("PATH_INFO=");
+	env.push_back("PATH_INFO=/path/info");
 
 	// TODO
-	env.push_back("REMOTE_ADDR=");
+	env.push_back("REMOTE_ADDR=127.0.0.1");
 	// TODO
-	env.push_back("REMOTE_HOST=");
+	env.push_back("REMOTE_HOST=127.0.0.1");
 	env.push_back("REQUEST_METHOD=" + request.methodStr());
 	// TODO
-	env.push_back("QUERY_STRING=");
+	env.push_back("QUERY_STRING=?qtest1=123&qtest2=abc");
 
 	// TODO
-	env.push_back("SERVER_NAME=");
+	env.push_back("SERVER_NAME=webserv");
 	// TODO
-	env.push_back("SERVER_PORT=");
+	env.push_back("SERVER_PORT=6969");
 	env.push_back("SERVER_PROTOCOL=" + request.versionStr());
 	env.push_back("SERVER_SOFTWARE=webserv/0.1");
 }
@@ -136,21 +144,33 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &re
 void CGIInterface::inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer) {
 	(void)webServer;
 	if (events & EPOLLOUT) {
-		std::string data("123456789123456789123456789");
-		pipeIn.write(data.c_str(), data.size());
-		this->_outPipe.releaseIn();
+		this->_httpTransaction.sendRequestBody(pipeIn);
 	} else {
 		this->_outPipe.releaseIn();
 	}
 }
 
-void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebServer &webServer) {
-	(void)webServer;
+void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebServer &server) {
+	(void)server;
 	if (events & EPOLLIN) {
-		char buffer[8];
-		ssize_t size = pipeOut.read(buffer, 8);
-		std::string input(buffer, size);
-		std::cout << input << std::endl;
+		char buffer[4096];
+		std::stringstream input;
+
+		ssize_t readLen = pipeOut.read(buffer, 4096);
+		if (!readLen) this->_inPipe.releaseOut();
+		if (readLen < 0) {
+			this->_inPipe.releaseOut();
+			throw WebservErrors::SysError("read", errno);
+		}
+
+		// std::cerr.write(buffer, readLen);
+		input.write(buffer, readLen);
+
+		if (this->_httpTransaction.recvResponse(input)) {
+
+		} else {
+			std::cerr << "WAITING " << this->_httpTransaction.response().status() << std::endl;
+		}
 	} else {
 		this->_inPipe.releaseOut();
 	}

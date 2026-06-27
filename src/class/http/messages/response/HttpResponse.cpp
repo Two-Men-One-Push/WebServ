@@ -36,13 +36,17 @@ HttpResponse::~HttpResponse() {
  */
 bool HttpResponse::hasBody() const {
 	if (this->_version == HTTP1_0) {
-		return false;
+		return true;
 	} else {
-		/** @see https://datatracker.ietf.org/doc/html/rfc2616#section-4.4 first case talking about response messages (aka HTTP response) */
+		/** @see https://datatracker.ietf.org/doc/html/rfc9112#section-6.3-2.1 first case talking about response messages (aka HTTP response) */
 		if (HttpStatus::isInformational(this->_status) || this->_status == HttpStatus::NoContent || this->_status == HttpStatus::NotModified)
 			return false;
 		return this->HttpMessage::hasBody();
 	}
+}
+
+HttpStatus::Code HttpResponse::status() const {
+	return this->_status;
 }
 
 std::ostream &HttpResponse::printTypeInfo(std::ostream &os) const {

@@ -19,7 +19,6 @@ bool HttpResponse::recvTypeLine(std::istream &input) {
 	// parse message types
 	std::string line = buffer.substr(0, buffer.size() - 2);
 	buffer = std::string();
-	std::cout << "[line] " << line << std::endl;
 	return true;
 }
 
