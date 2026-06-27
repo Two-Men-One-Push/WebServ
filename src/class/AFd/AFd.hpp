@@ -1,6 +1,7 @@
 #ifndef AFD_HPP
 #define AFD_HPP
 
+#include <string>
 #include <sys/types.h>
 #include <unistd.h>
 
