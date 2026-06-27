@@ -1,7 +1,6 @@
 #include "./HttpRequest.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
-#include <cctype>
 #include <cstddef>
 #include <map>
 #include <sstream>

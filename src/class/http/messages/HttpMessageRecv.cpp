@@ -35,6 +35,7 @@ bool HttpMessage::recvFrom(std::istream &input) {
 	case HttpMessage::RECV_COMPLETED:
 		return true;
 	}
+	return this->_inState == HttpMessage::RECV_COMPLETED;
 }
 
 HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {

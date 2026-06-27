@@ -110,7 +110,7 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &re
 
 	std::ostringstream formatter;
 	formatter << "CONTENT_LENGTH=" << request.contentLength();
-	env.push_back(formatter.str());
+	// env.push_back(formatter.str());
 	formatter.str("");
 
 	if (request.hasBody() && headers.has("Content-Type")) {
@@ -123,7 +123,7 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &re
 
 	env.push_back("SCRIPT_NAME=" + this->_execPath);
 	// TODO
-	env.push_back("PATH_INFO=/path/info");
+	env.push_back("PATH_INFO=");
 
 	// TODO
 	env.push_back("REMOTE_ADDR=127.0.0.1");
@@ -163,13 +163,15 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			throw WebservErrors::SysError("read", errno);
 		}
 
-		// std::cerr.write(buffer, readLen);
+		std::cerr << "\e[0;31m";
+		std::cerr.write(buffer, readLen);
+		std::cerr << "\e[0m\n";
 		input.write(buffer, readLen);
 
 		if (this->_httpTransaction.recvResponse(input)) {
-
+			this->_inPipe.releaseOut();
 		} else {
-			std::cerr << "WAITING " << this->_httpTransaction.response().status() << std::endl;
+			return;
 		}
 	} else {
 		this->_inPipe.releaseOut();

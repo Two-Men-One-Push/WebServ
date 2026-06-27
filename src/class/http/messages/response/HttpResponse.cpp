@@ -50,5 +50,5 @@ HttpStatus::Code HttpResponse::status() const {
 }
 
 std::ostream &HttpResponse::printTypeInfo(std::ostream &os) const {
-	return os << this->_version << " " << this->_status << '\n';
+	return os << this->versionStr() << " " << this->_status << '\n';
 }

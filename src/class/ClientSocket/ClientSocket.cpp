@@ -1,12 +1,10 @@
 #include "./ClientSocket.hpp"
 #include "ASocket/ASocket.hpp"
-#include "EpollInstance/EpollWatchable.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
 #include "utils/formatting.hpp"
 #include <cerrno>
-#include <cstring>
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>

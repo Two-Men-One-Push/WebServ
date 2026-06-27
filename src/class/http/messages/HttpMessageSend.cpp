@@ -26,12 +26,12 @@ bool HttpMessage::sendTo(const AFd &output) {
 			delete this->_body;
 			this->_outState = SEND_COMPLETED;
 		} else if (this->_bodyEmpty) {
-
 		}
 		// fallthrough
 	case SEND_COMPLETED:
 		return true;
 	}
+	return this->_outState == SEND_COMPLETED;
 }
 
 bool HttpMessage::sendHead(const AFd &output) {
@@ -49,8 +49,7 @@ bool HttpMessage::sendBody(const AFd &output) {
 
 	size_t maxWrite = std::min(_contentLength, (size_t)WRITE_SIZE);
 
-	if (buffer.size() < maxWrite
-		&& !this->_bodyEmpty) {
+	if (buffer.size() < maxWrite && !this->_bodyEmpty) {
 		size_t oldSize = buffer.size();
 		size_t missingSize = maxWrite - oldSize;
 

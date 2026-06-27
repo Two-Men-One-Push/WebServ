@@ -17,8 +17,8 @@ bool HttpResponse::recvTypeLine(std::istream &input) {
 	}
 
 	// parse message types
-	std::string line = buffer.substr(0, buffer.size() - 2);
-	buffer = std::string();
+	std::string versionInput = buffer.substr(0, buffer.size() - 2);
+	this->_version = this->parseHttpVersion(versionInput);
 	return true;
 }
 
