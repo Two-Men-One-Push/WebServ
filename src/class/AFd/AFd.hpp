@@ -1,7 +1,6 @@
 #ifndef AFD_HPP
 #define AFD_HPP
 
-#include <string>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -15,11 +14,13 @@ class AFd {
   public:
 	int fd() const;
 
-	ssize_t write(const void *buf, size_t n);
-	ssize_t send(const void* buf, size_t len, int flags = 0);
+	ssize_t read(void *buf, size_t n) const;
+	ssize_t recv(void *buf, size_t n, int flags = 0) const;
 
-	virtual void handleEvents(u_int32_t events, WebServer &webServer) = 0;
-	virtual u_int32_t getHandledEvents() const = 0;
+	ssize_t write(const void *buf, size_t n) const;
+	ssize_t send(const void *buf, size_t len, int flags = 0) const;
+
+	int dup2(int fd) const;
 
 	virtual ~AFd();
 };

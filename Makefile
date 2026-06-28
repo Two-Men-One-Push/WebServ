@@ -12,6 +12,7 @@ EXTCPP		?=	c++
 CPP			=	$(EXTCPP)
 
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
+#-g -fsanitize=address -fno-omit-frame-pointer
 
 NAME		=	webserv
 
@@ -26,6 +27,16 @@ $(BUILD_DIR)/%.o: %.cpp
 
 clangd:
 	@echo "$(CPPFLAGS) $(INCLUDE)" | tr ' ' '\n' > compile_flags.txt
+
+test_env:
+	@mkdir -p YoupiBanane
+	@touch YoupiBanane/youpi.bad_extension
+	@touch YoupiBanane/youpi.bla
+	@mkdir -p YoupiBanane/nop
+	@touch YoupiBanane/nop/youpi.bad_extension
+	@touch YoupiBanane/nop/other.pouic
+	@mkdir -p YoupiBanane/Yeah
+	@touch YoupiBanane/Yeah/not_happy.bad_extension
 
 compile_commands.json: fclean
 	@bear -- make re -k > /dev/null 2>&1

@@ -23,10 +23,8 @@ class WebServer {
 	~WebServer();
 
 	void addClient(ClientSocket *client);
-	void removeClient(ClientSocket *client);
-	void updateFd(AFd &fd);
 	void requestDelete(ClientSocket *client);
-
+	const EpollInstance &epoll() const;
 };
 
 #endif

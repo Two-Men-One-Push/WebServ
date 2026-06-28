@@ -4,26 +4,35 @@
 #include "http/errors/HttpException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
+#include <istream>
 
 class HttpTransaction {
   private:
 	HttpRequest _request;
 	HttpResponse _response;
 
-	bool _last;
+	bool _isLast;
 
   public:
 	HttpTransaction();
 	HttpTransaction(const HttpTransaction &other);
-	// HttpTransaction &operator=(const HttpTransaction &other);
+	HttpTransaction &operator=(const HttpTransaction &other);
 	~HttpTransaction();
 
-	HttpRequest &request();
 	const HttpRequest &request() const;
-	HttpResponse &response();
 	const HttpResponse &response() const;
 
+	bool recvRequest(std::istream &input, WebServer &server);
+	bool recvResponse(std::istream &input);
+
+	bool sendRequest(const AFd &output);
+	bool sendRequestBody(const AFd &output);
+	bool sendResponse(const AFd &output);
+
 	void error(const HttpException &e);
+
+	bool isLast() const;
+	void isLast(bool isLast);
 };
 
 #endif

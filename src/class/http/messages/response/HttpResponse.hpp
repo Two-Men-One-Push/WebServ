@@ -1,42 +1,49 @@
 #ifndef HTTPRESPONSE_HPP
 #define HTTPRESPONSE_HPP
 
+#include "CGI/CGIInterface.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/errors/HttpException.hpp"
 #include "http/messages/HttpMessage.hpp"
+#include <istream>
 
 #define TMP_SERVER_ROOT "www"
 
-class HttpTransaction;
 class ClientSocket;
 
 class HttpResponse : public HttpMessage {
   private:
-	HttpResponse(const HttpResponse &other);
 	HttpResponse &operator=(const HttpResponse &other);
 
 	HttpStatus::Code _status;
 	std::string _message;
 
-  protected:
-	bool appendMessageTypes(std::istream &input);
+	CGIInterface *_cgiInterface;
 
+	void formatHead();
+
+  protected:
+	// Each one of the functions below return if they had enough content to finish their task
+	bool recvTypeLine(std::istream &input);
 	void loadTypeUsedHeaders();
 
+	void formatTypeLine();
+
   public:
-	HttpResponse(HttpTransaction &transaction);
-	HttpResponse(const HttpResponse &other, HttpTransaction &transaction);
+	HttpResponse();
+	HttpResponse(const HttpResponse &other);
 	~HttpResponse();
 
-	int status() const;
+	HttpStatus::Code status() const;
 	void status(int status);
 
 	bool hasBody() const;
 
+	void file();
+	void cgi(CGIInterface &cgi);
 	void error(const HttpException &e);
 
-	/** @return true if the full predicted content was sent, and false otherwise. */
-	bool send(ClientSocket &clientSocket);
+	bool formatCompleted();
 
 	std::ostream &printTypeInfo(std::ostream &os) const;
 };

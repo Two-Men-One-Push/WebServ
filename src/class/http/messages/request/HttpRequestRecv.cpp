@@ -1,10 +1,11 @@
+#include "./HttpRequest.hpp"
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/HttpMessage.hpp"
-#include "./HttpRequest.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
 #include <iostream>
 #include <istream>
+#include <sstream>
 #include <string>
 
 /**
@@ -31,7 +32,7 @@
  *
  * @see RFC 2616 Section 5.1 https://datatracker.ietf.org/doc/html/rfc2616#section-5.1
  */
-bool HttpRequest::appendMessageTypes(std::istream &input) {
+bool HttpRequest::recvTypeLine(std::istream &input) {
 	switch (this->_firstLineState) {
 	case HttpRequest::REQUEST_METHOD:
 		if (!this->parseRequestMethod(input)) return false;
@@ -48,15 +49,21 @@ bool HttpRequest::appendMessageTypes(std::istream &input) {
 }
 
 bool HttpRequest::parseRequestMethod(std::istream &input) {
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 	std::string part;
 
-	std::getline(input, part, ' ');
-	buffer += part;
+	while (true) {
+		if (buffer.size() == this->_maxMethodSize) throw HttpExceptions::NotImplementedException();
 
-	if (!istoken(buffer)) throw HttpExceptions::BadRequestException();
-	if (buffer.size() > this->_maxMethodSize) throw HttpExceptions::NotImplementedException();
-	if (input.eof()) return false;
+		int c = input.get();
+		if (c == ' ')
+			break;
+		if (c == std::stringstream::traits_type::eof())
+			return false;
+		if (!istokenc(c)) throw HttpExceptions::BadRequestException();
+		buffer += static_cast<char>(c);
+	}
+
 	if (HttpRequest::implementedHttpMethod.find(buffer) == HttpRequest::implementedHttpMethod.end()) throw HttpExceptions::NotImplementedException();
 	this->_method = HttpRequest::implementedHttpMethod[buffer];
 	buffer.clear();
@@ -64,35 +71,52 @@ bool HttpRequest::parseRequestMethod(std::istream &input) {
 }
 
 bool HttpRequest::parseRequestUri(std::istream &input) {
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 	std::string part;
 
-	std::getline(input, part, ' ');
 	buffer += part;
 
-	if (buffer.size() > this->_maxUriSize) throw HttpExceptions::URITooLongException();
-	if (input.eof()) return false;
+	while (true) {
+		if (buffer.size() == this->_maxUriSize) throw HttpExceptions::URITooLongException();
+
+		int c = input.get();
+		if (c == ' ')
+			break;
+		if (c == std::stringstream::traits_type::eof())
+			return false;
+		buffer += static_cast<char>(c);
+		if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+			this->_uri = "/";
+			return true;
+		}
+	}
+
+	this->_uri = buffer;
 
 	// !:! other checks required here
 
-	this->_uri = buffer;
 	buffer.clear();
 	return true;
 }
 
 bool HttpRequest::parseRequestVersion(std::istream &input) {
-	std::string &buffer = this->_buffer;
+	std::string &buffer = this->_inBuffer;
 	std::string part;
 
-	std::getline(input, part, '\n');
+	if (buffer.empty()) {
+		while (true) {
+			if (buffer.size() == this->_maxVersionSize) throw HttpExceptions::BadRequestException();
 
-	buffer += part;
-
-	if (buffer.size() > this->_maxVersionSize) throw HttpExceptions::BadRequestException();
-	if (input.eof()) return false;
-
-	if (buffer[buffer.size() - 1] != '\r') throw HttpExceptions::BadRequestException();
-	buffer.resize(buffer.size() - 1);
+			int c = input.get();
+			if (c == std::stringstream::traits_type::eof())
+				return false;
+			buffer += static_cast<char>(c);
+			if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+				break;
+			}
+		}
+	}
+	buffer.resize(buffer.size() - 2);
 	this->_version = HttpMessage::parseHttpVersion(buffer);
 	buffer.clear();
 	return true;
