@@ -1,0 +1,6 @@
+#ifndef DEFAULTDIRECTIVES_HPP
+#define DEFAULTDIRECTIVES_HPP
+
+#define DFLT_LISTEN 123
+
+#endif

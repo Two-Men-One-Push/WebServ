@@ -1,0 +1,16 @@
+name: pull-request-check
+
+on:
+  pull_request:
+    branches: ['**']
+
+jobs:
+  pull-request-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: make EXTCPP=clang++
+
