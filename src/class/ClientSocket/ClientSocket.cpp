@@ -18,10 +18,10 @@
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
 	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {
-		FormattedAddress formattedAddress;
-		formatAddress(address, formattedAddress);
-		std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
-	}
+	FormattedAddress formattedAddress;
+	formatAddress(address, formattedAddress);
+	std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
+}
 
 ClientSocket::~ClientSocket() {
 	while (!this->_transactions.empty()) {
@@ -51,7 +51,7 @@ const struct sockaddr_storage &ClientSocket::address() const {
 }
 
 uint32_t ClientSocket::getHandledEvents() const {
-	uint32_t result = EPOLLIN | EPOLLRDHUP;
+	uint32_t result = EPOLLIN;
 	if (this->canHandleEpollOut())
 		result |= EPOLLOUT;
 	return result;
@@ -62,15 +62,12 @@ bool ClientSocket::canHandleEpollOut() const {
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
-	if (events & (EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR)) {
 		if (events & EPOLLIN) {
 			std::cout << "EPOLLIN" << std::endl;
 		}
 		if (events & EPOLLOUT) {
 			std::cout << "EPOLLOUT" << std::endl;
-		}
-		if (events & EPOLLRDHUP) {
-			std::cout << "EPOLLRDHUP" << std::endl;
 		}
 		if (events & EPOLLHUP) {
 			std::cout << "EPOLLHUP" << std::endl;
@@ -83,9 +80,6 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 		}
 		if (events & EPOLLOUT) {
 			this->onEpollOut(webServer);
-		}
-		if (events & EPOLLRDHUP) {
-			this->_transactions.back()->isLast(true);
 		}
 		if (events & EPOLLHUP) {
 			webServer.requestDelete(this);
@@ -107,10 +101,13 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	errno = 0;
 	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
-	if (!readLen) return server.requestDelete(this);
+	bool closed = false;
+
+	if (!readLen) closed = true;
 	if (readLen < 0) {
-		throw WebservErrors::SysError("read", errno); // !:! warn instead and close connection
-	}
+		server.requestDelete(this);
+		return;
+	};
 
 	inBuffer.write(buffer, readLen);
 
@@ -123,6 +120,8 @@ void ClientSocket::onEpollIn(WebServer &server) {
 			this->_transactions.push(new HttpTransaction());
 		}
 	}
+
+	if (closed) this->_transactions.back()->isLast(true);
 
 	if (this->canHandleEpollOut()) {
 		server.epoll().mod(*this);
