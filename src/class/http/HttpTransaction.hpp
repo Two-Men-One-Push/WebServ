@@ -11,7 +11,7 @@ class HttpTransaction {
 	HttpRequest _request;
 	HttpResponse _response;
 
-	bool _last;
+	bool _isLast;
 
   public:
 	HttpTransaction();
@@ -31,7 +31,8 @@ class HttpTransaction {
 
 	void error(const HttpException &e);
 
-	bool last();
+	bool isLast() const;
+	void isLast(bool isLast);
 };
 
 #endif

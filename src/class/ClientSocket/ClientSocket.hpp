@@ -2,7 +2,6 @@
 #define CLIENTSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
-#include "EpollInstance/EpollWatchable.hpp"
 #include "http/HttpTransaction.hpp"
 #include <netinet/in.h>
 #include <queue>

@@ -2,16 +2,15 @@
 #include "CGI/CGIInterface.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/errors/HttpException.hpp"
-#include "http/errors/HttpStandardException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
 
-HttpTransaction::HttpTransaction() : _request(), _response(), _last(false) {
+HttpTransaction::HttpTransaction() : _request(), _response(), _isLast(false) {
 	std::cout << "New HTTP transaction created" << std::endl;
 }
 
-HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other._request), _response(other._response), _last(other._last) {}
+HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other._request), _response(other._response), _isLast(other._isLast) {}
 
 HttpTransaction::~HttpTransaction() {}
 
@@ -61,11 +60,15 @@ const HttpResponse &HttpTransaction::response() const {
 
 void HttpTransaction::error(const HttpException &e) {
 	this->_response.error(e);
-	this->_last = true;
+	this->_isLast = true;
 }
 
-bool HttpTransaction::last() {
-	return this->_last ||
+bool HttpTransaction::isLast() const {
+	return this->_isLast ||
 		   (this->_response.headers().has("Connection") &&
-			this->_response.headers()["Connection"] == "close");
+			this->_response.headers().at("Connection") == "close");
+}
+
+void HttpTransaction::isLast(bool isLast) {
+	this->_isLast = isLast;
 }

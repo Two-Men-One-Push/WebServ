@@ -16,7 +16,7 @@ void formatAddress(struct sockaddr_storage &address, FormattedAddress &out) {
 		   << ((intAddress >> 8) & 0xFF) << '.'
 		   << (intAddress & 0xFF);
 		out.address = ss.str();
-		out.port = inAddress->sin_port;
+		out.port = ntohs(inAddress->sin_port);
 	} else {
 		struct sockaddr_in6 *in6Address = reinterpret_cast<sockaddr_in6 *>(&address);
 

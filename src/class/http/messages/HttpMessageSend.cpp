@@ -90,7 +90,6 @@ void HttpMessage::formatHead() {
 
 	this->formatTypeLine();
 
-	this->_outBuffer += ss.str();
 	for (HeaderMap::const_iterator it = this->_headers.begin(); it != this->_headers.end(); ++it) {
 		this->_outBuffer += it->first;
 		this->_outBuffer += ": ";

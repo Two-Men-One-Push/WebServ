@@ -144,7 +144,9 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &re
 void CGIInterface::inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer) {
 	(void)webServer;
 	if (events & EPOLLOUT) {
-		this->_httpTransaction.sendRequestBody(pipeIn);
+		if (this->_httpTransaction.sendRequestBody(pipeIn)) {
+			this->_outPipe.releaseIn();
+		}
 	} else {
 		this->_outPipe.releaseIn();
 	}

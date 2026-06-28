@@ -85,7 +85,7 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			this->onEpollOut(webServer);
 		}
 		if (events & EPOLLRDHUP) {
-			webServer.requestDelete(this);
+			this->_transactions.back()->isLast(true);
 		}
 		if (events & EPOLLHUP) {
 			webServer.requestDelete(this);
@@ -107,12 +107,10 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	errno = 0;
 	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
-	if (!readLen) this->_closed = true;
+	if (!readLen) return server.requestDelete(this);
 	if (readLen < 0) {
-		std::cout << _closed << std::endl;
 		throw WebservErrors::SysError("read", errno); // !:! warn instead and close connection
 	}
-	if (this->_closed) return;
 
 	inBuffer.write(buffer, readLen);
 
@@ -131,15 +129,10 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	}
 }
 
-#define TEST_RESPONSE "HTTP/1.1 200 OK\r\n"         \
-					  "Content-Type: text/json\r\n" \
-					  "\r\n"                        \
-					  "{\"hello\": \"world\"}"
-
 void ClientSocket::onEpollOut(WebServer &webServer) {
 	HttpTransaction *transaction = this->_transactions.front();
 	if (transaction->sendResponse(*this)) {
-		if (transaction->last()) webServer.requestDelete(this);
+		if (transaction->isLast()) webServer.requestDelete(this);
 		delete transaction;
 		this->_transactions.pop();
 	}
