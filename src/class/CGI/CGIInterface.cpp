@@ -41,8 +41,6 @@ CGIInterface::~CGIInterface() {
 }
 
 void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &server) {
-	(void)httpTransaction;
-
 	this->_outPipe.releaseOut();
 	this->_inPipe.releaseIn();
 
