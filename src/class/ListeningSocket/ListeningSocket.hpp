@@ -22,6 +22,8 @@ class ListeningSocket : public ASocket {
 	void handleEvents(u_int32_t events, WebServer &webServer);
 	u_int32_t getHandledEvents() const;
 
+	int fd() const { return _fd; }
+
 	static ListeningSocket create(const sockaddr &addr, socklen_t addresslen);
 	static ListeningSocket *createNew(const sockaddr &addr, socklen_t addresslen);
 };

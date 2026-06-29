@@ -1,5 +1,6 @@
 #include "./WebServer.hpp"
 #include "AFd/AFd.hpp"
+#include "CGI/CGIInterface.hpp"
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
@@ -9,9 +10,11 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
+#include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
 
@@ -41,13 +44,17 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 	addrinfo *currentAddressInfo = res;
 	while (currentAddressInfo) {
 		_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
-		_epoll.registerFd(*_listeningSockets.back());
+		_epoll.add(*_listeningSockets.back());
 		currentAddressInfo = currentAddressInfo->ai_next;
 	}
 
 	freeaddrinfo(res);
 
-	std::cout << "Listening http://" << ipAddress << ":" << port << std::endl;
+	std::cout << "Listening http://" << ipAddress << ":" << port << ' ' << std::endl;
+
+	// HttpTransaction testTransaction;
+	// CGIInterface test("./www/cgi/test-test.py", testTransaction, *this);
+	// CGIInterface test("/bin/cat", testTransaction, *this);
 
 	while (true) {
 		std::vector<EpollEvent> events;
@@ -56,14 +63,10 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 			it->fd->handleEvents(it->events, *this);
 		}
 
+		for (std::vector<ClientSocket *>::const_iterator it = this->_clientSockets.begin(); it != this->_clientSockets.end(); ++it) {
+			this->_epoll.mod(**it);
+		}
 		this->deleteClientSockets();
-		// char buffer[4096];
-
-		// errno = 0;
-		// while (errno != EAGAIN) {
-		// 	ssize_t readLen = read(test.getFd(), buffer, 4096);
-		// 	std::cout.write(buffer, readLen);
-		// }
 	}
 }
 
@@ -71,11 +74,11 @@ WebServer::~WebServer() {}
 
 void WebServer::addClient(ClientSocket *client) {
 	_clientSockets.push_back(client);
-	_epoll.registerFd(*client);
+	_epoll.add(*client);
 }
 
-void WebServer::updateFd(AFd &fd) {
-	this->_epoll.updateFd(fd);
+const EpollInstance &WebServer::epoll() const {
+	return this->_epoll;
 }
 
 void WebServer::requestDelete(ClientSocket *client) {
@@ -83,7 +86,7 @@ void WebServer::requestDelete(ClientSocket *client) {
 }
 
 void WebServer::deleteClientSockets() {
-	for (std::vector<ClientSocket*>::iterator dit = this->_clientSocketsToDelete.begin(); dit != _clientSocketsToDelete.end(); ++dit) {
+	for (std::vector<ClientSocket *>::iterator dit = this->_clientSocketsToDelete.begin(); dit != _clientSocketsToDelete.end(); ++dit) {
 		ClientSocket *cs = *dit;
 		for (std::vector<ClientSocket *>::iterator it = _clientSockets.begin(); it != _clientSockets.end(); ++it) {
 			if (*it == cs) {

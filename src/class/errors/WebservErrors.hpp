@@ -24,12 +24,13 @@ class SysError : public LoggableError {
 	int _err;
 	const std::string _context;
 	const std::string _cause;
-	const std::string _msg;
+	const std::string _message;
 
   public:
-	SysError(int err);
-	SysError(const std::string &context, int err);
-	SysError(const std::string &context, int err, const std::string &cause);
+	SysError(int err) throw();
+	SysError(const std::string &context, int err) throw();
+	SysError(const std::string &context, int err, const std::string &cause) throw();
+	SysError(const SysError &other) throw();
 	~SysError() throw();
 
 	virtual const char *what() const throw();
@@ -42,17 +43,30 @@ class GaiError : public LoggableError {
 	int _err;
 	const std::string _context;
 	const std::string _cause;
-	const std::string _msg;
+	const std::string _message;
 
   public:
-	GaiError(int err);
-	GaiError(const std::string &context, int err);
-	GaiError(const std::string &context, int err, const std::string &cause);
+	GaiError(int err) throw();
+	GaiError(const std::string &context, int err) throw();
+	GaiError(const std::string &context, int err, const std::string &cause) throw();
+	GaiError(const GaiError &other) throw();
 	~GaiError() throw();
 
 	virtual const char *what() const throw();
 
 	int getErr() const;
+};
+
+class Runtime : public LoggableError {
+  private:
+	const std::string _message;
+
+  public:
+	Runtime(const std::string &message) throw();
+	Runtime(const Runtime &other) throw();
+	~Runtime() throw();
+
+	virtual const char *what() const throw();
 };
 
 }; // namespace WebservErrors

@@ -11,13 +11,13 @@ void HttpMessage::loadTranferEncoding() {
 	this->_transferEncoding = TE_CHUNKED;
 }
 
-void HttpMessage::loadContentLenght() {
+void HttpMessage::loadContentLength() {
 	HeaderMap &headerMap = this->_headers;
 	if (!headerMap.has("Content-Length")) return;
 	if (this->_transferEncoding != TE_UNDEFINED) throw HttpExceptions::BadRequestException();
 	try {
 		this->_contentLength = parseULong(headerMap["Content-Length"]);
-	} catch (const std::exception) {
+	} catch (const std::exception &) {
 		throw HttpExceptions::BadRequestException();
 	}
 }

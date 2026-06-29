@@ -35,15 +35,14 @@ class HttpRequest : public HttpMessage {
 
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
-	bool appendMessageTypes(std::istream &input);
+	bool recvTypeLine(std::istream &input);
 	void loadTypeUsedHeaders();
 
-  public:
-	static std::map<std::string, HttpMethod> implementedHttpMethod;
-	static std::string getAllowHeader();
+	void formatTypeLine();
 
-	HttpRequest(HttpTransaction &transaction);
-	HttpRequest(const HttpRequest &other, HttpTransaction &transaction);
+  public:
+	HttpRequest();
+	HttpRequest(const HttpRequest &other);
 	~HttpRequest();
 
 	HttpMethod method() const;
@@ -52,6 +51,9 @@ class HttpRequest : public HttpMessage {
 	const std::string &uri() const;
 
 	std::ostream &printTypeInfo(std::ostream &os) const;
+
+	static std::map<std::string, HttpMethod> implementedHttpMethod;
+	static std::string getAllowHeader();
 };
 
 #endif

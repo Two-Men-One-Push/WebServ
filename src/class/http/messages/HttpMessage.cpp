@@ -1,33 +1,54 @@
 #include "./HttpMessage.hpp"
-#include "http/HttpTransaction.hpp"
-#include "http/messages/response/HttpResponse.hpp"
 #include "http/types.hpp"
+#include <cerrno>
 
-HttpMessage::HttpMessage(HttpTransaction &transaction)
-	: _state(HttpMessage::MESSAGE_TYPES),
-	  _version(),
+HttpMessage::HttpMessage()
+	: _inState(HttpMessage::RECV_MESSAGE_TYPES),
+	  _readSize(0),
+	  _outState(SEND_HEAD),
+	  _sentSize(0),
+	  _bodyEmpty(false),
+	  _version(HTTP1_1),
 	  _headers(),
-	  _body(),
-	  _buffer(),
+	  _body(NULL),
+	  _inBuffer(),
+	  _outBuffer(),
 	  _contentLength(0),
-	  _transferEncoding(TE_UNDEFINED),
-	  _transaction(transaction),
-	  _readContentLength(0) {
-	this->_buffer.reserve(TMP_HTTP_BUFFER_SIZE);
+	  _transferEncoding(TE_UNDEFINED) {
+	this->_inBuffer.reserve(TMP_HTTP_BUFFER_SIZE);
 }
 
-HttpMessage::HttpMessage(const HttpMessage &other, HttpTransaction &transaction)
-	: _state(other._state),
+HttpMessage::HttpMessage(const HttpMessage &other)
+	: _inState(other._inState),
+	  _readSize(other._readSize),
+	  _outState(other._outState),
+	  _sentSize(other._sentSize),
+	  _bodyEmpty(other._bodyEmpty),
 	  _version(other._version),
 	  _headers(other._headers),
 	  _body(other._body),
-	  _buffer(other._buffer),
+	  _inBuffer(other._inBuffer),
+	  _outBuffer(other._outBuffer),
 	  _contentLength(other._contentLength),
-	  _transferEncoding(other._transferEncoding),
-	  _transaction(transaction),
-	  _readContentLength(other._readContentLength) {}
+	  _transferEncoding(other._transferEncoding) {}
 
-HttpMessage::~HttpMessage() {}
+// HttpMessage &HttpMessage::operator=(const HttpMessage &other) {
+// 	if (this != &other) {
+// 		this->_state = other._state;
+// 		this->_version = other._version;
+// 		this->_headers = other._headers;
+// 		this->_body = other._body;
+// 		this->_buffer = other._buffer;
+// 		this->_contentLength = other._contentLength;
+// 		this->_transferEncoding = other._transferEncoding;
+// 		this->_readContentLength = other._readContentLength;
+// 	}
+// 	return *this;
+// }
+
+HttpMessage::~HttpMessage() {
+	delete this->_body;
+}
 
 HttpVersion HttpMessage::version() const {
 	return this->_version;
@@ -57,6 +78,10 @@ std::string HttpMessage::transferEncodingStr() const {
 	return transferEncodingString(this->_transferEncoding);
 }
 
+void HttpMessage::end() {
+	this->_inState = HttpMessage::RECV_COMPLETED;
+}
+
 std::ostream &operator<<(std::ostream &os, const HttpMessage &m) {
 	return m.print(os);
 }
@@ -71,10 +96,9 @@ std::ostream &HttpMessage::print(std::ostream &os) const {
 	if (headers.has("Content-Length"))
 		os << "content_length = " << this->_contentLength << '\n';
 
-	os << "===HEADERS===\n";
 	for (HeaderMap::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-		os << '"' << it->first << "\": \"" << it->second << "\"\n";
+		os << it->first << ": " << it->second << "\r\n";
 	}
-	if (this->hasBody()) os << "===BODY===\n" << this->_body;
+	if (this->hasBody()) os << this->_body;
 	return os;
 }

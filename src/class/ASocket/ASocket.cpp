@@ -1,11 +1,12 @@
 #include "ASocket.hpp"
+#include "EpollInstance/EpollWatchable.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cerrno>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-ASocket::ASocket(int fd) : AFd(fd) {
+ASocket::ASocket(int fd) : AEpollWatchable(fd) {
 	const int baseFlags = fcntl(fd, F_GETFL, 0);
 	if (baseFlags < 0) {
 		throw WebservErrors::SysError("fcntl", errno, "Getting flags");
