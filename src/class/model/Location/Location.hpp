@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MimeTypes.hpp"
+#include "model/MimeTypes/MimeTypes.hpp"
 #include <vector>
 
 class	Server;

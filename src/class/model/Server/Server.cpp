@@ -1,5 +1,5 @@
-#include "Server.hpp"
-#include "Http.hpp"
+#include "model/Server/Server.hpp"
+#include "model/Http/Http.hpp"
 
 Server::Server(Http &http):
 _listen(),

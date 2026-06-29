@@ -1,13 +1,13 @@
 #pragma once
 
-#include "AST.hpp"
-#include "Config.hpp"
-#include "Http.hpp"
-#include "Server.hpp"
-#include "Location.hpp"
-#include "MimeTypes.hpp"
-#include "Directive.hpp"
-#include "DiagnosticContext.hpp"
+#include "IR/AST/AST.hpp"
+#include "model/Config/Config.hpp"
+#include "model/Http/Http.hpp"
+#include "model/Server/Server.hpp"
+#include "model/Location/Location.hpp"
+#include "model/MimeTypes/MimeTypes.hpp"
+#include "IR/Directive/Directive.hpp"
+#include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include <list>
 
 class Semantic

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Token.hpp"
+#include "IR/Token/Token.hpp"
 #include <vector>
 
 class	TokenStream

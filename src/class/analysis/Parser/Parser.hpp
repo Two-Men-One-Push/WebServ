@@ -1,8 +1,8 @@
 #pragma once
 
-#include "AST.hpp"
-#include "Directive.hpp"
-#include "TokenStream.hpp"
+#include "IR/AST/AST.hpp"
+#include "IR/Directive/Directive.hpp"
+#include "IR/TokenStream/TokenStream.hpp"
 #include <exception>
 #include <string>
 

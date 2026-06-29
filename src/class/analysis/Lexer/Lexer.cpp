@@ -1,7 +1,7 @@
-#include "Lexer.hpp"
-#include "Segment.hpp"
-#include "Token.hpp"
-#include "Word.hpp"
+#include "analysis/Lexer/Lexer.hpp"
+#include "IR/Segment/Segment.hpp"
+#include "IR/Token/Token.hpp"
+#include "IR/Word/Word.hpp"
 #include <fstream>
 #include <sstream>
 

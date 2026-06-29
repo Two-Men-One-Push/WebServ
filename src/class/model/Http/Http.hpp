@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Server.hpp"
-#include "MimeTypes.hpp"
+#include "model/Server/Server.hpp"
+#include "model/MimeTypes/MimeTypes.hpp"
 #include <vector>
 
 #define DEFAULT_CLIENT_MAX_BODY_SIZE 1000000

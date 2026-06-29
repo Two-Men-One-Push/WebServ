@@ -1,6 +1,6 @@
-#include "Parser.hpp"
-#include "Directive.hpp"
-#include "Token.hpp"
+#include "analysis/Parser/Parser.hpp"
+#include "IR/Directive/Directive.hpp"
+#include "IR/Token/Token.hpp"
 #include <sstream>
 #include <list>
 

@@ -1,6 +1,6 @@
-#include "Semantic.hpp"
-#include "Utils.hpp"
-#include "Word.hpp"
+#include "analysis/Semantic/Semantic.hpp"
+#include "utils/parsing.hpp"
+#include "IR/Word/Word.hpp"
 #include <algorithm>
 
 Semantic::Semantic()

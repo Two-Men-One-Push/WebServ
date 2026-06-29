@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Directive.hpp"
+#include "IR/Directive/Directive.hpp"
 #include <list>
 #include <string>
 

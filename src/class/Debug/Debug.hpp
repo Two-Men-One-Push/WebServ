@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Segment.hpp"
-#include "Word.hpp"
-#include "Token.hpp"
-#include "TokenStream.hpp"
-#include "Directive.hpp"
-#include "AST.hpp"
-#include "Config.hpp"
+#include "IR/Segment/Segment.hpp"
+#include "IR/Word/Word.hpp"
+#include "IR/Token/Token.hpp"
+#include "IR/TokenStream/TokenStream.hpp"
+#include "IR/Directive/Directive.hpp"
+#include "IR/AST/AST.hpp"
+#include "model/Config/Config.hpp"
 #include <ostream>
 
 class	Debug

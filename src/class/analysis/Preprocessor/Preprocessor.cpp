@@ -1,6 +1,6 @@
-#include "Preprocessor.hpp"
-#include "Lexer.hpp"
-#include "Parser.hpp"
+#include "analysis/Preprocessor/Preprocessor.hpp"
+#include "analysis/Lexer/Lexer.hpp"
+#include "analysis/Parser/Parser.hpp"
 
 Preprocessor::Preprocessor()
 {

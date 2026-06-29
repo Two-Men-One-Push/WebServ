@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ErrorInfo.hpp"
-#include "Word.hpp"
+#include "IR/ErrorInfo/ErrorInfo.hpp"
+#include "IR/Word/Word.hpp"
 #include <list>
 #include <vector>
 

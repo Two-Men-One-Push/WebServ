@@ -15,4 +15,7 @@ std::string &toHeaderCase(std::string &s);
 long parseLong(const std::string &input);
 unsigned long parseULong(const std::string &input);
 
+bool	parseInt(const std::string &str, int &out);
+bool	parseSize(const std::string &str, size_t &out);
+
 #endif

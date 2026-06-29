@@ -1,7 +1,7 @@
 #pragma once
 
-#include "MimeTypes.hpp"
-#include "Location.hpp"
+#include "model/MimeTypes/MimeTypes.hpp"
+#include "model/Location/Location.hpp"
 #include <vector>
 #include <string>
 

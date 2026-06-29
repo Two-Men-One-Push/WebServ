@@ -1,7 +1,5 @@
-#include "Config.hpp"
-#include "Http.hpp"
-#include "MimeTypes.hpp"
-#include "DiagnosticContext.hpp"
+#include "model/Config/Config.hpp"
+#include "model/Http/Http.hpp"
 
 Config::Config(): _http()
 {

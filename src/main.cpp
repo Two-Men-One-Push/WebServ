@@ -1,10 +1,9 @@
-#include "Lexer.hpp"
-#include "Parser.hpp"
-#include "Preprocessor.hpp"
-#include "Semantic.hpp"
-#include "DiagnosticContext.hpp"
-#include "Debug.hpp"
-#include "Utils.hpp"
+#include "analysis/Lexer/Lexer.hpp"
+#include "analysis/Parser/Parser.hpp"
+#include "analysis/Preprocessor/Preprocessor.hpp"
+#include "analysis/Semantic/Semantic.hpp"
+#include "model/DiagnosticContext/DiagnosticContext.hpp"
+#include "Debug/Debug.hpp"
 #include <iostream>
 
 int	main(int argc, char **argv)

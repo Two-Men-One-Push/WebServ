@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Word.hpp"
+#include "IR/Word/Word.hpp"
 #include <string>
 
 class	Token: public ErrorInfo

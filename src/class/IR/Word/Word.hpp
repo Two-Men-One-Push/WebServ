@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Segment.hpp"
+#include "IR/Segment/Segment.hpp"
 #include <vector>
 
 class	Word: public ErrorInfo

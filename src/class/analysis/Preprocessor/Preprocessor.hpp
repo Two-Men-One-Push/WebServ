@@ -1,10 +1,8 @@
 #pragma once
 
-#include "Parser.hpp"
-#include "Lexer.hpp"
-#include "AST.hpp"
-#include "Directive.hpp"
-#include "DiagnosticContext.hpp"
+#include "IR/AST/AST.hpp"
+#include "IR/Directive/Directive.hpp"
+#include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include <string>
 #include <stack>
 

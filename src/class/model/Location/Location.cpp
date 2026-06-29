@@ -1,5 +1,4 @@
-#include "Server.hpp"
-#include "Location.hpp"
+#include "model/Location/Location.hpp"
 
 Location::~Location()
 {

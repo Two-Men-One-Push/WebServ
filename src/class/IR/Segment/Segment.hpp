@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ErrorInfo.hpp"
+#include "IR/ErrorInfo/ErrorInfo.hpp"
 #include <string>
 
 class	Segment: public ErrorInfo
