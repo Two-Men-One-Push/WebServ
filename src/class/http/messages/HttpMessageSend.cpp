@@ -5,7 +5,6 @@
 #include <iostream>
 #include <istream>
 #include <sstream>
-#include <stdexcept>
 
 bool HttpMessage::sendTo(const AFd &output) {
 	switch (this->_outState) {
@@ -79,7 +78,7 @@ bool HttpMessage::sendBody(const AFd &output) {
 	if (this->_sentSize == this->_contentLength) {
 		return true;
 	} else if (buffer.empty() && this->_bodyEmpty) {
-		throw std::runtime_error("Not enough body to send");
+		throw WebservErrors::Runtime("Not enough body to send");
 	} else {
 		return false;
 	}

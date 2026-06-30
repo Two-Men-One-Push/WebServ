@@ -2,6 +2,7 @@
 #include "CGI/CGIInterface.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/errors/HttpException.hpp"
+#include "http/errors/HttpStandardException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
@@ -19,7 +20,7 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 	try {
 		bool result = this->_request.recvFrom(input);
 		if (result) {
-			this->_response.cgi(*new CGIInterface("www/cgi/cgi_tester", *this, server));
+			this->_response.cgi(*new CGIInterface("www/cgi/test.php", *this, server));
 			// this->_response.error(HttpExceptions::NoContentException());
 		}
 		return result;
@@ -33,7 +34,7 @@ bool HttpTransaction::recvResponse(std::istream &input) {
 	try {
 		return this->_response.recvFrom(input);
 	} catch (const HttpException &e) {
-		this->error(e);
+		this->error(HttpExceptions::InternalServerErrorException());
 		return true;
 	}
 }

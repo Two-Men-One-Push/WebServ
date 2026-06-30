@@ -22,6 +22,8 @@ class NotImplementedException : public HttpExceptionT<HttpStatus::NotImplemented
 class HTTPVersionNotSupportedException : public HttpExceptionT<HttpStatus::HTTPVersionNotSupported> {};
 
 class URITooLongException : public HttpExceptionT<HttpStatus::URITooLong> {};
+
+class InternalServerErrorException : public HttpExceptionT<HttpStatus::InternalServerError> {};
 }; // namespace HttpExceptions
 
 #endif

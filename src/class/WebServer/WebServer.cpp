@@ -5,12 +5,12 @@
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "config/MainContext/MainContext.hpp"
+#include "errors/WebservErrors.hpp"
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
-#include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -38,14 +38,17 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 	const int ret = getaddrinfo(ipAddress.c_str(), oss.str().c_str(), &hints, &res);
 
 	if (ret) {
-		throw std::runtime_error(gai_strerror(ret));
+		throw WebservErrors::GaiError("getaddrinfo", ret, ipAddress + " " + oss.str());
 	}
 
-	addrinfo *currentAddressInfo = res;
-	while (currentAddressInfo) {
-		_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
+	for (addrinfo *currentAddressInfo = res; currentAddressInfo != NULL; currentAddressInfo = currentAddressInfo->ai_next) {
+		try {
+			_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
+		} catch (...) {
+			freeaddrinfo(res);
+			throw;
+		}
 		_epoll.add(*_listeningSockets.back());
-		currentAddressInfo = currentAddressInfo->ai_next;
 	}
 
 	freeaddrinfo(res);

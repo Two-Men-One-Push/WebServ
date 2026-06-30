@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <cstdlib>
 #include <ios>
 #include <iostream>
 #include <istream>
@@ -56,6 +57,9 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 }
 
 void HttpMessage::loadBaseUsedHeaders() {
+	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) {
+		throw HttpExceptions::BadRequestException();
+	}
 	this->loadTranferEncoding();
 	this->loadContentLength();
 }
@@ -141,11 +145,38 @@ bool HttpMessage::recvBody(std::istream &input) {
 }
 
 bool HttpMessage::collectRawBody(std::istream &input) {
-	char buffer[4096];
+	char buffer[READ_SIZE];
+	std::streamsize n;
 
-	std::streamsize n = input.readsome(buffer, std::min(sizeof(buffer), this->_contentLength - this->_readSize));
-	this->_body->write(buffer, n);
-	this->_readSize += n;
+	while ((n = input.readsome(buffer, std::min(sizeof(buffer), std::min(this->_contentLength - this->_readSize, (size_t)READ_SIZE)))) > 0) {
+		this->_body->write(buffer, n);
+		this->_readSize += n;
+	}
+
 	if (this->_readSize < this->_contentLength) return false;
 	return true;
+}
+
+bool HttpMessage::collectChunkedBody(std::istream &input) {
+	std::string &buffer = this->_inBuffer;
+
+	while (input.peek() != std::stringstream::traits_type::eof()) {
+		if (this->chunkInfo.size == this->chunkInfo.readSize) {
+			while (true) {
+				if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
+
+				int c = input.get();
+				if (c == std::stringstream::traits_type::eof())
+					return false;
+				buffer += static_cast<char>(c);
+				if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+					break;
+				}
+			}
+		} else {
+
+		}
+	}
+
+	return false;
 }

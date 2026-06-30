@@ -9,8 +9,14 @@
 #include <string>
 
 #define WRITE_SIZE 4096
+#define READ_SIZE 4096
 
 #define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
+
+struct BodyChunkInfo {
+	std::size_t size;
+	std::size_t readSize;
+};
 
 class HttpMessage {
   private:
@@ -27,18 +33,23 @@ class HttpMessage {
 	};
 
 	InState _inState;
-	size_t _readSize;
 
 	bool recvMessageHeaders(std::istream &input);
 	bool recvBody(std::istream &input);
 
 	bool collectRawBody(std::istream &input);
+	bool collectChunkedBody(std::istream &input);
 	bool extractMessageHeaders(std::istream &input);
 
 	// HEADER LOADER
 
 	void loadTranferEncoding();
 	void loadContentLength();
+
+	// BODY LOADING INFO
+
+	size_t _readSize;
+	BodyChunkInfo chunkInfo;
 
 	// SEND
 
