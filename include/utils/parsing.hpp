@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+bool ishexdigit(char c);
+bool ishexstr(const std::string &s);
 bool isseparator(char c);
 bool istokenc(char c);
 bool istoken(const std::string &s);

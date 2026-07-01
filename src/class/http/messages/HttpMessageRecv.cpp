@@ -140,7 +140,7 @@ bool HttpMessage::extractMessageHeaders(std::istream &input) {
 
 bool HttpMessage::recvBody(std::istream &input) {
 	if (this->_transferEncoding == TE_UNDEFINED) return this->collectRawBody(input);
-	if (this->_transferEncoding == TE_CHUNKED) throw HttpExceptions::NotImplementedException();
+	if (this->_transferEncoding == TE_CHUNKED) return this->collectChunkedBody(input);
 	throw HttpExceptions::NotImplementedException();
 }
 
