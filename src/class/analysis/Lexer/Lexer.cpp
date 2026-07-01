@@ -26,7 +26,7 @@ Lexer::~Lexer()
 
 TokenStream	Lexer::tokenize(const std::string &filename)
 {
-	TokenStream		token_stream;
+	TokenStream		token_stream(filename);
 	std::ifstream	stream(filename.c_str());
 
 	if (!stream.is_open())
@@ -39,7 +39,6 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 	Segment		segment;
 	char		c;
 
-	token_stream.filename() = filename;
 	while (stream.get(c))
 	{
 		switch (state)

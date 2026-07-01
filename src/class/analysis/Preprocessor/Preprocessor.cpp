@@ -13,10 +13,9 @@ Preprocessor::~Preprocessor()
 AST	Preprocessor::preprocess(const AST &ast, DiagnosticContext &diag)
 {
 	std::stack<std::string>	include_stack;
-	AST						result;
+	AST						result(ast.filename());
 
 	include_stack.push(ast.filename());
-	result.filename() = ast.filename();
 	result.directives() = expand(ast.directives(), include_stack, diag);
 	return result;
 }
@@ -40,7 +39,6 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 				result.push_back(*it);
 			continue;
 		}
-
 		if (it->hasBody())
 			diag.report("'include' directive cannot have a body", it->blockErrorInfo());
 
@@ -49,7 +47,6 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 			diag.report("'include' directive requires at least one argument", *it);
 			continue;
 		}
-
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
 			bool circular = false;
@@ -66,9 +63,8 @@ std::list<Directive>	Preprocessor::expand(const std::list<Directive> &directives
 				continue;
 			try
 			{
+				AST included(arg->content());
 				include_stack.push(arg->content());
-				AST included;
-				included.filename() = arg->content();
 				included.directives() = expand(
 					Parser::parse(Lexer::tokenize(arg->content())).directives(),
 					include_stack,

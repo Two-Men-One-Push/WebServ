@@ -5,10 +5,10 @@
 
 class	Lexer
 {
-	public:
+	private:
 		Lexer();
+	public:
 		~Lexer();
-
 		static TokenStream	tokenize(const std::string &filename);
 
 		class	LexerFileOpenFailure: public std::exception

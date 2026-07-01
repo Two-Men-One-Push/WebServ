@@ -14,11 +14,10 @@ Parser::~Parser()
 
 AST	Parser::parse(const TokenStream &token_stream)
 {
-	AST							ast;
+	AST							ast(token_stream.filename());
 	TokenStream::const_iterator	it = token_stream.begin();
 	TokenStream::const_iterator	end = token_stream.end();
 
-	ast.filename() = token_stream.filename();
 	parseListDirective(it, end, ast.directives());
 	if (it->type() != Token::_EOF)
 		throw ParserUnexpectedToken("Unexpected token, expected directive or EOF", *it);

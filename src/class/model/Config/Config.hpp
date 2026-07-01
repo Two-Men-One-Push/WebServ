@@ -5,7 +5,7 @@
 class	Config
 {
 	private:
-	Http				_http;
+		Http				_http;
 	public:
 		Config();
 		~Config();

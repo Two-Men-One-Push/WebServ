@@ -4,19 +4,16 @@
 #include <list>
 #include <string>
 
-class	AST
+class	AST: public ErrorInfo
 {
 	private:
 		std::list<Directive>	_directives;
-		std::string				_filename;
 	public:
-		AST();
+		AST(std::string filename);
 		~AST();
 		AST(const AST &copy);
 		AST	&operator=(const AST &other);
 
 		const std::list<Directive>	&directives() const;
 		std::list<Directive>		&directives();
-		const std::string			&filename() const;
-		std::string					&filename();
 };

@@ -9,10 +9,13 @@
 #include "IR/Directive/Directive.hpp"
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include <list>
+#include <set>
 
 class Semantic
 {
 	private:
+		Semantic();
+
 		enum ArgShape  { ARGS_FORBIDDEN, ARGS_EXACT_ONE, ARGS_EXACT_TWO, ARGS_AT_LEAST_ONE, ARGS_AT_LEAST_TWO };
 		enum BodyShape { BODY_FORBIDDEN, BODY_REQUIRED };
 
@@ -32,16 +35,13 @@ class Semantic
 		static void			parseHttp(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag);
 		static void			parseServer(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag);
 		template <typename Type>
-		static void			parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Type &parent, DiagnosticContext &diag);
-
-		static Http			analyseHttp(const std::list<Directive> &directives, DiagnosticContext &diag);
-		static Server		analyseServer(const std::list<Directive> &directives, Http &http, DiagnosticContext &diag);
+		static void			parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Type &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
+		static Http			analyseHttp(const Directive &directive, DiagnosticContext &diag);
+		static Server		analyseServer(const Directive &directive, Http &http, DiagnosticContext &diag);
 		template <typename Type>
-		static Location		analyseLocation(const std::list<Directive> &directives, Type &parent, const std::string &path, DiagnosticContext &diag);
-		static void			analyseTypes(const std::list<Directive> &directives, MimeTypes &types, DiagnosticContext &diag);
+		static Location		analyseLocation(const Directive &directive, Type &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
+		static void			analyseTypes(const Directive &directive, MimeTypes &types, DiagnosticContext &diag);
 	public:
-		Semantic();
 		~Semantic();
-
 		static Config	analyseAST(const AST &ast, DiagnosticContext &diag);
 };

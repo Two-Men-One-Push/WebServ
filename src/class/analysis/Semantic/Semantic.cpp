@@ -2,6 +2,8 @@
 #include "utils/parsing.hpp"
 #include "IR/Word/Word.hpp"
 #include <algorithm>
+#include <set>
+#include <string>
 
 Semantic::Semantic()
 {
@@ -9,6 +11,14 @@ Semantic::Semantic()
 
 Semantic::~Semantic()
 {
+}
+
+static bool	validMethod(const std::string &method)
+{
+	if (method == "GET" || method == "POST" || method == "DELETE")
+		return true;
+	else
+		return false;
 }
 
 bool	Semantic::checkShape(const Directive &d, ArgShape args, BodyShape body, DiagnosticContext &diag)
@@ -69,7 +79,7 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 {
 	if (checkShape(*it, ARGS_AT_LEAST_TWO, BODY_FORBIDDEN, diag))
 	{
-		std::string							path = it->args().back().rawContent();
+		std::string							path = it->args().back().content();
 		std::vector<Word>::const_iterator	penultimate = --(--it->args().end());
 		int									response_code = 0;
 		if (penultimate->rawContent()[0] == '=')
@@ -79,6 +89,8 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 			if (response_code < 100 || response_code > 599)
 				diag.report("response code must be between 100 and 599", *penultimate);
 		}
+		if (response_code == 0)
+			penultimate = --it->args().end();
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != penultimate; ++arg)
 		{
 			int code;
@@ -102,7 +114,7 @@ void	Semantic::parseCGI(std::list<Directive>::const_iterator it, std::map<std::s
 	if (checkShape(*it, ARGS_AT_LEAST_TWO, BODY_FORBIDDEN, diag))
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != --(it->args().end()); ++arg)
-			cgi[arg->rawContent()] = it->args().back().rawContent();
+			cgi[arg->content()] = it->args().back().content();
 	}
 }
 
@@ -145,7 +157,7 @@ void	Semantic::parseServerNames(std::list<Directive>::const_iterator it, std::ve
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
-			const std::string serverName = arg->rawContent();
+			const std::string serverName = arg->content();
 			bool duplicate = false;
 			for (std::vector<Server>::const_iterator serv = http.servers().begin(); serv != http.servers().end(); ++serv)
 			{
@@ -165,7 +177,7 @@ void	Semantic::parseServerNames(std::list<Directive>::const_iterator it, std::ve
 void	Semantic::parseRoot(std::list<Directive>::const_iterator it, std::string &root, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
-		root = it->args().front().rawContent();
+		root = it->args().front().content();
 }
 
 void	Semantic::parseIndex(std::list<Directive>::const_iterator it, std::vector<std::string> &index_files, DiagnosticContext &diag)
@@ -174,7 +186,7 @@ void	Semantic::parseIndex(std::list<Directive>::const_iterator it, std::vector<s
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
-			const std::string indexFile = arg->rawContent();
+			const std::string indexFile = arg->content();
 			if (std::find(index_files.begin(), index_files.end(), indexFile) != index_files.end())
 			{
 				diag.report("duplicate index file '" + indexFile + "'", *arg);
@@ -192,6 +204,11 @@ void	Semantic::parseAllowMethods(std::list<Directive>::const_iterator it, std::v
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
 			const std::string method = arg->rawContent();
+			if (!validMethod(method))
+			{
+				diag.report("invalid HTTP method '" + method + "'", *arg);
+				continue;
+			}
 			if (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end())
 			{
 				diag.report("duplicate allowed method '" + method + "'", *arg);
@@ -226,75 +243,100 @@ void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pa
 		else if (code < 100 || code > 599)
 			diag.report("response code must be between 100 and 599", it->args().front());
 		else
-			redirection = std::make_pair(code, it->args().back().rawContent());
+			redirection = std::make_pair(code, it->args().back().content());
 	}
 }
 
 void	Semantic::parseUploadPath(std::list<Directive>::const_iterator it, std::string &upload_path, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
-		upload_path = it->args().front().rawContent();
+		upload_path = it->args().front().content();
 }
 
 void	Semantic::parseTypes(std::list<Directive>::const_iterator it, MimeTypes &types, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-		analyseTypes(it->children(), types, diag);
+		analyseTypes(*it, types, diag);
 }
 
 void	Semantic::parseHttp(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-		http = analyseHttp(it->children(), diag);
+		http = analyseHttp(*it, diag);
 }
 
 void	Semantic::parseServer(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_FORBIDDEN, BODY_REQUIRED, diag))
-		http.servers().push_back(analyseServer(it->children(), http, diag));
+		http.servers().push_back(analyseServer(*it, http, diag));
 }
 
 template <typename Type>
-void	Semantic::parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Type &parent, DiagnosticContext &diag)
+void	Semantic::parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Type &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag)
 {
-	bool duplicateLocation = false;
-	const std::string locationPath = it->args().front().content();
-	for (std::vector<Location>::const_iterator loc = locations.begin(); loc != locations.end(); ++loc)
+	if (checkShape(*it, ARGS_EXACT_ONE, BODY_REQUIRED, diag))
 	{
-		if (loc->path() == locationPath)
+		bool duplicateLocation = false;
+		std::string locationPath;
+		if (pathNormalize(locationPath, pathJoin(parent.path(), it->args().front().content())))
+			diag.report("location path unwinds too far", *it);
+		std::set<std::string>::iterator itLocationPath = locationPathTable.find(locationPath);
+		if (locationPath == "/")
+		{
+			duplicateLocation = true;
+			diag.report("server already defines '/'", *it);
+		}
+		if (itLocationPath != locationPathTable.end())
 		{
 			duplicateLocation = true;
 			diag.report("duplicate location '" + locationPath + "'", *it);
 		}
+		if (!duplicateLocation)
+		{
+			locationPathTable.insert(locationPath);
+			locations.push_back(analyseLocation(*it, parent, locationPath, locationPathTable, diag));
+		}
 	}
-	if (!duplicateLocation)
-		locations.push_back(analyseLocation(it->children(), parent, locationPath, diag));
 }
 
 Config	Semantic::analyseAST(const AST &ast, DiagnosticContext &diag)
 {
 	Config	config;
+	bool	hasHttp = false;
 
 	for (std::list<Directive>::const_iterator it = ast.directives().begin(); it != ast.directives().end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
 		if (name == "http")
+		{
+			hasHttp = true;
 			parseHttp(it, config.http(), diag);
+		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}
+	if (!hasHttp)
+		diag.report("no 'http' block found", ast);
 	return config;
 }
 
-Http	Semantic::analyseHttp(const std::list<Directive> &directives, DiagnosticContext &diag)
+Http	Semantic::analyseHttp(const Directive &directive, DiagnosticContext &diag)
 {
+	const std::list<Directive> &directives = directive.children();
 	Http	http;
+	bool	hasClientMaxBodySize = false;
+	bool	serverFound = false;
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
 		if (name == "client_max_body_size")
+		{
+			if (hasClientMaxBodySize)
+				diag.report("duplicate 'client_max_body_size' directive", *it);
+			hasClientMaxBodySize = true;
 			parseClientMaxBodySize(it, http.clientMaxBodySize(), diag);
+		}
 		else if (name == "error_page")
 			parseErrorPages(it, http.errorPages(), diag);
 		else if (name == "cgi")
@@ -302,95 +344,205 @@ Http	Semantic::analyseHttp(const std::list<Directive> &directives, DiagnosticCon
 		else if (name == "types")
 			parseTypes(it, http.types(), diag);
 		else if (name == "server")
+		{
+			serverFound = true;
 			parseServer(it, http, diag);
+		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}
+	if (!serverFound)
+		diag.report("no 'server' block found", directive);
 	return http;
 }
 
-Server	Semantic::analyseServer(const std::list<Directive> &directives, Http &http, DiagnosticContext &diag)
+Server	Semantic::analyseServer(const Directive &directive, Http &http, DiagnosticContext &diag)
 {
+	const std::list<Directive> &directives = directive.children();
 	Server	server(http);
+	std::set<std::string>	locationPathTable;
+	bool	hasListen = false;
+	bool	hasServerName = false;
+	bool	hasRoot = false;
+	bool	hasIndex = false;
+	bool	hashClientMaxBodySize = false;
+	bool	hasAllowMethods = false;
+	bool	hasAutoindex = false;
+	bool	hasRedirection = false;
+	bool	hasUploadPath = false;
 
+	locationPathTable.insert("/");
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
 		if (name == "listen")
+		{
+			if (hasListen)
+				diag.report("duplicate 'listen' directive", *it);
+			hasListen = true;
 			parseListen(it, server.listen(), http, diag);
+		}
 		else if (name == "server_name")
+		{
+			if (hasServerName)
+				diag.report("duplicate 'server_name' directive", *it);
+			hasServerName = true;
 			parseServerNames(it, server.serverNames(), http, diag);
+		}
 		else if (name == "root")
+		{
+			if (hasRoot)
+				diag.report("duplicate 'root' directive", *it);
+			hasRoot = true;
 			parseRoot(it, server.root(), diag);
+		}
 		else if (name == "index")
+		{
+			if (hasIndex)
+				diag.report("duplicate 'index' directive", *it);
+			hasIndex = true;
 			parseIndex(it, server.indexFiles(), diag);
+		}
 		else if (name == "error_page")
 			parseErrorPages(it, server.errorPages(), diag);
 		else if (name == "client_max_body_size")
+		{
+			if (hashClientMaxBodySize)
+				diag.report("duplicate 'client_max_body_size' directive", *it);
+			hashClientMaxBodySize = true;
 			parseClientMaxBodySize(it, server.clientMaxBodySize(), diag);
+		}
 		else if (name == "allow_methods")
+		{
+			if (hasAllowMethods)
+				diag.report("duplicate 'allow_methods' directive", *it);
+			hasAllowMethods = true;
 			parseAllowMethods(it, server.allowedMethods(), diag);
+		}
 		else if (name == "autoindex")
+		{
+			if (hasAutoindex)
+				diag.report("duplicate 'autoindex' directive", *it);
+			hasAutoindex = true;
 			parseAutoindex(it, server.autoindex(), diag);
+		}
 		else if (name == "redirect")
+		{
+			if (hasRedirection)
+				diag.report("duplicate 'redirect' directive", *it);
+			hasRedirection = true;
 			parseRedirection(it, server.redirection(), diag);
+		}
 		else if (name == "cgi")
 			parseCGI(it, server.cgi(), diag);
 		else if (name == "upload_path")
+		{
+			if (hasUploadPath)
+				diag.report("duplicate 'upload_path' directive", *it);
+			hasUploadPath = true;
 			parseUploadPath(it, server.uploadPath(), diag);
+		}
 		else if (name == "types")
 			parseTypes(it, server.types(), diag);
 		else if (name == "location")
-			parseLocation(it, server.locations(), server, diag);
+			parseLocation(it, server.locations(), server, locationPathTable, diag);
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}
+	if (!hasListen)
+		diag.report("no 'listen' directive found", directive);
+	if (!hasRoot)
+		diag.report("no 'root' directive found", directive);
 	return server;
 }
 
 template <typename Type>
-Location	Semantic::analyseLocation(const std::list<Directive> &directives, Type &parent, const std::string &path, DiagnosticContext &diag)
+Location	Semantic::analyseLocation(const Directive &directive, Type &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag)
 {
+	const std::list<Directive> &directives = directive.children();
 	Location	location(parent, path);
+	bool		hasRoot = false;
+	bool		hasIndex = false;
+	bool		hasClientMaxBodySize = false;
+	bool		hasAllowMethods = false;
+	bool		hasAutoindex = false;
+	bool		hasRedirection = false;
+	bool		hasUploadPath = false;
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
 		if (name == "root")
+		{
+			if (hasRoot)
+				diag.report("duplicate 'root' directive", *it);
+			hasRoot = true;
 			parseRoot(it, location.root(), diag);
+		}
 		else if (name == "index")
+		{
+			if (hasIndex)
+				diag.report("duplicate 'index' directive", *it);
+			hasIndex = true;
 			parseIndex(it, location.indexFiles(), diag);
+		}
 		else if (name == "error_page")
 			parseErrorPages(it, location.errorPages(), diag);
 		else if (name == "client_max_body_size")
+		{
+			if (hasClientMaxBodySize)
+				diag.report("duplicate 'client_max_body_size' directive", *it);
+			hasClientMaxBodySize = true;
 			parseClientMaxBodySize(it, location.clientMaxBodySize(), diag);
+		}
 		else if (name == "allow_methods")
+		{
+			if (hasAllowMethods)
+				diag.report("duplicate 'allow_methods' directive", *it);
+			hasAllowMethods = true;
 			parseAllowMethods(it, location.allowedMethods(), diag);
+		}
 		else if (name == "autoindex")
+		{
+			if (hasAutoindex)
+				diag.report("duplicate 'autoindex' directive", *it);
+			hasAutoindex = true;
 			parseAutoindex(it, location.autoindex(), diag);
+		}
 		else if (name == "redirect")
+		{
+			if (hasRedirection)
+				diag.report("duplicate 'redirect' directive", *it);
+			hasRedirection = true;
 			parseRedirection(it, location.redirection(), diag);
+		}
 		else if (name == "cgi")
 			parseCGI(it, location.cgi(), diag);
 		else if (name == "upload_path")
+		{
+			if (hasUploadPath)
+				diag.report("duplicate 'upload_path' directive", *it);
+			hasUploadPath = true;
 			parseUploadPath(it, location.uploadPath(), diag);
+		}
 		else if (name == "types")
 			parseTypes(it, location.types(), diag);
 		else if (name == "location")
-			parseLocation(it, location.locations(), location, diag);
+			parseLocation(it, location.locations(), location, locationPathTable, diag);
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}
 	return location;
 }
 
-void	Semantic::analyseTypes(const std::list<Directive> &directives, MimeTypes &types, DiagnosticContext &diag)
+void	Semantic::analyseTypes(const Directive &directive, MimeTypes &types, DiagnosticContext &diag)
 {
+	const std::list<Directive> &directives = directive.children();
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		if (!checkShape(*it, ARGS_AT_LEAST_ONE, BODY_FORBIDDEN, diag))
 			continue;
-		const std::string mime = it->name().rawContent();
+		const std::string mime = it->name().content();
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 			types.types()[arg->content()] = mime;
 	}

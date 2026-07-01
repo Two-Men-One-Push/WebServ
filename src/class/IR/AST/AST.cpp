@@ -1,6 +1,7 @@
 #include "AST.hpp"
+#include <string>
 
-AST::AST(): _directives(), _filename()
+AST::AST(std::string filename): ErrorInfo(filename, 1, 1), _directives()
 {
 }
 
@@ -8,7 +9,7 @@ AST::~AST()
 {
 }
 
-AST::AST(const AST &copy): _directives(copy._directives), _filename(copy._filename)
+AST::AST(const AST &copy): ErrorInfo(copy), _directives(copy._directives)
 {
 }
 
@@ -16,8 +17,8 @@ AST	&AST::operator=(const AST &other)
 {
 	if (this != &other)
 	{
+		ErrorInfo::operator=(other);
 		_directives = other._directives;
-		_filename = other._filename;
 	}
 	return *this;
 }
@@ -30,14 +31,4 @@ const std::list<Directive>	&AST::directives() const
 std::list<Directive>	&AST::directives()
 {
 	return _directives;
-}
-
-const std::string	&AST::filename() const
-{
-	return _filename;
-}
-
-std::string	&AST::filename()
-{
-	return _filename;
 }

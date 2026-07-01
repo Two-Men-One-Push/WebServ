@@ -9,10 +9,9 @@
 class Preprocessor
 {
 	private:
+		Preprocessor();
 		static std::list<Directive>	expand(const std::list<Directive> &directives, std::stack<std::string> &include_stack, DiagnosticContext &diag);
 	public:
-		Preprocessor();
 		~Preprocessor();
-
 		static AST	preprocess(const AST &ast, DiagnosticContext &diag);
 };

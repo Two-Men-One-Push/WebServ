@@ -29,6 +29,7 @@ class	Server
 		Server(const Server &copy);
 		Server	&operator=(const Server &other);
 
+		const std::string									path() const;
 		const std::vector<int>								&listen() const;
 		std::vector<int>									&listen();
 		const std::vector<std::string>						&serverNames() const;

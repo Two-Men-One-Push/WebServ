@@ -9,11 +9,11 @@
 class	Parser
 {
 	private:
+		Parser();
 		static Directive	parseDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end);
 		static void			parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, Directive &directive);
 		static void			parseListDirective(TokenStream::const_iterator &it, TokenStream::const_iterator &end, std::list<Directive> &directives);
 	public:
-		Parser();
 		~Parser();
 
 		static AST	parse(const TokenStream &token_stream);

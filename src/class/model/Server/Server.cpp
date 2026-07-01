@@ -60,6 +60,11 @@ Server	&Server::operator=(const Server &other)
 	return (*this);
 }
 
+const std::string										Server::path() const
+{
+	return "/";
+}
+
 const std::vector<int>	&Server::listen() const
 {
 	return (this->_listen);

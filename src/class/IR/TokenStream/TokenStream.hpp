@@ -3,13 +3,12 @@
 #include "IR/Token/Token.hpp"
 #include <vector>
 
-class	TokenStream
+class	TokenStream: public ErrorInfo
 {
 	private:
 		std::vector<Token>	_tokens;
-		std::string			_filename;
 	public:
-		TokenStream();
+		TokenStream(std::string filename);
 		~TokenStream();
 		TokenStream(const TokenStream &copy);
 		TokenStream	&operator=(const TokenStream &other);
@@ -24,8 +23,6 @@ class	TokenStream
 
 		const std::vector<Token>	&tokens() const;
 		std::vector<Token>			&tokens();
-		const std::string			&filename() const;
-		std::string					&filename();
 
 		void	addToken(const Token &token);
 };

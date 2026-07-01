@@ -24,15 +24,15 @@ class	Location
 		template <typename Type>
 		Location(Type &parent, const std::string &path):
 		_path(path),
-		_root(path),
+		_root(parent.root()),
 		_index_files(),
 		_error_pages(parent.errorPages()),
 		_client_max_body_size(parent.clientMaxBodySize()),
-		_allowed_methods(parent.allowedMethods()),
+		_allowed_methods(),
 		_autoindex(parent.autoindex()),
 		_redirection(0, ""),
-		_cgi(parent.cgi()),
-		_upload_path(parent.uploadPath()),
+		_cgi(),
+		_upload_path(),
 		_types(parent.types()),
 		_locations()
 		{}

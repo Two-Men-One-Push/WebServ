@@ -1,6 +1,6 @@
 #include "TokenStream.hpp"
 
-TokenStream::TokenStream(): _tokens(), _filename()
+TokenStream::TokenStream(std::string filename): ErrorInfo(filename, 1, 1), _tokens()
 {
 }
 
@@ -8,7 +8,7 @@ TokenStream::~TokenStream()
 {
 }
 
-TokenStream::TokenStream(const TokenStream &copy): _tokens(copy._tokens), _filename(copy._filename)
+TokenStream::TokenStream(const TokenStream &copy): ErrorInfo(copy), _tokens(copy._tokens)
 {
 }
 
@@ -16,8 +16,8 @@ TokenStream	&TokenStream::operator=(const TokenStream &other)
 {
 	if (this != &other)
 	{
+		ErrorInfo::operator=(other);
 		_tokens = other._tokens;
-		_filename = other._filename;
 	}
 	return *this;
 }
@@ -50,16 +50,6 @@ const std::vector<Token>	&TokenStream::tokens() const
 std::vector<Token>	&TokenStream::tokens()
 {
 	return _tokens;
-}
-
-const std::string	&TokenStream::filename() const
-{
-	return _filename;
-}
-
-std::string	&TokenStream::filename()
-{
-	return _filename;
 }
 
 void	TokenStream::addToken(const Token &token)

@@ -1,5 +1,6 @@
 #include <sstream>
 #include <string>
+#include <vector>
 
 bool	parseInt(const std::string &str, int &out)
 {
@@ -46,4 +47,61 @@ bool	parseSize(const std::string &str, size_t &out)
 		return false;
 	}
 	return true;
+}
+std::string	trim_path(const std::string &path)
+{
+	std::string result = path;
+	while (!result.empty() && result[0] == '/')
+		result.erase(0, 1);
+	while (!result.empty() && result[result.size() - 1] == '/')
+		result.erase(result.size() - 1, 1);
+	return result;
+}
+
+std::string	pathJoin(const std::string &path1, const std::string &path2)
+{
+	std::string	result;
+	result = "/";
+	if (!trim_path(path1).empty())
+		result += trim_path(path1) + "/";
+	if (!trim_path(path2).empty())
+		result += trim_path(path2);
+	return result;
+}
+
+bool	pathNormalize(std::string &result, const std::string &path)
+{
+	bool	error = false;
+	std::string tmp = path;
+	while (!tmp.empty() && tmp[0] == '/')
+		tmp.erase(0, 1);
+	while (!tmp.empty() && tmp[tmp.size() - 1] == '/')
+		tmp.erase(tmp.size() - 1, 1);
+	std::vector<std::string> parts;
+	std::string::size_type start = 0;
+	while (start < tmp.size())
+	{
+		std::string::size_type end = tmp.find('/', start);
+		if (end == std::string::npos)
+			end = tmp.size();
+		std::string part = tmp.substr(start, end - start);
+		if (part == "..")
+		{
+			if (!parts.empty())
+				parts.pop_back();
+			else
+				error = true;
+		}
+		else if (!part.empty() && part != ".")
+			parts.push_back(part);
+		start = end + 1;
+	}
+	result = "/";
+	for (std::vector<std::string>::const_iterator it = parts.begin(); it != parts.end(); ++it)
+	{
+		if (it != parts.begin())
+			result += "/";
+		result += *it;
+	}
+	return error;
 }
