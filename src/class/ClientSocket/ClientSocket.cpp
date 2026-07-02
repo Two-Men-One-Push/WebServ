@@ -109,6 +109,9 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		return;
 	};
 
+	std::cerr << "\e[0;31m";
+	std::cerr.write(buffer, readLen);
+	std::cerr << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {

@@ -9,6 +9,7 @@
 #include <ios>
 #include <iostream>
 #include <istream>
+#include <ostream>
 #include <sstream>
 #include <unistd.h>
 #include <utility>
@@ -100,6 +101,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 		// if empty it's the end of headers
 		if (line.empty()) {
 			if (!headerField.first.empty()) this->_headers.insert(headerField);
+			buffer.clear();
 			return true;
 		}
 
@@ -146,9 +148,15 @@ bool HttpMessage::recvBody(std::istream &input) {
 
 bool HttpMessage::collectRawBody(std::istream &input) {
 	char buffer[READ_SIZE];
-	std::streamsize n;
 
-	while ((n = input.readsome(buffer, std::min(sizeof(buffer), std::min(this->_contentLength - this->_readSize, (size_t)READ_SIZE)))) > 0) {
+	while (true) {
+		size_t toRead = std::min(sizeof(buffer), this->_contentLength - this->_readSize);
+		if (toRead == 0)
+			break;
+		input.read(buffer, toRead);
+		std::streamsize n = input.gcount();
+		if (n <= 0)
+			break;
 		this->_body->write(buffer, n);
 		this->_readSize += n;
 	}
@@ -158,25 +166,122 @@ bool HttpMessage::collectRawBody(std::istream &input) {
 }
 
 bool HttpMessage::collectChunkedBody(std::istream &input) {
-	std::string &buffer = this->_inBuffer;
-
 	while (input.peek() != std::stringstream::traits_type::eof()) {
-		if (this->chunkInfo.size == this->chunkInfo.readSize) {
-			while (true) {
-				if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
+		switch (this->_chunkInfo.state) {
+		case BodyChunkInfo::CHUNK_SIZE:
+			// if (this->_chunkInfo.crlf && this->_chunkInfo.size == this->_chunkInfo.readSize) {
+			if (!this->getChunkSize(input)) return false;
+			break;
+		case BodyChunkInfo::CHUNK_CONTENT:
+			if (!this->getChunkContent(input)) return false;
+			break;
+		case BodyChunkInfo::CHUNK_CRLF:
+			if (!this->getChunkCrlf(input)) return false;
+			break;
+		case BodyChunkInfo::CHUNK_TRAILER:
+			if (!this->getChunkedTrailer(input)) return false;
+			break;
+		case BodyChunkInfo::CHUNK_COMPLETED:
+			return true;
+		}
+	}
+	return this->_chunkInfo.state == BodyChunkInfo::CHUNK_COMPLETED;
+}
 
-				int c = input.get();
-				if (c == std::stringstream::traits_type::eof())
-					return false;
-				buffer += static_cast<char>(c);
-				if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
-					break;
-				}
-			}
-		} else {
+bool HttpMessage::getChunkSize(std::istream &input) {
+	std::string &buffer = this->_inBuffer;
+	std::cerr << "'" << buffer << "'" << std::endl;
+	while (true) {
+		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException("1");
 
+		int c = input.get();
+		if (c == std::stringstream::traits_type::eof())
+			return false;
+		buffer += static_cast<char>(c);
+		if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+			buffer.resize(buffer.size() - 2);
+			break;
 		}
 	}
 
-	return false;
+	size_t pos = buffer.find(';');
+	if (pos != buffer.npos) {
+		buffer.resize(pos);
+		if (buffer.size() == 0 || !ishexdigit(buffer[0])) throw HttpExceptions::BadRequestException("2");
+		buffer = trim(buffer, " ");
+	}
+	if (buffer.size() == 0) throw HttpExceptions::BadRequestException("3");
+	try {
+		this->_chunkInfo.size = parseHex(buffer);
+		this->_chunkInfo.readSize = 0;
+	} catch (...) {
+		throw HttpExceptions::BadRequestException("9");
+	}
+	buffer.clear();
+	if (this->_chunkInfo.size == 0) {
+		this->_chunkInfo.state = BodyChunkInfo::CHUNK_TRAILER;
+	} else {
+		this->_chunkInfo.state = BodyChunkInfo::CHUNK_CONTENT;
+	}
+	return true;
+}
+
+bool HttpMessage::getChunkContent(std::istream &input) {
+	char readBuffer[READ_SIZE];
+	while (true) {
+		size_t toRead = std::min(this->_chunkInfo.size - this->_chunkInfo.readSize, (size_t)READ_SIZE);
+		if (toRead == 0)
+			break;
+		input.read(readBuffer, toRead);
+		std::streamsize n = input.gcount();
+		if (n <= 0)
+			break;
+		std::cerr << "\e[0;31m";
+		std::cerr.write(readBuffer, n);
+		std::cerr << "\e[0m\n";
+		this->_chunkInfo.readSize += n;
+	}
+
+	if (this->_chunkInfo.readSize == this->_chunkInfo.size) {
+		this->_chunkInfo.state = BodyChunkInfo::CHUNK_CRLF;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool HttpMessage::getChunkCrlf(std::istream &input) {
+	std::string &buffer = this->_inBuffer;
+	while (buffer.size() < 2) {
+		int c = input.get();
+		if (c == std::stringstream::traits_type::eof())
+			return false;
+		buffer += static_cast<char>(c);
+	}
+	if (buffer != "\r\n") throw HttpExceptions::BadRequestException("4");
+	buffer.clear();
+	this->_chunkInfo.state = BodyChunkInfo::CHUNK_SIZE;
+	return true;
+}
+
+bool HttpMessage::getChunkedTrailer(std::istream &input) {
+	std::string &buffer = this->_inBuffer;
+
+	while (true) {
+		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException("5");
+
+		int c = input.get();
+		if (c == std::stringstream::traits_type::eof())
+			return false;
+		buffer += static_cast<char>(c);
+		if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+			if (buffer.size() > 2) {
+				buffer.clear();
+			} else {
+				buffer.clear();
+				this->_chunkInfo.state = BodyChunkInfo::CHUNK_COMPLETED;
+				return true;
+			}
+		}
+	}
 }

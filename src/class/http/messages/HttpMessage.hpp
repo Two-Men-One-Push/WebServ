@@ -14,6 +14,14 @@
 #define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
 
 struct BodyChunkInfo {
+	enum {
+		CHUNK_SIZE,
+		CHUNK_CONTENT,
+		CHUNK_CRLF,
+		CHUNK_TRAILER,
+		CHUNK_COMPLETED,
+	} state;
+
 	std::size_t size;
 	std::size_t readSize;
 };
@@ -49,7 +57,11 @@ class HttpMessage {
 	// BODY LOADING INFO
 
 	size_t _readSize;
-	BodyChunkInfo chunkInfo;
+	BodyChunkInfo _chunkInfo;
+	bool getChunkSize(std::istream &input);
+	bool getChunkContent(std::istream &input);
+	bool getChunkCrlf(std::istream &input);
+	bool getChunkedTrailer(std::istream &input);
 
 	// SEND
 
@@ -82,7 +94,6 @@ class HttpMessage {
 
 	virtual bool recvTypeLine(std::istream &input) = 0;
 	void loadBaseUsedHeaders();
-
 
 	virtual void loadTypeUsedHeaders() = 0;
 

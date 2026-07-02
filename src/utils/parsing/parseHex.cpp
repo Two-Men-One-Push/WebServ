@@ -1,10 +1,13 @@
 #include "utils/parsing.hpp"
 #include <cerrno>
 #include <cstdlib>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 unsigned long parseHex(const std::string &input) {
+
+	std::cerr << "'" << input << "'" << "\n" << std::endl;
 
 	if (!ishexstr(input)) throw std::invalid_argument(input);
 

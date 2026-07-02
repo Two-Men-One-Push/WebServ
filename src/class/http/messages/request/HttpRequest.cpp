@@ -12,6 +12,7 @@
 static std::pair<std::string, HttpMethod> pairs[] = {
 	std::make_pair("GET", GET),
 	std::make_pair("HEAD", HEAD),
+	std::make_pair("POST", POST),
 	std::make_pair("DELETE", DELETE),
 };
 

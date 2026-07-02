@@ -5,6 +5,7 @@
 HttpMessage::HttpMessage()
 	: _inState(HttpMessage::RECV_MESSAGE_TYPES),
 	  _readSize(0),
+	  _chunkInfo((BodyChunkInfo){BodyChunkInfo::CHUNK_SIZE, 0, 0}),
 	  _outState(SEND_HEAD),
 	  _sentSize(0),
 	  _bodyEmpty(false),
@@ -21,6 +22,7 @@ HttpMessage::HttpMessage()
 HttpMessage::HttpMessage(const HttpMessage &other)
 	: _inState(other._inState),
 	  _readSize(other._readSize),
+	  _chunkInfo(other._chunkInfo),
 	  _outState(other._outState),
 	  _sentSize(other._sentSize),
 	  _bodyEmpty(other._bodyEmpty),
