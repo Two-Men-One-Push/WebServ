@@ -10,6 +10,7 @@
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include <list>
 #include <set>
+#include <vector>
 
 class Semantic
 {
@@ -34,12 +35,10 @@ class Semantic
 		static void			parseTypes(std::list<Directive>::const_iterator it, MimeTypes &types, DiagnosticContext &diag);
 		static void			parseHttp(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag);
 		static void			parseServer(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag);
-		template <typename Type>
-		static void			parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Type &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
+		static void			parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Location &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
 		static Http			analyseHttp(const Directive &directive, DiagnosticContext &diag);
 		static Server		analyseServer(const Directive &directive, Http &http, DiagnosticContext &diag);
-		template <typename Type>
-		static Location		analyseLocation(const Directive &directive, Type &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
+		static Location		analyseLocation(const Directive &directive, std::vector<Location> &locations, Location &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
 		static void			analyseTypes(const Directive &directive, MimeTypes &types, DiagnosticContext &diag);
 	public:
 		~Semantic();
