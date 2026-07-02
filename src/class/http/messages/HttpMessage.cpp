@@ -1,6 +1,5 @@
 #include "./HttpMessage.hpp"
 #include "http/types.hpp"
-#include <cerrno>
 
 HttpMessage::HttpMessage()
 	: _inState(HttpMessage::RECV_MESSAGE_TYPES),
