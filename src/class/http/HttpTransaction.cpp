@@ -20,7 +20,7 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 	try {
 		bool result = this->_request.recvFrom(input);
 		if (result) {
-			this->_response.cgi(*new CGIInterface("www/cgi/test.php", *this, server));
+			this->_response.cgi(*new CGIInterface("www/cgi/test.py", *this, server));
 			// this->_response.error(HttpExceptions::NoContentException());
 		}
 		return result;

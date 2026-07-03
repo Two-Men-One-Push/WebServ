@@ -2,11 +2,13 @@
 #define HTTPMESSAGE_HPP
 
 #include "Fd/Fd.hpp"
+#include "http/messages/Body/IBody.hpp"
 #include "http/types.hpp"
 #include <cstddef>
 #include <istream>
 #include <ostream>
 #include <string>
+#include <sys/types.h>
 
 #define WRITE_SIZE 4096
 #define READ_SIZE 4096
@@ -32,19 +34,10 @@ class HttpMessage {
 
 	// RECEIVE
 
-	enum InState {
-		RECV_MESSAGE_TYPES,
-		RECV_MESSAGE_HEADERS,
-		RECV_LOAD_MESSAGE_HEADERS,
-		RECV_MESSAGE_BODY,
-		RECV_COMPLETED,
-	};
-
-	InState _inState;
-
 	bool recvMessageHeaders(std::istream &input);
 	bool recvBody(std::istream &input);
 
+	void writeBody(const char *buffer, size_t size);
 	bool collectRawBody(std::istream &input);
 	bool collectChunkedBody(std::istream &input);
 	bool extractMessageHeaders(std::istream &input);
@@ -84,8 +77,17 @@ class HttpMessage {
 
 	HttpVersion _version;
 	HeaderMap _headers;
-	std::iostream *_body;
+	IBody *_body;
 
+	enum InState {
+		RECV_MESSAGE_TYPES,
+		RECV_MESSAGE_HEADERS,
+		RECV_LOAD_MESSAGE_HEADERS,
+		RECV_MESSAGE_BODY,
+		RECV_COMPLETED,
+	};
+
+	InState _inState;
 	std::string _inBuffer;
 	std::string _outBuffer;
 

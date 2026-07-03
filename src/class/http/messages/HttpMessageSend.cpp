@@ -1,9 +1,11 @@
 #include "errors/WebservErrors.hpp"
+#include "http/messages/Body/IBody.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include <algorithm>
+#include <cerrno>
 #include <cstddef>
+#include <cstdio>
 #include <iostream>
-#include <istream>
 #include <sstream>
 
 bool HttpMessage::sendTo(const Fd &output) {
@@ -18,9 +20,10 @@ bool HttpMessage::sendTo(const Fd &output) {
 			this->_outState = SEND_COMPLETED;
 			return true;
 		}
-		return this->sendBody(output);
+		if (!this->sendBody(output)) return false;
 		if (this->_sentSize == this->_contentLength) {
 			if (!this->_bodyEmpty) {
+				std::cerr << "[warning] Body not empty but content-length sent." << std::endl;
 			}
 			delete this->_body;
 			this->_outState = SEND_COMPLETED;
@@ -44,26 +47,21 @@ bool HttpMessage::sendHead(const Fd &output) {
 
 bool HttpMessage::sendBody(const Fd &output) {
 	std::string &buffer = this->_outBuffer;
-	std::iostream &body = *this->_body;
+	IBody &body = *this->_body;
 
-	size_t maxWrite = std::min(_contentLength, (size_t)WRITE_SIZE);
+	size_t toWrite = std::min(_contentLength, (size_t)WRITE_SIZE);
 
-	if (buffer.size() < maxWrite && !this->_bodyEmpty) {
+	if (buffer.size() < toWrite && !this->_bodyEmpty) {
 		size_t oldSize = buffer.size();
-		size_t missingSize = maxWrite - oldSize;
+		size_t missingSize = toWrite - oldSize;
 
-		buffer.resize(maxWrite);
-		std::cerr << &body << std::endl;
-		body.read(&buffer[0] + oldSize, missingSize);
+		buffer.resize(toWrite);
+		ssize_t readSize = body.read(&buffer[0] + oldSize, missingSize);
 
-		std::streamsize readSize = body.gcount();
-		buffer.resize(oldSize + (size_t)readSize);
+		if (readSize < 0) throw WebservErrors::SysError("read", errno);
+		if (readSize == 0) this->_bodyEmpty = true;
 
-		if (this->_body->eof()) {
-			this->_bodyEmpty = true;
-		} else if (this->_body->fail()) {
-			throw WebservErrors::SysError("read", errno);
-		}
+		buffer.resize(oldSize + readSize);
 	}
 
 	ssize_t sent = output.write(buffer.data(), buffer.size());
