@@ -1,8 +1,8 @@
 #include "EpollInstance/EpollWatchable.hpp"
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 
-AEpollWatchable::AEpollWatchable(int fd) : AFd(fd), _epoll(NULL) {}
+AEpollWatchable::AEpollWatchable(int fd) : Fd(fd), _epoll(NULL) {}
 
 AEpollWatchable::~AEpollWatchable() {
 	if (this->_epoll != NULL)

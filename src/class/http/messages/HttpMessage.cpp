@@ -2,14 +2,15 @@
 #include "http/types.hpp"
 
 HttpMessage::HttpMessage()
-	: _inState(HttpMessage::RECV_MESSAGE_TYPES),
-	  _readSize(0),
+	: _readSize(0),
+	  _chunkInfo((BodyChunkInfo){BodyChunkInfo::CHUNK_SIZE, 0, 0}),
 	  _outState(SEND_HEAD),
 	  _sentSize(0),
 	  _bodyEmpty(false),
 	  _version(HTTP1_1),
 	  _headers(),
 	  _body(NULL),
+	  _inState(HttpMessage::RECV_MESSAGE_TYPES),
 	  _inBuffer(),
 	  _outBuffer(),
 	  _contentLength(0),
@@ -18,14 +19,15 @@ HttpMessage::HttpMessage()
 }
 
 HttpMessage::HttpMessage(const HttpMessage &other)
-	: _inState(other._inState),
-	  _readSize(other._readSize),
+	: _readSize(other._readSize),
+	  _chunkInfo(other._chunkInfo),
 	  _outState(other._outState),
 	  _sentSize(other._sentSize),
 	  _bodyEmpty(other._bodyEmpty),
 	  _version(other._version),
 	  _headers(other._headers),
 	  _body(other._body),
+	  _inState(other._inState),
 	  _inBuffer(other._inBuffer),
 	  _outBuffer(other._outBuffer),
 	  _contentLength(other._contentLength),

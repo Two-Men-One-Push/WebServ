@@ -25,9 +25,9 @@ class HttpTransaction {
 	bool recvRequest(std::istream &input, WebServer &server);
 	bool recvResponse(std::istream &input);
 
-	bool sendRequest(const AFd &output);
-	bool sendRequestBody(const AFd &output);
-	bool sendResponse(const AFd &output);
+	bool sendRequest(const Fd &output);
+	bool sendRequestBody(const Fd &output);
+	bool sendResponse(const Fd &output);
 
 	void error(const HttpException &e);
 

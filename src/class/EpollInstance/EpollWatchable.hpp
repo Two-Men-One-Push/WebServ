@@ -4,7 +4,7 @@
 #include "EpollInstance/EpollInstance.hpp"
 #include <stdint.h>
 
-class AEpollWatchable : public AFd { // contrat epoll, indépendant de la possession du fd
+class AEpollWatchable : public Fd { // contrat epoll, indépendant de la possession du fd
   private:
 	const EpollInstance *_epoll;
 

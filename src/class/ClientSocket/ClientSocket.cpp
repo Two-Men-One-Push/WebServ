@@ -8,7 +8,6 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
-#include <queue>
 #include <sstream>
 #include <stdint.h>
 #include <sys/epoll.h>
@@ -51,7 +50,9 @@ const struct sockaddr_storage &ClientSocket::address() const {
 }
 
 uint32_t ClientSocket::getHandledEvents() const {
-	uint32_t result = EPOLLIN;
+	uint32_t result = 0;
+	if (!this->_closed)
+		result |= EPOLLIN;
 	if (this->canHandleEpollOut())
 		result |= EPOLLOUT;
 	return result;
@@ -101,14 +102,15 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	errno = 0;
 	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
-	bool closed = false;
-
-	if (!readLen) closed = true;
+	if (!readLen) this->_closed = true;
 	if (readLen < 0) {
 		server.requestDelete(this);
 		return;
 	};
 
+	std::cerr << "\e[0;31m";
+	std::cerr.write(buffer, readLen);
+	std::cerr << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {
@@ -121,7 +123,7 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		}
 	}
 
-	if (closed) this->_transactions.back()->isLast(true);
+	if (this->_closed) this->_transactions.back()->isLast(true);
 
 	if (this->canHandleEpollOut()) {
 		server.epoll().mod(*this);

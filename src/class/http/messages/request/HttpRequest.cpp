@@ -1,9 +1,9 @@
 #include "./HttpRequest.hpp"
+#include "http/messages/Body/BodyStringStream.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
 #include <cstddef>
 #include <map>
-#include <sstream>
 #include <string>
 #include <utility>
 
@@ -12,6 +12,7 @@
 static std::pair<std::string, HttpMethod> pairs[] = {
 	std::make_pair("GET", GET),
 	std::make_pair("HEAD", HEAD),
+	std::make_pair("POST", POST),
 	std::make_pair("DELETE", DELETE),
 };
 
@@ -27,7 +28,7 @@ HttpRequest::HttpRequest()
 	  _uri(),
 	  _firstLineState(HttpRequest::REQUEST_METHOD) {
 	this->_maxMethodSize = this->getMaxMethodSize();
-	this->_body = new std::stringstream();
+	this->_body = new BodyStringStream();
 }
 
 HttpRequest::HttpRequest(const HttpRequest &other)
