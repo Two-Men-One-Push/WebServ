@@ -18,4 +18,15 @@ long parseLong(const std::string &input);
 unsigned long parseULong(const std::string &input);
 unsigned long parseHex(const std::string &input);
 
+bool	parseInt(const std::string &str, int &out);
+bool	parseSize(const std::string &str, size_t &out);
+
+std::string	trim_path(const std::string &path);
+std::string	pathJoin(const std::string &path1, const std::string &path2);
+
+/*
+return true if the path unwinds to a path outside the root, false otherwise
+*/
+bool	pathNormalize(std::string &result, const std::string &path);
+
 #endif

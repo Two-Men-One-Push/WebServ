@@ -1,6 +1,5 @@
 #include "./HttpMessage.hpp"
 #include "http/types.hpp"
-#include <cerrno>
 
 HttpMessage::HttpMessage()
 	: _readSize(0),
