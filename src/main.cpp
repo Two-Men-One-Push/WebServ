@@ -5,6 +5,7 @@
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include "Debug/Debug.hpp"
 #include <iostream>
+#include "URL/URL.hpp"
 
 int	main(int argc, char **argv)
 {
@@ -13,6 +14,8 @@ int	main(int argc, char **argv)
 		std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
 		return 1;
 	}
+	//URI	uri(argv[1]);
+	//return 0;
 	try
 	{
 		DiagnosticContext	diag;
@@ -20,7 +23,7 @@ int	main(int argc, char **argv)
 		AST					ast = Parser::parse(tokens);
 		AST					preprocessed = Preprocessor::preprocess(ast, diag);
 		Config				config = Semantic::analyseAST(preprocessed, diag);
-		Debug::printConfig(std::cout, config);
+		//Debug::printConfig(std::cout, config);
 		if (diag.hasError())
 		{
 			std::cerr << "configuration has errors, cannot continue" << std::endl;

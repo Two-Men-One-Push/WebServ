@@ -1,9 +1,9 @@
-http{
-	error_page 403 404 /404.html;
+http {
+	error_page 403 403 403  404 /404.html;
 	error_page 500 =200 /101.html;
 	cgi .py .pyc /usr/bin/python3;
-	types {text/html .html .bite;}
-	server{
+	types { text/html .html .bite; }
+	server {
 		listen 80;
 		root /var/www/html;
 		server_name localhost;
