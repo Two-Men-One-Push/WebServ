@@ -6,7 +6,7 @@
 #include <istream>
 #include <sstream>
 
-bool HttpMessage::sendTo(const AFd &output) {
+bool HttpMessage::sendTo(const Fd &output) {
 	switch (this->_outState) {
 	case SEND_HEAD:
 		if (!this->sendHead(output)) return false;
@@ -33,7 +33,7 @@ bool HttpMessage::sendTo(const AFd &output) {
 	return this->_outState == SEND_COMPLETED;
 }
 
-bool HttpMessage::sendHead(const AFd &output) {
+bool HttpMessage::sendHead(const Fd &output) {
 	std::string &buffer = this->_outBuffer;
 
 	if (buffer.empty()) this->formatHead();
@@ -42,7 +42,7 @@ bool HttpMessage::sendHead(const AFd &output) {
 	return buffer.empty();
 }
 
-bool HttpMessage::sendBody(const AFd &output) {
+bool HttpMessage::sendBody(const Fd &output) {
 	std::string &buffer = this->_outBuffer;
 	std::iostream &body = *this->_body;
 

@@ -66,8 +66,8 @@ void CGIInterface::startCgi(const HttpRequest &request) {
 	this->_outPipe.releaseIn();
 	this->_inPipe.releaseOut();
 
-	AFd &childStdIn = this->_outPipe.out();
-	AFd &childStdOut = this->_inPipe.in();
+	Fd &childStdIn = this->_outPipe.out();
+	Fd &childStdOut = this->_inPipe.in();
 
 	if (childStdIn.dup2(0) == -1) {
 		perror("dup2");

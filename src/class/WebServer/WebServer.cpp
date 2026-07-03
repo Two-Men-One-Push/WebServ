@@ -1,5 +1,5 @@
 #include "./WebServer.hpp"
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
 #include "CGI/CGIInterface.hpp"
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <vector>
 
-WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::create()) {
+WebServer::WebServer(Config &config) : _config(config), _epoll() {
 	/* temp */
 	short port = 6969;
 	std::string ipAddress = "localhost";

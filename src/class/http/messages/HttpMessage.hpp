@@ -1,7 +1,7 @@
 #ifndef HTTPMESSAGE_HPP
 #define HTTPMESSAGE_HPP
 
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
 #include "http/types.hpp"
 #include <cstddef>
 #include <istream>
@@ -75,7 +75,7 @@ class HttpMessage {
 	std::size_t _sentSize;
 	bool _bodyEmpty;
 
-	bool sendHead(const AFd &output);
+	bool sendHead(const Fd &output);
 
 	void formatHead();
 
@@ -117,8 +117,8 @@ class HttpMessage {
 	void inState(InState state);
 	bool inCompleted() const;
 
-	bool sendTo(const AFd &output);
-	bool sendBody(const AFd &output);
+	bool sendTo(const Fd &output);
+	bool sendBody(const Fd &output);
 	void outState(InState state);
 	bool outCompleted() const;
 

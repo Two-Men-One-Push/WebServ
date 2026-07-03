@@ -39,15 +39,15 @@ bool HttpTransaction::recvResponse(std::istream &input) {
 	}
 }
 
-bool HttpTransaction::sendRequest(const AFd &output) {
+bool HttpTransaction::sendRequest(const Fd &output) {
 	return this->_request.sendTo(output);
 }
 
-bool HttpTransaction::sendRequestBody(const AFd &output) {
+bool HttpTransaction::sendRequestBody(const Fd &output) {
 	return this->_response.sendBody(output);
 }
 
-bool HttpTransaction::sendResponse(const AFd &output) {
+bool HttpTransaction::sendResponse(const Fd &output) {
 	return this->_response.sendTo(output);
 }
 
