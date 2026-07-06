@@ -1,11 +1,11 @@
 #include "URL.hpp"
 #include "utils/parsing.hpp"
 
-URL::URL(): _format(ERROR), _scheme(""), _user(""), _host(""), _port(0), _path(), _query(), _fragment("")
+URL::URL(): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
 {
 }
 
-URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(""), _port(0), _path(), _query(), _fragment("")
+URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
 {
 	if (url == "*")
 	{
@@ -105,12 +105,15 @@ URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(
 		}
 		this->_scheme = absolute.substr(0, scheme_end);
 		absolute.erase(0, scheme_end + 3);
-		size_t path_start = absolute.find('/');
-		if (path_start == std::string::npos)
-		{
-			this->_format = ERROR;
-			return ;
-		}
+		size_t path_start;
+		if (absolute.find('/') != std::string::npos)
+			path_start = absolute.find('/');
+		else if (absolute.find('?') != std::string::npos)
+			path_start = absolute.find('?');
+		else if (absolute.find('#') != std::string::npos)
+			path_start = absolute.find('#');
+		else
+			path_start = absolute.length();
 		std::string authority = absolute.substr(0, path_start);
 		absolute.erase(0, path_start);
 		size_t user_end = authority.find_last_of('@');
@@ -202,6 +205,8 @@ URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(
 				start = end + 1;
 			}
 		}
+		if (origin.empty())
+			return ;
 		std::string	normalized_path;
 		if (pathNormalize(normalized_path, origin))
 		{
