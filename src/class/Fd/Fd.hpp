@@ -6,10 +6,10 @@
 
 class WebServer;
 
-class AFd {
+class Fd {
   protected:
 	const int _fd;
-	AFd(int fd);
+	Fd(int fd);
 
   public:
 	int fd() const;
@@ -22,7 +22,7 @@ class AFd {
 
 	int dup2(int fd) const;
 
-	virtual ~AFd();
+	virtual ~Fd();
 };
 
 #endif

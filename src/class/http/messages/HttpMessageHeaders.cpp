@@ -7,7 +7,7 @@
 void HttpMessage::loadTranferEncoding() {
 	HeaderMap &headers = this->_headers;
 	if (!headers.has("Transfer-Encoding")) return;
-	if (headers["Transfer-Encoding"] != "chunked") throw HttpExceptions::NotImplementedException();
+	if (headers.at("Transfer-Encoding") != "chunked") throw HttpExceptions::NotImplementedException();
 	this->_transferEncoding = TE_CHUNKED;
 }
 
@@ -16,7 +16,7 @@ void HttpMessage::loadContentLength() {
 	if (!headerMap.has("Content-Length")) return;
 	if (this->_transferEncoding != TE_UNDEFINED) throw HttpExceptions::BadRequestException();
 	try {
-		this->_contentLength = parseULong(headerMap["Content-Length"]);
+		this->_contentLength = parseULong(headerMap.at("Content-Length"));
 	} catch (const std::exception &) {
 		throw HttpExceptions::BadRequestException();
 	}

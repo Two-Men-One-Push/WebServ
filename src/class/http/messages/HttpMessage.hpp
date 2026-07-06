@@ -1,16 +1,32 @@
 #ifndef HTTPMESSAGE_HPP
 #define HTTPMESSAGE_HPP
 
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
+#include "http/messages/Body/IBody.hpp"
 #include "http/types.hpp"
 #include <cstddef>
 #include <istream>
 #include <ostream>
 #include <string>
+#include <sys/types.h>
 
 #define WRITE_SIZE 4096
+#define READ_SIZE 4096
 
 #define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
+
+struct BodyChunkInfo {
+	enum {
+		CHUNK_SIZE,
+		CHUNK_CONTENT,
+		CHUNK_CRLF,
+		CHUNK_TRAILER,
+		CHUNK_COMPLETED,
+	} state;
+
+	std::size_t size;
+	std::size_t readSize;
+};
 
 class HttpMessage {
   private:
@@ -18,27 +34,27 @@ class HttpMessage {
 
 	// RECEIVE
 
-	enum InState {
-		RECV_MESSAGE_TYPES,
-		RECV_MESSAGE_HEADERS,
-		RECV_LOAD_MESSAGE_HEADERS,
-		RECV_MESSAGE_BODY,
-		RECV_COMPLETED,
-	};
-
-	InState _inState;
-	size_t _readSize;
-
 	bool recvMessageHeaders(std::istream &input);
 	bool recvBody(std::istream &input);
 
+	void writeBody(const char *buffer, size_t size);
 	bool collectRawBody(std::istream &input);
+	bool collectChunkedBody(std::istream &input);
 	bool extractMessageHeaders(std::istream &input);
 
 	// HEADER LOADER
 
 	void loadTranferEncoding();
 	void loadContentLength();
+
+	// BODY LOADING INFO
+
+	size_t _readSize;
+	BodyChunkInfo _chunkInfo;
+	bool getChunkSize(std::istream &input);
+	bool getChunkContent(std::istream &input);
+	bool getChunkCrlf(std::istream &input);
+	bool getChunkedTrailer(std::istream &input);
 
 	// SEND
 
@@ -52,7 +68,7 @@ class HttpMessage {
 	std::size_t _sentSize;
 	bool _bodyEmpty;
 
-	bool sendHead(const AFd &output);
+	bool sendHead(const Fd &output);
 
 	void formatHead();
 
@@ -61,8 +77,17 @@ class HttpMessage {
 
 	HttpVersion _version;
 	HeaderMap _headers;
-	std::iostream *_body;
+	IBody *_body;
 
+	enum InState {
+		RECV_MESSAGE_TYPES,
+		RECV_MESSAGE_HEADERS,
+		RECV_LOAD_MESSAGE_HEADERS,
+		RECV_MESSAGE_BODY,
+		RECV_COMPLETED,
+	};
+
+	InState _inState;
 	std::string _inBuffer;
 	std::string _outBuffer;
 
@@ -71,7 +96,6 @@ class HttpMessage {
 
 	virtual bool recvTypeLine(std::istream &input) = 0;
 	void loadBaseUsedHeaders();
-
 
 	virtual void loadTypeUsedHeaders() = 0;
 
@@ -95,8 +119,8 @@ class HttpMessage {
 	void inState(InState state);
 	bool inCompleted() const;
 
-	bool sendTo(const AFd &output);
-	bool sendBody(const AFd &output);
+	bool sendTo(const Fd &output);
+	bool sendBody(const Fd &output);
 	void outState(InState state);
 	bool outCompleted() const;
 

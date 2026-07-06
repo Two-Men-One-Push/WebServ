@@ -11,6 +11,7 @@ class HttpException : public std::exception {
 
   public:
 	HttpException(HttpStatus::Code status) throw();
+	HttpException(HttpStatus::Code status, const std::string &detail) throw();
 
 	virtual ~HttpException() throw();
 	virtual const char *what() const throw();

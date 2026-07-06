@@ -3,6 +3,7 @@
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
+#include "http/errors/HttpStandardException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
 #include <cerrno>
@@ -34,10 +35,7 @@ CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTra
 }
 
 CGIInterface::~CGIInterface() {
-	if (this->_cgiPid > 0) {
-		kill(this->_cgiPid, SIGKILL);
-		waitpid(this->_cgiPid, NULL, 0);
-	}
+	this->killChild();
 }
 
 void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &server) {
@@ -68,8 +66,8 @@ void CGIInterface::startCgi(const HttpRequest &request) {
 	this->_outPipe.releaseIn();
 	this->_inPipe.releaseOut();
 
-	AFd &childStdIn = this->_outPipe.out();
-	AFd &childStdOut = this->_inPipe.in();
+	Fd &childStdIn = this->_outPipe.out();
+	Fd &childStdOut = this->_inPipe.in();
 
 	if (childStdIn.dup2(0) == -1) {
 		perror("dup2");
@@ -174,7 +172,16 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			return;
 		}
 	} else {
+		this->killChild();
 		this->_inPipe.releaseOut();
+		this->_httpTransaction.error(HttpExceptions::InternalServerErrorException("HERE"));
+	}
+}
+
+void CGIInterface::killChild() {
+	if (this->_cgiPid > 0) {
+		kill(this->_cgiPid, SIGKILL);
+		waitpid(this->_cgiPid, NULL, 0);
 	}
 }
 
