@@ -7,8 +7,9 @@ void HttpResponse::error(const HttpException &e) {
 	this->_status = e.status();
 	this->_message = e.message();
 
+	std::cerr << e.what() << std::endl;
 	if (HttpStatus::isServerError(e.status())) {
-		std::cerr << e.what() << std::endl;
+		// std::cerr << e.what() << std::endl;
 	}
 
 	if (HttpStatus::isError(e.status())) {

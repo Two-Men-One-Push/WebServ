@@ -37,6 +37,7 @@ class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
 
 	/** Do you think this is related to _inPipe or _outPipe ? guess */
 	void inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer);
+	void killChild();
 
 	Pipe &in();
 	Pipe &out();

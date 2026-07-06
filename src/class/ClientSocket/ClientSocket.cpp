@@ -8,7 +8,6 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
-#include <queue>
 #include <sstream>
 #include <stdint.h>
 #include <sys/epoll.h>
@@ -51,7 +50,9 @@ const struct sockaddr_storage &ClientSocket::address() const {
 }
 
 uint32_t ClientSocket::getHandledEvents() const {
-	uint32_t result = EPOLLIN;
+	uint32_t result = 0;
+	if (!this->_closed)
+		result |= EPOLLIN;
 	if (this->canHandleEpollOut())
 		result |= EPOLLOUT;
 	return result;
@@ -62,6 +63,8 @@ bool ClientSocket::canHandleEpollOut() const {
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
+	static int i = 0;
+	std::cout << "it : " << i++ << std::endl;
 	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR)) {
 		if (events & EPOLLIN) {
 			std::cout << "EPOLLIN" << std::endl;
@@ -81,10 +84,8 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 		if (events & EPOLLOUT) {
 			this->onEpollOut(webServer);
 		}
-		if (events & EPOLLHUP) {
-			webServer.requestDelete(this);
-		}
-		if (events & EPOLLERR) {
+		if (events & EPOLLHUP || events & EPOLLERR) {
+			std::cout << "delete of : " << this << ": EPOLLHUP || EPOLLERR" << std::endl;
 			webServer.requestDelete(this);
 		}
 	} else {
@@ -101,14 +102,16 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	errno = 0;
 	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
-	bool closed = false;
-
-	if (!readLen) closed = true;
+	if (!readLen) this->_closed = true;
 	if (readLen < 0) {
+		std::cout << "delete of : " << this << ": readLen < 0" << std::endl;
 		server.requestDelete(this);
 		return;
 	};
 
+	std::cerr << "\e[0;31m";
+	std::cerr.write(buffer, readLen);
+	std::cerr << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {
@@ -121,7 +124,7 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		}
 	}
 
-	if (closed) this->_transactions.back()->isLast(true);
+	if (this->_closed) this->_transactions.back()->isLast(true);
 
 	if (this->canHandleEpollOut()) {
 		server.epoll().mod(*this);
@@ -131,7 +134,10 @@ void ClientSocket::onEpollIn(WebServer &server) {
 void ClientSocket::onEpollOut(WebServer &webServer) {
 	HttpTransaction *transaction = this->_transactions.front();
 	if (transaction->sendResponse(*this)) {
-		if (transaction->isLast()) webServer.requestDelete(this);
+		if (transaction->isLast()) {
+			std::cout << "delete of : " << this << ": transaction is last" << std::endl;
+			webServer.requestDelete(this);
+		}
 		delete transaction;
 		this->_transactions.pop();
 	}

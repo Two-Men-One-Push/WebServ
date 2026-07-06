@@ -1,5 +1,5 @@
 #include "./EpollInstance.hpp"
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
 #include "EpollInstance/EpollWatchable.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cassert>
@@ -7,18 +7,17 @@
 #include <sys/epoll.h>
 #include <vector>
 
-EpollInstance::EpollInstance(int epollFd) : AFd(epollFd) {}
+int EpollInstance::createEpollFd() {
+	const int epollFd = epoll_create(1);
+
+	if (epollFd < 0) throw WebservErrors::SysError("epoll", errno);
+	return epollFd;
+}
+
+EpollInstance::EpollInstance() : Fd(EpollInstance::createEpollFd()) {}
 
 EpollInstance::~EpollInstance() {}
 
-EpollInstance EpollInstance::create() {
-	const int epollFd = epoll_create(1);
-	if (epollFd < 0) {
-		throw WebservErrors::SysError("epoll", errno);
-	}
-
-	return EpollInstance(epollFd);
-}
 
 void EpollInstance::add(AEpollWatchable &watchable) const {
 	if (watchable.epoll() != NULL) throw WebservErrors::Runtime("EpollWatchable is already registered to epoll");

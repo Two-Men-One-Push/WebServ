@@ -1,16 +1,16 @@
 #include "./WebServer.hpp"
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
 #include "CGI/CGIInterface.hpp"
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
-#include "config/MainContext/MainContext.hpp"
+#include "errors/WebservErrors.hpp"
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
-#include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <vector>
 
-WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::create()) {
+WebServer::WebServer() : _epoll() {
 	/* temp */
 	short port = 6969;
 	std::string ipAddress = "localhost";
@@ -38,14 +38,17 @@ WebServer::WebServer(Config &config) : _config(config), _epoll(EpollInstance::cr
 	const int ret = getaddrinfo(ipAddress.c_str(), oss.str().c_str(), &hints, &res);
 
 	if (ret) {
-		throw std::runtime_error(gai_strerror(ret));
+		throw WebservErrors::GaiError("getaddrinfo", ret, ipAddress + " " + oss.str());
 	}
 
-	addrinfo *currentAddressInfo = res;
-	while (currentAddressInfo) {
-		_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
+	for (addrinfo *currentAddressInfo = res; currentAddressInfo != NULL; currentAddressInfo = currentAddressInfo->ai_next) {
+		try {
+			_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
+		} catch (...) {
+			freeaddrinfo(res);
+			throw;
+		}
 		_epoll.add(*_listeningSockets.back());
-		currentAddressInfo = currentAddressInfo->ai_next;
 	}
 
 	freeaddrinfo(res);
@@ -82,7 +85,10 @@ const EpollInstance &WebServer::epoll() const {
 }
 
 void WebServer::requestDelete(ClientSocket *client) {
-	this->_clientSocketsToDelete.push_back(client);
+	std::vector<ClientSocket *> &deleteList = this->_clientSocketsToDelete;
+	if (std::find(deleteList.begin(), deleteList.end(), client) == deleteList.end()) {
+		deleteList.push_back(client);
+	}
 }
 
 void WebServer::deleteClientSockets() {

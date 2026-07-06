@@ -1,7 +1,7 @@
 #ifndef EPOLL_HPP
 #define EPOLL_HPP
 
-#include "AFd/AFd.hpp"
+#include "Fd/Fd.hpp"
 #include <sys/types.h>
 #include <vector>
 
@@ -12,11 +12,14 @@ struct EpollEvent {
 	AEpollWatchable *fd;
 };
 
-class EpollInstance : public AFd {
+class EpollInstance : public Fd {
   private:
-	EpollInstance(int epollFd);
+	static int createEpollFd();
+	EpollInstance(const EpollInstance &other);
+	EpollInstance &operator=(const EpollInstance &other);
 
   public:
+	EpollInstance();
 	~EpollInstance();
 
 	void add(AEpollWatchable &fd) const;
@@ -24,8 +27,6 @@ class EpollInstance : public AFd {
 	void del(int fd) const;
 	void del(AEpollWatchable &fd) const;
 	void wait(std::vector<EpollEvent> &result) const;
-
-	static EpollInstance create();
 };
 
 #endif
