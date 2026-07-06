@@ -27,10 +27,8 @@ bool HttpMessage::sendTo(const Fd &output) {
 		}
 		if (!this->sendBody(output)) return false;
 		if (this->_sentSize == this->_contentLength) {
-			if (!this->_bodyEmpty) {
-				std::cerr << "[warning] Body not empty but content-length (" << this->_contentLength << ") bytes sent." << std::endl;
-			}
 			delete this->_body;
+			this->_body = NULL;
 			this->_outState = SEND_COMPLETED;
 		} else if (this->_bodyEmpty) {
 		}
@@ -98,9 +96,7 @@ void HttpMessage::formatHead() {
 
 	this->formatTypeLine();
 
-	std::cerr << this->_headers.size() << std::endl;
 	for (HeaderMap::const_iterator it = this->_headers.begin(); it != this->_headers.end(); ++it) {
-		std::cerr << it->first << ": " << it->second << std::endl;
 		this->_outBuffer += it->first;
 		this->_outBuffer += ": ";
 		this->_outBuffer += it->second;

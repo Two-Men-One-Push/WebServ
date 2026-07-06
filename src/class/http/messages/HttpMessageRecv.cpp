@@ -18,7 +18,6 @@
 #include <utility>
 
 bool HttpMessage::recvFrom(std::istream &input) {
-	std::cerr << "receiving " << static_cast<std::stringstream &>(input).str().size() << " bytes" << std::endl;
 	switch (this->_inState) {
 	case HttpMessage::RECV_MESSAGE_TYPES:
 		if (!this->recvTypeLine(input)) return false;
