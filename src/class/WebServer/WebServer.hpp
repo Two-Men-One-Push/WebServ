@@ -5,12 +5,10 @@
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
-#include "config/MainContext/MainContext.hpp"
 #include <vector>
 
 class WebServer {
   private:
-	Config _config;
 	EpollInstance _epoll;
 	std::vector<ListeningSocket *> _listeningSockets;
 	std::vector<ClientSocket *> _clientSockets;
@@ -19,7 +17,7 @@ class WebServer {
 	void deleteClientSockets();
 
   public:
-	WebServer(Config &config);
+	WebServer();
 	~WebServer();
 
 	void addClient(ClientSocket *client);

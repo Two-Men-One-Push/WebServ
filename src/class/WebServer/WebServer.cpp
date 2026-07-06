@@ -4,7 +4,6 @@
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
-#include "config/MainContext/MainContext.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cstring>
 #include <iostream>
@@ -18,7 +17,7 @@
 #include <unistd.h>
 #include <vector>
 
-WebServer::WebServer(Config &config) : _config(config), _epoll() {
+WebServer::WebServer() : _epoll() {
 	/* temp */
 	short port = 6969;
 	std::string ipAddress = "localhost";
