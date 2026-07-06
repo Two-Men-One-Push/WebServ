@@ -4,15 +4,16 @@
 HttpMessage::HttpMessage()
 	: _readSize(0),
 	  _chunkInfo((BodyChunkInfo){BodyChunkInfo::CHUNK_SIZE, 0, 0}),
-	  _outState(SEND_HEAD),
+	  _outState(SEND_PREPARE_HEAD),
 	  _sentSize(0),
 	  _bodyEmpty(false),
 	  _version(HTTP1_1),
 	  _headers(),
 	  _body(NULL),
-	  _inState(HttpMessage::RECV_MESSAGE_TYPES),
+	  _inState(RECV_MESSAGE_TYPES),
 	  _inBuffer(),
 	  _outBuffer(),
+	  _inputWillClose(true),
 	  _contentLength(0),
 	  _transferEncoding(TE_UNDEFINED) {
 	this->_inBuffer.reserve(TMP_HTTP_BUFFER_SIZE);
@@ -30,6 +31,7 @@ HttpMessage::HttpMessage(const HttpMessage &other)
 	  _inState(other._inState),
 	  _inBuffer(other._inBuffer),
 	  _outBuffer(other._outBuffer),
+	  _inputWillClose(other._inputWillClose),
 	  _contentLength(other._contentLength),
 	  _transferEncoding(other._transferEncoding) {}
 

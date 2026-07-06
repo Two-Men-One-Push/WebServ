@@ -7,9 +7,9 @@
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
 #include <cerrno>
-#include <csignal>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -21,13 +21,16 @@
 #include <vector>
 
 CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server)
-	: _execPath(execPath), _httpTransaction(httpTransaction), _inPipe(Pipe::createCGIPipe(*this)), _outPipe(Pipe::createCGIPipe(*this)) {
-	int pid = fork();
+	: _execPath(execPath),
+	  _httpTransaction(httpTransaction),
+	  _inPipe(Pipe::createCGIPipe(*this)),
+	  _outPipe(Pipe::createCGIPipe(*this)),
+	  _processSucces(false) {
+	this->_cgiPid = fork();
 
-	if (pid == -1) throw WebservErrors::SysError("fork", errno);
+	if (this->_cgiPid == -1) throw WebservErrors::SysError("fork", errno);
 
-	if (pid) {
-		this->_cgiPid = pid;
+	if (this->_cgiPid) {
 		this->startInterface(httpTransaction, server);
 	} else {
 		this->startCgi(httpTransaction.request());
@@ -168,25 +171,55 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 
 		if (this->_httpTransaction.recvResponse(input)) {
 			this->_inPipe.releaseOut();
+			int childResult = this->waitChild();
+			if (childResult < 0) return;
+			else if (childResult) {
+				this->_httpTransaction.closeResponseInput();
+			} else {
+				this->_httpTransaction.error(HttpExceptions::InternalServerErrorException());
+			}
 		} else {
 			return;
 		}
 	} else {
-		this->killChild();
 		this->_inPipe.releaseOut();
-		this->_httpTransaction.error(HttpExceptions::InternalServerErrorException("HERE"));
+		if (this->killChild()) {
+			this->_httpTransaction.closeResponseInput();
+		} else {
+			this->_httpTransaction.error(HttpExceptions::InternalServerErrorException());
+		}
 	}
 }
 
-void CGIInterface::killChild() {
+bool CGIInterface::killChild() {
 	if (this->_cgiPid > 0) {
 		kill(this->_cgiPid, SIGKILL);
-		waitpid(this->_cgiPid, NULL, 0);
+		int status;
+		waitpid(this->_cgiPid, &status, 0);
+		this->_processSucces = WIFEXITED(status) && (WEXITSTATUS(status) == 0);
+		this->_cgiPid = -1;
 	}
+	return this->_processSucces;
+}
+
+int CGIInterface::waitChild() {
+	if (this->_cgiPid > 0) {
+		int status;
+		if (!waitpid(this->_cgiPid, &status, WNOHANG)) {
+			return -1;
+		}
+		this->_processSucces = WIFEXITED(status) && (WEXITSTATUS(status) == 0);
+		this->_cgiPid = -1;
+	}
+	return this->_processSucces;
 }
 
 const std::string &CGIInterface::execPath() const {
 	return this->_execPath;
+}
+
+bool CGIInterface::running() const {
+	return this->_cgiPid > 0;
 }
 
 Pipe &CGIInterface::in() {

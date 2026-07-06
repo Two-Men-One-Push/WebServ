@@ -2,7 +2,6 @@
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "utils/parsing.hpp"
-#include <cctype>
 #include <iostream>
 #include <istream>
 #include <sstream>
@@ -112,11 +111,11 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 				return false;
 			buffer += static_cast<char>(c);
 			if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+				buffer.resize(buffer.size() - 2);
 				break;
 			}
 		}
 	}
-	buffer.resize(buffer.size() - 2);
 	this->_version = HttpMessage::parseHttpVersion(buffer);
 	buffer.clear();
 	return true;
@@ -124,4 +123,13 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 
 void HttpRequest::loadTypeUsedHeaders() {
 	return;
+}
+
+void HttpRequest::closeInput() {
+
+	if (this->_inState == RECV_MESSAGE_BODY) {
+		this->_inState = RECV_COMPLETED;
+	} else {
+		throw HttpExceptions::BadRequestException();
+	}
 }

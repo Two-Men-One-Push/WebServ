@@ -5,6 +5,7 @@
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
+#include <exception>
 #include <iostream>
 
 HttpTransaction::HttpTransaction() : _request(), _response(), _isLast(false) {
@@ -57,6 +58,22 @@ const HttpRequest &HttpTransaction::request() const {
 
 const HttpResponse &HttpTransaction::response() const {
 	return this->_response;
+}
+
+void HttpTransaction::closeRequestInput() {
+	try {
+		this->_request.closeInput();
+	} catch (const HttpException &e) {
+		this->error(e);
+	}
+}
+
+void HttpTransaction::closeResponseInput() {
+	try {
+		this->_response.closeInput();
+	} catch (const HttpException &e) {
+		this->error(e);
+	}
 }
 
 void HttpTransaction::error(const HttpException &e) {

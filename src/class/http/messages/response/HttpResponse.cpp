@@ -2,9 +2,14 @@
 #include "http/HttpStatus.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
+#include <cstddef>
 #include <iostream>
 #include <ostream>
 #include <string>
+
+size_t HttpResponse::_maxVersionSize = TMP_HTTP_BUFFER_SIZE;
+size_t HttpResponse::_maxStatusSize = 3;
+size_t HttpResponse::_maxMessageSize = TMP_HTTP_BUFFER_SIZE;
 
 HttpResponse::HttpResponse()
 	: HttpMessage(),

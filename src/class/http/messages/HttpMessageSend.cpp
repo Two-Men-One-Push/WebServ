@@ -1,6 +1,7 @@
 #include "errors/WebservErrors.hpp"
 #include "http/messages/Body/IBody.hpp"
 #include "http/messages/HttpMessage.hpp"
+#include "http/types.hpp"
 #include <algorithm>
 #include <cerrno>
 #include <cstddef>
@@ -10,6 +11,10 @@
 
 bool HttpMessage::sendTo(const Fd &output) {
 	switch (this->_outState) {
+	case SEND_PREPARE_HEAD:
+		this->prepareHeaders();
+		this->_outState = SEND_HEAD;
+		// fallthrough
 	case SEND_HEAD:
 		if (!this->sendHead(output)) return false;
 		this->_outState = SEND_BODY;
@@ -23,7 +28,7 @@ bool HttpMessage::sendTo(const Fd &output) {
 		if (!this->sendBody(output)) return false;
 		if (this->_sentSize == this->_contentLength) {
 			if (!this->_bodyEmpty) {
-				std::cerr << "[warning] Body not empty but content-length sent." << std::endl;
+				std::cerr << "[warning] Body not empty but content-length (" << this->_contentLength << ") bytes sent." << std::endl;
 			}
 			delete this->_body;
 			this->_outState = SEND_COMPLETED;
@@ -41,6 +46,9 @@ bool HttpMessage::sendHead(const Fd &output) {
 
 	if (buffer.empty()) this->formatHead();
 	ssize_t sent = output.write(buffer.data(), std::min(buffer.size(), (size_t)WRITE_SIZE));
+	std::cerr << "\e[0;32m";
+	std::cerr.write(buffer.data(), sent);
+	std::cerr << "\e[0m\n";
 	buffer.erase(0, sent);
 	return buffer.empty();
 }
@@ -70,6 +78,9 @@ bool HttpMessage::sendBody(const Fd &output) {
 			return false;
 		throw WebservErrors::SysError("write", errno);
 	}
+	std::cerr << "\e[0;32m";
+	std::cerr.write(buffer.data(), sent);
+	std::cerr << "\e[0m\n";
 	this->_sentSize += sent;
 	buffer.erase(0, sent);
 
@@ -87,7 +98,9 @@ void HttpMessage::formatHead() {
 
 	this->formatTypeLine();
 
+	std::cerr << this->_headers.size() << std::endl;
 	for (HeaderMap::const_iterator it = this->_headers.begin(); it != this->_headers.end(); ++it) {
+		std::cerr << it->first << ": " << it->second << std::endl;
 		this->_outBuffer += it->first;
 		this->_outBuffer += ": ";
 		this->_outBuffer += it->second;
