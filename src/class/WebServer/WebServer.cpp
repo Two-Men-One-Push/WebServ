@@ -5,6 +5,7 @@
 #include "EpollInstance/EpollInstance.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "errors/WebservErrors.hpp"
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
@@ -84,7 +85,10 @@ const EpollInstance &WebServer::epoll() const {
 }
 
 void WebServer::requestDelete(ClientSocket *client) {
-	this->_clientSocketsToDelete.push_back(client);
+	std::vector<ClientSocket *> &deleteList = this->_clientSocketsToDelete;
+	if (std::find(deleteList.begin(), deleteList.end(), client) == deleteList.end()) {
+		deleteList.push_back(client);
+	}
 }
 
 void WebServer::deleteClientSockets() {
