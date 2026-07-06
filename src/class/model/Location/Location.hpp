@@ -3,7 +3,7 @@
 #include "model/MimeTypes/MimeTypes.hpp"
 #include <vector>
 
-class	Server;
+class	Http;
 
 class	Location
 {
@@ -19,23 +19,9 @@ class	Location
 		std::map<std::string, std::string>				_cgi;
 		std::string										_upload_path;
 		MimeTypes										_types;
-		std::vector<Location>							_locations;
 	public:
-		template <typename Type>
-		Location(Type &parent, const std::string &path):
-		_path(path),
-		_root(parent.root()),
-		_index_files(),
-		_error_pages(parent.errorPages()),
-		_client_max_body_size(parent.clientMaxBodySize()),
-		_allowed_methods(),
-		_autoindex(parent.autoindex()),
-		_redirection(0, ""),
-		_cgi(),
-		_upload_path(),
-		_types(parent.types()),
-		_locations()
-		{}
+		Location(Http &http, const std::string &path);
+		Location(Location &parent, const std::string &path);
 		~Location();
 		Location(const Location &copy);
 		Location	&operator=(const Location &other);
@@ -62,6 +48,4 @@ class	Location
 		std::string												&uploadPath();
 		const MimeTypes											&types() const;
 		MimeTypes												&types();
-		const std::vector<Location>								&locations() const;
-		std::vector<Location>									&locations();
 };

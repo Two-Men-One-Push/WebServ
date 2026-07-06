@@ -6,6 +6,7 @@
 #include "analysis/Semantic/Semantic.hpp"
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include <iostream>
+#include "URL/URL.hpp"
 
 int main(int argc, char **argv) {
 	(void)argc;
