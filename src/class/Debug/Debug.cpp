@@ -123,10 +123,8 @@ static void	printLocations(std::ostream &os, const std::vector<Location> &locati
 		os << std::string(indent + 1, '\t') << "Types:" << std::endl;
 		for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
 		{
-			os << std::string(indent + 2, '\t') << "extension: " << type_it->second << " mimetype: " << type_it->first << std::endl;
+			os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
 		}
-		if (!it->locations().empty())
-			printLocations(os, it->locations(), indent + 1);
 	}
 }
 
@@ -148,7 +146,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 	os << "		Types:" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = config.http().types().types().begin(); it != config.http().types().types().end(); ++it)
 	{
-		os << "			extension: " << it->second << " mimetype: "<< it->first << std::endl;
+		os << "			extension: " << it->first << " mimetype: "<< it->second << std::endl;
 	}
 	os << "		Servers:" << std::endl;
 	for (std::vector<Server>::const_iterator it = config.http().servers().begin(); it != config.http().servers().end(); ++it)
@@ -214,7 +212,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		os << "				Types:" << std::endl;
 		for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
 		{
-			os << "					extension: " << type_it->second << " mimetype: " << type_it->first << std::endl;
+			os << "					extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
 		}
 		printLocations(os, it->locations(), 4);
 	}

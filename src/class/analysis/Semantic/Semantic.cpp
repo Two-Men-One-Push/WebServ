@@ -104,7 +104,10 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 				diag.report("response code must be between 100 and 599", *arg);
 				continue;
 			}
-			error_pages[code] = std::make_pair(response_code, path);
+			if (response_code == 0)
+				error_pages[code] = std::make_pair(code, path);
+			else
+				error_pages[code] = std::make_pair(response_code, path);
 		}
 	}
 }
@@ -271,8 +274,7 @@ void	Semantic::parseServer(std::list<Directive>::const_iterator it, Http &http, 
 		http.servers().push_back(analyseServer(*it, http, diag));
 }
 
-template <typename Type>
-void	Semantic::parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Type &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag)
+void	Semantic::parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Location &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_REQUIRED, diag))
 	{
@@ -294,7 +296,7 @@ void	Semantic::parseLocation(std::list<Directive>::const_iterator it, std::vecto
 		if (!duplicateLocation)
 		{
 			locationPathTable.insert(locationPath);
-			locations.push_back(analyseLocation(*it, parent, locationPath, locationPathTable, diag));
+			locations.push_back(analyseLocation(*it, locations, parent, locationPath, locationPathTable, diag));
 		}
 	}
 }
@@ -456,8 +458,7 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	return server;
 }
 
-template <typename Type>
-Location	Semantic::analyseLocation(const Directive &directive, Type &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag)
+Location	Semantic::analyseLocation(const Directive &directive, std::vector<Location> &locations, Location &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag)
 {
 	const std::list<Directive> &directives = directive.children();
 	Location	location(parent, path);
@@ -528,7 +529,7 @@ Location	Semantic::analyseLocation(const Directive &directive, Type &parent, con
 		else if (name == "types")
 			parseTypes(it, location.types(), diag);
 		else if (name == "location")
-			parseLocation(it, location.locations(), location, locationPathTable, diag);
+			parseLocation(it, locations, location, locationPathTable, diag);
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}

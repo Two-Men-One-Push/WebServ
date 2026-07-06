@@ -1,4 +1,33 @@
 #include "model/Location/Location.hpp"
+#include "model/Http/Http.hpp"
+
+Location::Location(Http &parent, const std::string &path):
+_path(path),
+_root(""),
+_index_files(),
+_error_pages(parent.errorPages()),
+_client_max_body_size(parent.clientMaxBodySize()),
+_allowed_methods(),
+_autoindex(false),
+_redirection(0, ""),
+_cgi(),
+_upload_path(""),
+_types(parent.types())
+{}
+
+Location::Location(Location &parent, const std::string &path):
+_path(path),
+_root(parent.root()),
+_index_files(),
+_error_pages(parent.errorPages()),
+_client_max_body_size(parent.clientMaxBodySize()),
+_allowed_methods(),
+_autoindex(parent.autoindex()),
+_redirection(0, ""),
+_cgi(),
+_upload_path(),
+_types(parent.types())
+{}
 
 Location::~Location()
 {
@@ -15,8 +44,7 @@ _autoindex(copy._autoindex),
 _redirection(copy._redirection),
 _cgi(copy._cgi),
 _upload_path(copy._upload_path),
-_types(copy._types),
-_locations(copy._locations)
+_types(copy._types)
 {
 }
 
@@ -35,7 +63,6 @@ Location	&Location::operator=(const Location &other)
 		this->_cgi = other._cgi;
 		this->_upload_path = other._upload_path;
 		this->_types = other._types;
-		this->_locations = other._locations;
 	}
 	return (*this);
 }
@@ -148,14 +175,4 @@ const MimeTypes	&Location::types() const
 MimeTypes	&Location::types()
 {
 	return (this->_types);
-}
-
-const std::vector<Location>	&Location::locations() const
-{
-	return (this->_locations);
-}
-
-std::vector<Location>	&Location::locations()
-{
-	return (this->_locations);
 }
