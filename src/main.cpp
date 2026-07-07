@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 		URL url(argv[2]);
+		Debug::printURL(std::cout, url);
 		Location location = Router::resolveLocation(url, config.http().servers()[0].locations());
 		Debug::printLocation(std::cout, location, 0);
 	}

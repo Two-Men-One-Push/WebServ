@@ -8,6 +8,7 @@
 #include "IR/AST/AST.hpp"
 #include "model/Config/Config.hpp"
 #include <ostream>
+#include "URL/URL.hpp"
 
 class	Debug
 {
@@ -21,4 +22,5 @@ class	Debug
 		static void	printPreprocessedAST(std::ostream &os, const AST &ast);
 		static void	printLocation(std::ostream &os, const Location &location, size_t indent);
 		static void	printConfig(std::ostream &os, const Config &config);
+		static void	printURL(std::ostream &os, const URL &url);
 };

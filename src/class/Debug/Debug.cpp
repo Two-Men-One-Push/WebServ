@@ -218,3 +218,33 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 	}
 	os << std::endl;
 }
+
+void	Debug::printURL(std::ostream &os, const URL &url)
+{
+	os << "URL:" << std::endl;
+	os << "	Format: " << url.formatStr() << std::endl;
+	os << "	Scheme: " << url.scheme() << std::endl;
+	os << "	User: " << url.user() << std::endl;
+	os << "	Host: " << url.host() << std::endl;
+	os << "	Port: " << url.port() << std::endl;
+	os << "	Raw Path: " << url.rawPath() << std::endl;
+	os << "	Path Segments: ";
+	for (std::vector<std::string>::const_iterator it = url.path().begin(); it != url.path().end(); ++it)
+	{
+		if (it != url.path().begin())
+			os << ", ";
+		os << *it;
+	}
+	os << std::endl;
+	os << "	Raw Query: " << url.rawQuery() << std::endl;
+	os << "	Query Parameters: ";
+	for (std::map<std::string, std::string>::const_iterator it = url.query().begin(); it != url.query().end(); ++it)
+	{
+		if (it != url.query().begin())
+			os << ", ";
+		os << it->first << "=" << it->second;
+	}
+	os << std::endl;
+	os << "	Raw Fragment: " << url.rawFragment() << std::endl;
+	os << "	Fragment: " << url.fragment() << std::endl;
+}

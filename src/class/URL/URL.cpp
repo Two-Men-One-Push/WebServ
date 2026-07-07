@@ -2,11 +2,33 @@
 #include "utils/parsing.hpp"
 #include <cctype>
 
-URL::URL(): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _rawPath(""), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
+URL::URL():
+_format(ERROR),
+_scheme(""),
+_user(""),
+_host(""),
+_port(-1),
+_rawPath(""),
+_path(),
+_rawQuery(""),
+_query(),
+_rawFragment(""),
+_fragment("")
 {
 }
 
-URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _rawPath(""), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
+URL::URL(const std::string &url):
+_format(ERROR),
+_scheme(""),
+_user(""),
+_host(""),
+_port(-1),
+_rawPath(""),
+_path(),
+_rawQuery(""),
+_query(),
+_rawFragment(""),
+_fragment("")
 {
 	if (url == "*")
 	{
