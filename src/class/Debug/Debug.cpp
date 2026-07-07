@@ -74,57 +74,54 @@ void	Debug::printPreprocessedAST(std::ostream &os, const AST &ast)
 	os << std::endl;
 }
 
-static void	printLocations(std::ostream &os, const std::vector<Location> &location, size_t indent)
+void	Debug::printLocation(std::ostream &os, const Location &location, size_t indent)
 {
-	for (std::vector<Location>::const_iterator it = location.begin(); it != location.end(); ++it)
+	os << std::string(indent, '\t') << "Location: " << location.path() << std::endl;
+	os << std::string(indent + 1, '\t') << "Root: " << location.root() << std::endl;
+	os << std::string(indent + 1, '\t') << "Index Files: ";
+	for (std::vector<std::string>::const_iterator index_it = location.indexFiles().begin(); index_it != location.indexFiles().end(); ++index_it)
 	{
-		os << std::string(indent, '\t') << "Location: " << it->path() << std::endl;
-		os << std::string(indent + 1, '\t') << "Root: " << it->root() << std::endl;
-		os << std::string(indent + 1, '\t') << "Index Files: ";
-		for (std::vector<std::string>::const_iterator index_it = it->indexFiles().begin(); index_it != it->indexFiles().end(); ++index_it)
-		{
-			if (index_it != it->indexFiles().begin())
-				os << ", ";
-			os << *index_it;
-		}
-		os << std::endl;
-		os << std::string(indent + 1, '\t') << "Error Pages:" << std::endl;
-		for (std::map<int, std::pair<int, std::string> >::const_iterator error_it = it->errorPages().begin(); error_it != it->errorPages().end(); ++error_it)
-		{
-			os << std::string(indent + 2, '\t') << "error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
-		}
-		os << std::string(indent + 1, '\t') << "Client Max Body Size: " << it->clientMaxBodySize() << std::endl;
-		os << std::string(indent + 1, '\t') << "Allowed Methods: ";
-		for (std::vector<std::string>::const_iterator method_it = it->allowedMethods().begin(); method_it != it->allowedMethods().end(); ++method_it)
-		{
-			if (method_it != it->allowedMethods().begin())
-				os << ", ";
-			os << *method_it;
-		}
-		os << std::endl;
-		os << std::string(indent + 1, '\t') << "Autoindex: " << (it->autoindex() ? "on" : "off") << std::endl;
-		os << std::string(indent + 1, '\t') << "Redirection: ";
-		if (it->redirection().first != 0)
-		{
-			if (it->redirection().first >= 300 || it->redirection().first <= 399)
-				os << "code: " << it->redirection().first << " url: " << it->redirection().second;
-			else
-				os << "code: " << it->redirection().first << " message: " << it->redirection().second;
-		}
+		if (index_it != location.indexFiles().begin())
+			os << ", ";
+		os << *index_it;
+	}
+	os << std::endl;
+	os << std::string(indent + 1, '\t') << "Error Pages:" << std::endl;
+	for (std::map<int, std::pair<int, std::string> >::const_iterator error_it = location.errorPages().begin(); error_it != location.errorPages().end(); ++error_it)
+	{
+		os << std::string(indent + 2, '\t') << "error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
+	}
+	os << std::string(indent + 1, '\t') << "Client Max Body Size: " << location.clientMaxBodySize() << std::endl;
+	os << std::string(indent + 1, '\t') << "Allowed Methods: ";
+	for (std::vector<std::string>::const_iterator method_it = location.allowedMethods().begin(); method_it != location.allowedMethods().end(); ++method_it)
+	{
+		if (method_it != location.allowedMethods().begin())
+			os << ", ";
+		os << *method_it;
+	}
+	os << std::endl;
+	os << std::string(indent + 1, '\t') << "Autoindex: " << (location.autoindex() ? "on" : "off") << std::endl;
+	os << std::string(indent + 1, '\t') << "Redirection: ";
+	if (location.redirection().first != 0)
+	{
+		if (location.redirection().first >= 300 || location.redirection().first <= 399)
+			os << "code: " << location.redirection().first << " url: " << location.redirection().second;
 		else
-			os << "none";
-		os << std::endl;
-		os << std::string(indent + 1, '\t') << "CGI: " << std::endl;
-		for (std::map<std::string, std::string>::const_iterator cgi_it = it->cgi().begin(); cgi_it != it->cgi().end(); ++cgi_it)
-		{
-			os << std::string(indent + 2, '\t') << "extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
-		}
-		os << std::string(indent + 1, '\t') << "Upload Path: " << it->uploadPath() << std::endl;
-		os << std::string(indent + 1, '\t') << "Types:" << std::endl;
-		for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
-		{
-			os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
-		}
+			os << "code: " << location.redirection().first << " message: " << location.redirection().second;
+	}
+	else
+		os << "none";
+	os << std::endl;
+	os << std::string(indent + 1, '\t') << "CGI: " << std::endl;
+	for (std::map<std::string, std::string>::const_iterator cgi_it = location.cgi().begin(); cgi_it != location.cgi().end(); ++cgi_it)
+	{
+		os << std::string(indent + 2, '\t') << "extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
+	}
+	os << std::string(indent + 1, '\t') << "Upload Path: " << location.uploadPath() << std::endl;
+	os << std::string(indent + 1, '\t') << "Types:" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator type_it = location.types().types().begin(); type_it != location.types().types().end(); ++type_it)
+	{
+		os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
 	}
 }
 
@@ -214,7 +211,10 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		{
 			os << "					extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
 		}
-		printLocations(os, it->locations(), 4);
+		for (std::vector<Location>::const_iterator location_it = it->locations().begin(); location_it != it->locations().end(); ++location_it)
+		{
+			printLocation(os, *location_it, 4);
+		}
 	}
 	os << std::endl;
 }

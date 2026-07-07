@@ -19,5 +19,6 @@ class	Debug
 		static void	printDirective(std::ostream &os, const Directive &directive, size_t indent);
 		static void	printAST(std::ostream &os, const AST &ast);
 		static void	printPreprocessedAST(std::ostream &os, const AST &ast);
+		static void	printLocation(std::ostream &os, const Location &location, size_t indent);
 		static void	printConfig(std::ostream &os, const Config &config);
 };
