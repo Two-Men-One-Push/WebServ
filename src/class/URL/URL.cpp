@@ -1,5 +1,6 @@
 #include "URL.hpp"
 #include "utils/parsing.hpp"
+#include <cctype>
 
 URL::URL(): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _rawPath(""), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
 {
@@ -287,6 +288,8 @@ bool	URL::decode(std::string &output, const std::string &str)
 					return true;
 				size_t LSB = std::string("0123456789abcdef").find(tolower(hex[1]));
 				if (LSB == std::string::npos)
+					return true;
+				if (iscntrl(static_cast<char>(MSB + LSB)))
 					return true;
 				char c = static_cast<char>(MSB + LSB);
 				output += c;
