@@ -1,5 +1,4 @@
 #include "Router.hpp"
-#include <iostream>
 #include <vector>
 #include "utils/parsing.hpp"
 
@@ -44,6 +43,5 @@ size_t	Router::matchLength(const URL &url, const std::string &locationPath)
 	}
 	if (it_location != location_segment.end())
 		match_length = 0;
-	std::cout << "match_length: " << match_length << " for location: " << locationPath << std::endl;
 	return match_length;
 }
