@@ -5,7 +5,6 @@
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
-#include <exception>
 #include <iostream>
 
 HttpTransaction::HttpTransaction() : _request(), _response(), _isLast(false) {
