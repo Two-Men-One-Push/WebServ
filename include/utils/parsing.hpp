@@ -23,6 +23,7 @@ bool	parseSize(const std::string &str, size_t &out);
 
 std::string	trim_path(const std::string &path);
 std::string	pathJoin(const std::string &path1, const std::string &path2);
+std::vector<std::string>	splitPath(const std::string &str);
 
 /*
 return true if the path unwinds to a path outside the root, false otherwise
