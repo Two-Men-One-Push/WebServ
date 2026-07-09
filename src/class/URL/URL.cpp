@@ -2,11 +2,33 @@
 #include "utils/parsing.hpp"
 #include <cctype>
 
-URL::URL(): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
+URL::URL():
+_format(ERROR),
+_scheme(""),
+_user(""),
+_host(""),
+_port(-1),
+_rawPath(""),
+_path(),
+_rawQuery(""),
+_query(),
+_rawFragment(""),
+_fragment("")
 {
 }
 
-URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(""), _port(-1), _path(), _rawQuery(""), _query(), _rawFragment(""), _fragment("")
+URL::URL(const std::string &url):
+_format(ERROR),
+_scheme(""),
+_user(""),
+_host(""),
+_port(-1),
+_rawPath(""),
+_path(),
+_rawQuery(""),
+_query(),
+_rawFragment(""),
+_fragment("")
 {
 	if (url == "*")
 	{
@@ -72,6 +94,11 @@ URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(
 		}
 		std::string	normalized_path;
 		if (pathNormalize(normalized_path, origin))
+		{
+			this->_format = ERROR;
+			return ;
+		}
+		if (decode(this->_rawPath, normalized_path))
 		{
 			this->_format = ERROR;
 			return ;
@@ -210,6 +237,11 @@ URL::URL(const std::string &url): _format(ERROR), _scheme(""), _user(""), _host(
 			return ;
 		std::string	normalized_path;
 		if (pathNormalize(normalized_path, origin))
+		{
+			this->_format = ERROR;
+			return ;
+		}
+		if (decode(this->_rawPath, normalized_path))
 		{
 			this->_format = ERROR;
 			return ;
@@ -364,6 +396,16 @@ const int	&URL::port() const
 int	&URL::port()
 {
 	return (this->_port);
+}
+
+const std::string	&URL::rawPath() const
+{
+	return (this->_rawPath);
+}
+
+std::string	&URL::rawPath()
+{
+	return (this->_rawPath);
 }
 
 const std::vector<std::string>	&URL::path() const

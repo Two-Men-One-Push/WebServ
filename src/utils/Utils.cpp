@@ -105,3 +105,19 @@ bool	pathNormalize(std::string &result, const std::string &path)
 	}
 	return error;
 }
+
+std::vector<std::string>	splitPath(const std::string &str)
+{
+	std::vector<std::string>	result;
+	std::string::size_type start = 0;
+	std::string	trimedStr = trim_path(str);
+	while (start < trimedStr.size())
+	{
+		std::string::size_type end = trimedStr.find('/', start);
+		if (end == std::string::npos)
+			end = trimedStr.size();
+		result.push_back(trimedStr.substr(start, end - start));
+		start = end + 1;
+	}
+	return result;
+}
