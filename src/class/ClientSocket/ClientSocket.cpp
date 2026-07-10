@@ -76,14 +76,15 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 		if (events & EPOLLERR) {
 			std::cout << "EPOLLERR" << std::endl;
 		}
-		if (events & EPOLLIN) {
-			this->onEpollIn(webServer);
-		}
-		if (events & EPOLLOUT) {
-			this->onEpollOut(webServer);
-		}
 		if (events & EPOLLHUP || events & EPOLLERR) {
 			webServer.requestDelete(this);
+		} else {
+			if (events & EPOLLIN) {
+				this->onEpollIn(webServer);
+			}
+			if (events & EPOLLOUT) {
+				this->onEpollOut(webServer);
+			}
 		}
 	} else {
 		std::cerr << "Unhandled event : " << events << std::endl;
@@ -131,7 +132,13 @@ void ClientSocket::onEpollIn(WebServer &server) {
 
 void ClientSocket::onEpollOut(WebServer &webServer) {
 	HttpTransaction *transaction = this->_transactions.front();
-	if (transaction->sendResponse(*this)) {
+	bool sendCompleted;
+	try {
+		sendCompleted = transaction->sendResponse(*this);
+	} catch (...) {
+		webServer.requestDelete(this);
+	}
+	if (sendCompleted) {
 		if (transaction->isLast()) {
 			webServer.requestDelete(this);
 		}
