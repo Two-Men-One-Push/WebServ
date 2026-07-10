@@ -14,6 +14,7 @@ http {
 			location B {
 				location C {
 					location D {
+						client_max_body_size 50G;
 					}
 				}
 			}
