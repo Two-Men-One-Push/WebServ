@@ -23,8 +23,8 @@ bool HttpMessage::recvFrom(std::istream &input) {
 		if (!this->recvTypeLine(input)) return false;
 		this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
 		// fallthrough
-	case HttpMessage::RECV_MESSAGE_HEADERS:
 		if (!this->recvMessageHeaders(input)) return false;
+	case HttpMessage::RECV_MESSAGE_HEADERS:
 		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
 		// fallthrough
 	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
@@ -109,7 +109,6 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 		// if empty it's the end of headers
 		if (line.empty()) {
 			if (!headerField.first.empty()) this->_headers.insert(headerField);
-			buffer.clear();
 			return true;
 		}
 

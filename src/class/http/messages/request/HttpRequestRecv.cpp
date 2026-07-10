@@ -126,8 +126,7 @@ void HttpRequest::loadTypeUsedHeaders() {
 }
 
 void HttpRequest::closeInput() {
-
-	if (this->_inState == RECV_MESSAGE_BODY) {
+	if (this->_inputWillClose && this->_inState == RECV_MESSAGE_BODY) {
 		this->_inState = RECV_COMPLETED;
 	} else {
 		throw HttpExceptions::BadRequestException();
