@@ -189,13 +189,13 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << std::endl;
 		os << "				Autoindex: " << (it->autoindex() ? "on" : "off") << std::endl;
-		os << "				Redirection: ";
+		os << "				Redirection:" << std::endl;
 		if (it->redirection().first != 0)
 		{
 			if (it->redirection().first >= 300 || it->redirection().first <= 399)
-				os << "code: " << it->redirection().first << " url: " << it->redirection().second;
+				os << "	code: " << it->redirection().first << " url: " << it->redirection().second;
 			else
-				os << "code: " << it->redirection().first << " message: " << it->redirection().second;
+				os << "	code: " << it->redirection().first << " message: " << it->redirection().second;
 		}
 		else
 			os << "none";
@@ -227,15 +227,16 @@ void	Debug::printURL(std::ostream &os, const URL &url)
 	os << "	User: " << url.user() << std::endl;
 	os << "	Host: " << url.host() << std::endl;
 	os << "	Port: " << url.port() << std::endl;
+	os << "	Path: " << url.path() << std::endl;
 	os << "	Path Segments: ";
-	for (std::vector<std::string>::const_iterator it = url.path().begin(); it != url.path().end(); ++it)
+	for (std::vector<std::string>::const_iterator it = url.segments().begin(); it != url.segments().end(); ++it)
 	{
-		if (it != url.path().begin())
+		if (it != url.segments().begin())
 			os << ", ";
 		os << *it;
 	}
 	os << std::endl;
-	os << "	Raw Query: " << url.rawQuery() << std::endl;
+	os << "	Query String: " << url.queryString() << std::endl;
 	os << "	Query Parameters: ";
 	for (std::map<std::string, std::string>::const_iterator it = url.query().begin(); it != url.query().end(); ++it)
 	{
@@ -244,7 +245,7 @@ void	Debug::printURL(std::ostream &os, const URL &url)
 		os << it->first << "=" << it->second;
 	}
 	os << std::endl;
-	os << "	Raw Fragment: " << url.rawFragment() << std::endl;
+	os << "	Fragment String: " << url.fragmentString() << std::endl;
 	os << "	Fragment: " << url.fragment() << std::endl;
 }
 
@@ -253,12 +254,10 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 	os << "Ressource:" << std::endl;
 	os << "	Type: " << ressource.typeStr() << std::endl;
 	os << "	Path: " << ressource.path() << std::endl;
-	os << "	Error Path: " << ressource.errorPath() << std::endl;
-	os << "	Autoindex Path: " << ressource.autoIndexPath() << std::endl;
 	os << "	MIME Type: " << ressource.mimeType() << std::endl;
-	os << "	Redirect Path: " << ressource.redirectPath() << std::endl;
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
-	os << "	CGI Path: " << ressource.cgiPath() << std::endl;
+	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;
 	os << "	Path Info: " << ressource.pathInfo() << std::endl;
 	os << "	Query String: " << ressource.queryString() << std::endl;
+	os << "	Fragment String: " << ressource.fragmentString() << std::endl;
 }

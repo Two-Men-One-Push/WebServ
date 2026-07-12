@@ -1,8 +1,8 @@
 #pragma once
 
+#include "http/messages/request/HttpRequest.hpp"
 #include "model/Server/Server.hpp"
 #include "Ressource/Ressource.hpp"
-#include "URL/URL.hpp"
 
 class	Router
 {
@@ -11,5 +11,5 @@ class	Router
 		Router();
 		~Router();
 
-		static Ressource	resolveRessource(const URL &url, const Server &server);
+		static Ressource	resolveRessource(const HttpRequest &req, const Server &server);
 };

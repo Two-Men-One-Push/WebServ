@@ -8,10 +8,11 @@ _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
-_path(),
-_rawQuery(""),
+_path(""),
+_segments(),
+_queryString(""),
 _query(),
-_rawFragment(""),
+_fragmentString(""),
 _fragment("")
 {
 }
@@ -22,10 +23,11 @@ _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
-_path(),
-_rawQuery(""),
+_path(""),
+_segments(),
+_queryString(""),
 _query(),
-_rawFragment(""),
+_fragmentString(""),
 _fragment("")
 {
 	if (url == "*")
@@ -39,7 +41,7 @@ _fragment("")
 		size_t fragment_pos = origin.find('#');
 		if (fragment_pos != std::string::npos)
 		{
-			this->_rawFragment = '#' + origin.substr(fragment_pos + 1);
+			this->_fragmentString = origin.substr(fragment_pos);
 			if (decode(this->_fragment, origin.substr(fragment_pos + 1)))
 			{
 				this->_format = URL_ERROR;
@@ -50,8 +52,8 @@ _fragment("")
 		size_t query_pos = origin.find('?');
 		if (query_pos != std::string::npos)
 		{
+			this->_queryString = origin.substr(query_pos);
 			std::string query_str = origin.substr(query_pos + 1);
-			this->_rawQuery = '?' + query_str;
 			origin.erase(query_pos);
 			size_t start = 0;
 			while (start < query_str.length())
@@ -90,8 +92,13 @@ _fragment("")
 				start = end + 1;
 			}
 		}
+		if (decode(this->_path, origin))
+		{
+			this->_format = URL_ERROR;
+			return ;
+		}
 		std::string	normalized_path;
-		if (pathNormalize(normalized_path, origin))
+		if (pathNormalize(normalized_path, this->_path))
 		{
 			this->_format = URL_ERROR;
 			return ;
@@ -103,14 +110,7 @@ _fragment("")
 			size_t	end = normalized_path.find('/', start);
 			if (end == std::string::npos)
 				end = normalized_path.length();
-			std::string segment = normalized_path.substr(start, end - start);
-			std::string decoded_segment;
-			if (decode(decoded_segment, segment))
-			{
-				this->_format = URL_ERROR;
-				return ;
-			}
-			this->_path.push_back(decoded_segment);
+			this->_segments.push_back(normalized_path.substr(start, end - start));
 			start = end + 1;
 		}
 	}
@@ -199,7 +199,7 @@ _fragment("")
 		size_t fragment_pos = origin.find('#');
 		if (fragment_pos != std::string::npos)
 		{
-			this->_rawFragment = '#' + origin.substr(fragment_pos + 1);
+			this->_fragmentString = origin.substr(fragment_pos);
 			if (decode(this->_fragment, origin.substr(fragment_pos + 1)))
 			{
 				this->_format = URL_ERROR;
@@ -210,8 +210,8 @@ _fragment("")
 		size_t query_pos = origin.find('?');
 		if (query_pos != std::string::npos)
 		{
+			this->_queryString = origin.substr(query_pos);
 			std::string query_str = origin.substr(query_pos + 1);
-			this->_rawQuery = '?' + query_str;
 			origin.erase(query_pos);
 			size_t start = 0;
 			while (start < query_str.length())
@@ -252,8 +252,13 @@ _fragment("")
 		}
 		if (origin.empty())
 			return ;
+		if (decode(this->_path, origin))
+		{
+			this->_format = URL_ERROR;
+			return ;
+		}
 		std::string	normalized_path;
-		if (pathNormalize(normalized_path, origin))
+		if (pathNormalize(normalized_path, this->_path))
 		{
 			this->_format = URL_ERROR;
 			return ;
@@ -265,14 +270,7 @@ _fragment("")
 			size_t	end = normalized_path.find('/', start);
 			if (end == std::string::npos)
 				end = normalized_path.length();
-			std::string segment = normalized_path.substr(start, end - start);
-			std::string decoded_segment;
-			if (decode(decoded_segment, segment))
-			{
-				this->_format = URL_ERROR;
-				return ;
-			}
-			this->_path.push_back(decoded_segment);
+			this->_segments.push_back(normalized_path.substr(start, end - start));
 			start = end + 1;
 		}
 	}
@@ -286,7 +284,7 @@ URL::~URL()
 {
 }
 
-URL::URL(const URL &copy): _scheme(copy._scheme), _user(copy._user), _host(copy._host), _port(copy._port), _path(copy._path), _query(copy._query), _fragment(copy._fragment)
+URL::URL(const URL &copy): _scheme(copy._scheme), _user(copy._user), _host(copy._host), _port(copy._port), _path(copy._path), _segments(copy._segments), _query(copy._query), _fragment(copy._fragment)
 {
 }
 
@@ -300,6 +298,7 @@ URL	&URL::operator=(const URL &other)
 		this->_host = other._host;
 		this->_port = other._port;
 		this->_path = other._path;
+		this->_segments = other._segments;
 		this->_query = other._query;
 		this->_fragment = other._fragment;
 	}
@@ -410,24 +409,34 @@ int	&URL::port()
 	return (this->_port);
 }
 
-const std::vector<std::string>	&URL::path() const
+const std::string	&URL::path() const
 {
 	return (this->_path);
 }
 
-std::vector<std::string>	&URL::path()
+std::string	&URL::path()
 {
 	return (this->_path);
 }
 
-const std::string	&URL::rawQuery() const
+const std::vector<std::string>	&URL::segments() const
 {
-	return (this->_rawQuery);
+	return (this->_segments);
 }
 
-std::string	&URL::rawQuery()
+std::vector<std::string>	&URL::segments()
 {
-	return (this->_rawQuery);
+	return (this->_segments);
+}
+
+const std::string	&URL::queryString() const
+{
+	return (this->_queryString);
+}
+
+std::string	&URL::queryString()
+{
+	return (this->_queryString);
 }
 
 const std::map<std::string, std::string>	&URL::query() const
@@ -440,14 +449,14 @@ std::map<std::string, std::string>	&URL::query()
 	return (this->_query);
 }
 
-const std::string	&URL::rawFragment() const
+const std::string	&URL::fragmentString() const
 {
-	return (this->_rawFragment);
+	return (this->_fragmentString);
 }
 
-std::string	&URL::rawFragment()
+std::string	&URL::fragmentString()
 {
-	return (this->_rawFragment);
+	return (this->_fragmentString);
 }
 
 const std::string	&URL::fragment() const

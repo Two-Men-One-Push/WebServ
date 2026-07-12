@@ -4,6 +4,7 @@
 #include "analysis/Preprocessor/Preprocessor.hpp"
 #include "analysis/Semantic/Semantic.hpp"
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
+#include "http/messages/request/HttpRequest.hpp"
 #include <iostream>
 #include "URL/URL.hpp"
 #include "Router/Router.hpp"
@@ -25,18 +26,17 @@ int main(int argc, char **argv) {
 		AST					preprocessed = Preprocessor::preprocess(ast, diag);
 		Config				config = Semantic::analyseAST(preprocessed, diag);
 		//Debug::printConfig(std::cout, config);
-		//for (std::vector<Location>::const_iterator it = config.http().servers()[0].locations().begin(); it != config.http().servers()[0].locations().end(); ++it)
-		//{
-		//	Debug::printLocation(std::cout, *it, 0);
-		//}
 		if (diag.hasError())
 		{
 			std::cerr << "configuration has errors, cannot continue" << std::endl;
 			return 1;
 		}
 		URL url(argv[2]);
-		Debug::printURL(std::cout, url);
-		Ressource ressource = Router::resolveRessource(url, config.http().servers()[0]);
+		//Debug::printURL(std::cout, url);
+		HttpRequest req;
+		req.method(GET);
+		req.uri(argv[2]);
+		Ressource ressource = Router::resolveRessource(req, config.http().servers()[0]);
 		Debug::printRessource(std::cout, ressource);
 	}
 	catch (const std::exception &e)

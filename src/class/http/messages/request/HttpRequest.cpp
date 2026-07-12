@@ -86,3 +86,11 @@ const std::string &HttpRequest::uri() const {
 std::ostream &HttpRequest::printTypeInfo(std::ostream &os) const {
 	return os << this->methodStr() << " " << this->_uri << " " << this->versionStr() << '\n';
 }
+
+void HttpRequest::method(const HttpMethod &newMethod) {
+	this->_method = newMethod;
+}
+
+void HttpRequest::uri(const std::string &newUri) {
+	this->_uri = newUri;
+}

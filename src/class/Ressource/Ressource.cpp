@@ -1,16 +1,14 @@
 #include "Ressource/Ressource.hpp"
 
 Ressource::Ressource():
-_type(RESSOURCE_STATIC_FILE),
+_type(RESSOURCE_NONE),
 _path(""),
-_errorPath(""),
-_autoIndexPath(""),
 _mimeType(""),
-_redirectPath(""),
 _responseCode(-1),
-_cgiPath(""),
+_cgiInterpreter(""),
 _pathInfo(""),
-_queryString("")
+_queryString(""),
+_fragmentString("")
 {
 }
 
@@ -22,14 +20,16 @@ const std::string	Ressource::typeStr() const
 {
 	switch (this->_type)
 	{
+		case RESSOURCE_NONE:
+			return ("RESSOURCE_NONE");
 		case RESSOURCE_STATIC_FILE:
 			return ("RESSOURCE_STATIC_FILE");
 		case RESSOURCE_CGI:
 			return ("RESSOURCE_CGI");
 		case RESSOURCE_REDIRECT:
 			return ("RESSOURCE_REDIRECT");
-		case RESSOURCE_ERROR_:
-			return ("RESSOURCE_ERROR_");
+		case RESSOURCE_ERROR:
+			return ("RESSOURCE_ERROR");
 		case RESSOURCE_AUTO_INDEX:
 			return ("RESSOURCE_AUTO_INDEX");
 		default:
@@ -58,26 +58,6 @@ std::string	&Ressource::path()
 	return (this->_path);
 }
 
-const std::string	&Ressource::errorPath() const
-{
-	return (this->_errorPath);
-}
-
-std::string	&Ressource::errorPath()
-{
-	return (this->_errorPath);
-}
-
-const std::string	&Ressource::autoIndexPath() const
-{
-	return (this->_autoIndexPath);
-}
-
-std::string	&Ressource::autoIndexPath()
-{
-	return (this->_autoIndexPath);
-}
-
 const std::string	&Ressource::mimeType() const
 {
 	return (this->_mimeType);
@@ -86,16 +66,6 @@ const std::string	&Ressource::mimeType() const
 std::string	&Ressource::mimeType()
 {
 	return (this->_mimeType);
-}
-
-const std::string	&Ressource::redirectPath() const
-{
-	return (this->_redirectPath);
-}
-
-std::string	&Ressource::redirectPath()
-{
-	return (this->_redirectPath);
 }
 
 const int	&Ressource::responseCode() const
@@ -108,14 +78,14 @@ int	&Ressource::responseCode()
 	return (this->_responseCode);
 }
 
-const std::string	&Ressource::cgiPath() const
+const std::string	&Ressource::cgiInterpreter() const
 {
-	return (this->_cgiPath);
+	return (this->_cgiInterpreter);
 }
 
-std::string	&Ressource::cgiPath()
+std::string	&Ressource::cgiInterpreter()
 {
-	return (this->_cgiPath);
+	return (this->_cgiInterpreter);
 }
 
 const std::string	&Ressource::pathInfo() const
@@ -136,4 +106,14 @@ const std::string	&Ressource::queryString() const
 std::string	&Ressource::queryString()
 {
 	return (this->_queryString);
+}
+
+const std::string	&Ressource::fragmentString() const
+{
+	return (this->_fragmentString);
+}
+
+std::string	&Ressource::fragmentString()
+{
+	return (this->_fragmentString);
 }

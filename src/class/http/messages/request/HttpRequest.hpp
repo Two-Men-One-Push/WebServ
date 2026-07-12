@@ -46,9 +46,11 @@ class HttpRequest : public HttpMessage {
 	~HttpRequest();
 
 	HttpMethod method() const;
+	void method(const HttpMethod &newMethod);
 	std::string methodStr() const;
 
 	const std::string &uri() const;
+	void uri(const std::string &newUri);
 
 	std::ostream &printTypeInfo(std::ostream &os) const;
 
