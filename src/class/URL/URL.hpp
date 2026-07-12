@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 
-typedef enum {ABSOLUTE, ORIGIN, AUTHORITY, ASTERISK, ERROR} urlFormat;
+typedef enum {URL_ABSOLUTE, URL_ORIGIN, URL_AUTHORITY, URL_ASTERISK, URL_ERROR} urlFormat;
 
 class URL
 {
@@ -14,7 +14,6 @@ class URL
 		std::string							_user;
 		std::string							_host;
 		int									_port;
-		std::string							_rawPath;
 		std::vector<std::string>			_path;
 		std::string							_rawQuery;
 		std::map<std::string, std::string>	_query;
@@ -41,8 +40,6 @@ class URL
 		std::string									&host();
 		const int									&port() const;
 		int											&port();
-		const std::string							&rawPath() const;
-		std::string									&rawPath();
 		const std::vector<std::string>				&path() const;
 		std::vector<std::string>					&path();
 		const std::string							&rawQuery() const;

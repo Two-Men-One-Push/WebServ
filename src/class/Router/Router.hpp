@@ -1,6 +1,7 @@
 #pragma once
 
-#include "model/Location/Location.hpp"
+#include "model/Server/Server.hpp"
+#include "Ressource/Ressource.hpp"
 #include "URL/URL.hpp"
 
 class	Router
@@ -10,6 +11,5 @@ class	Router
 		Router();
 		~Router();
 
-		static const Location	&resolveLocation(const URL &url, const std::vector<Location> &locations);
-		static size_t	matchLength(const URL &url, const std::string &locationPath);
+		static Ressource	resolveRessource(const URL &url, const Server &server);
 };

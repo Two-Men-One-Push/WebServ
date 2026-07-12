@@ -25,6 +25,10 @@ int main(int argc, char **argv) {
 		AST					preprocessed = Preprocessor::preprocess(ast, diag);
 		Config				config = Semantic::analyseAST(preprocessed, diag);
 		//Debug::printConfig(std::cout, config);
+		//for (std::vector<Location>::const_iterator it = config.http().servers()[0].locations().begin(); it != config.http().servers()[0].locations().end(); ++it)
+		//{
+		//	Debug::printLocation(std::cout, *it, 0);
+		//}
 		if (diag.hasError())
 		{
 			std::cerr << "configuration has errors, cannot continue" << std::endl;
@@ -32,8 +36,8 @@ int main(int argc, char **argv) {
 		}
 		URL url(argv[2]);
 		Debug::printURL(std::cout, url);
-		Location location = Router::resolveLocation(url, config.http().servers()[0].locations());
-		Debug::printLocation(std::cout, location, 0);
+		Ressource ressource = Router::resolveRessource(url, config.http().servers()[0]);
+		Debug::printRessource(std::cout, ressource);
 	}
 	catch (const std::exception &e)
 	{

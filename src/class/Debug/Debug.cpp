@@ -227,7 +227,6 @@ void	Debug::printURL(std::ostream &os, const URL &url)
 	os << "	User: " << url.user() << std::endl;
 	os << "	Host: " << url.host() << std::endl;
 	os << "	Port: " << url.port() << std::endl;
-	os << "	Raw Path: " << url.rawPath() << std::endl;
 	os << "	Path Segments: ";
 	for (std::vector<std::string>::const_iterator it = url.path().begin(); it != url.path().end(); ++it)
 	{
@@ -247,4 +246,19 @@ void	Debug::printURL(std::ostream &os, const URL &url)
 	os << std::endl;
 	os << "	Raw Fragment: " << url.rawFragment() << std::endl;
 	os << "	Fragment: " << url.fragment() << std::endl;
+}
+
+void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
+{
+	os << "Ressource:" << std::endl;
+	os << "	Type: " << ressource.typeStr() << std::endl;
+	os << "	Path: " << ressource.path() << std::endl;
+	os << "	Error Path: " << ressource.errorPath() << std::endl;
+	os << "	Autoindex Path: " << ressource.autoIndexPath() << std::endl;
+	os << "	MIME Type: " << ressource.mimeType() << std::endl;
+	os << "	Redirect Path: " << ressource.redirectPath() << std::endl;
+	os << "	Response Code: " << ressource.responseCode() << std::endl;
+	os << "	CGI Path: " << ressource.cgiPath() << std::endl;
+	os << "	Path Info: " << ressource.pathInfo() << std::endl;
+	os << "	Query String: " << ressource.queryString() << std::endl;
 }

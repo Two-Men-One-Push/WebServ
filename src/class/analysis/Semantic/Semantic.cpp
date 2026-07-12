@@ -374,6 +374,7 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	bool	hasUploadPath = false;
 
 	locationPathTable.insert("/");
+	server.locations().push_back(server);
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
