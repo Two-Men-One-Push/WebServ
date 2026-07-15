@@ -51,8 +51,8 @@ std::string	getFileExtension(const std::string &path)
 
 Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 {
-	Ressource ressource;
-	size_t longestMatchLength = 0;
+	Ressource	ressource;
+	size_t	longestMatchLength = 0;
 	URL	url(req.uri());
 	if (url.format() == URL_ERROR)
 	{
@@ -67,7 +67,7 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 		}
 		return ressource;
 	}
-	const Location *bestMatch = &server;
+	const Location	*bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it)
 	{
 		size_t match_lenght = matchLength(url, it->path());
@@ -225,4 +225,45 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 		}
 		return ressource;
 	}
+}
+
+Ressource	Router::resolveErrorRessource(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server)
+{
+	Ressource	ressource;
+	size_t	longestMatchLength = 0;
+	URL	url(req.uri());
+	if (url.format() == URL_ERROR)
+	{
+		ressource.type() = RESSOURCE_ERROR;
+		ressource.responseCode() = HttpStatus::BadRequest;
+		ressource.mimeType() = "text/html";
+		std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::BadRequest);
+		if (it != server.errorPages().end())
+		{
+			ressource.path() = it->second.second;
+			ressource.responseCode() = it->second.first;
+		}
+		return ressource;
+	}
+	const Location	*bestMatch = &server;
+	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it)
+	{
+		size_t match_lenght = matchLength(url, it->path());
+		if (longestMatchLength < match_lenght)
+		{
+			longestMatchLength = match_lenght;
+			bestMatch = &(*it);
+		}
+	}
+	const Location	&location = *bestMatch;
+	ressource.type() = RESSOURCE_ERROR;
+	ressource.responseCode() = errorCode;
+	ressource.mimeType() = "text/html";
+	std::map<int, std::pair<int, std::string> >::const_iterator it = location.errorPages().find(errorCode);
+	if (it != location.errorPages().end())
+	{
+		ressource.path() = it->second.second;
+		ressource.responseCode() = it->second.first;
+	}
+	return ressource;
 }
