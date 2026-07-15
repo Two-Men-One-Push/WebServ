@@ -59,6 +59,22 @@ const HttpResponse &HttpTransaction::response() const {
 	return this->_response;
 }
 
+void HttpTransaction::closeRequestInput() {
+	try {
+		this->_request.closeInput();
+	} catch (const HttpException &e) {
+		this->error(e);
+	}
+}
+
+void HttpTransaction::closeResponseInput() {
+	try {
+		this->_response.closeInput();
+	} catch (const HttpException &e) {
+		this->error(e);
+	}
+}
+
 void HttpTransaction::error(const HttpException &e) {
 	this->_response.error(e);
 	this->_isLast = true;

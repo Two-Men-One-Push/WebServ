@@ -40,12 +40,12 @@ class HttpMessage {
 	void writeBody(const char *buffer, size_t size);
 	bool collectRawBody(std::istream &input);
 	bool collectChunkedBody(std::istream &input);
-	bool extractMessageHeaders(std::istream &input);
 
 	// HEADER LOADER
 
 	void loadTranferEncoding();
 	void loadContentLength();
+	void loadConnection();
 
 	// BODY LOADING INFO
 
@@ -59,6 +59,7 @@ class HttpMessage {
 	// SEND
 
 	enum OutState {
+		SEND_PREPARE_HEAD,
 		SEND_HEAD,
 		SEND_BODY,
 		SEND_COMPLETED,
@@ -91,6 +92,7 @@ class HttpMessage {
 	std::string _inBuffer;
 	std::string _outBuffer;
 
+	bool _inputWillClose;
 	size_t _contentLength;
 	TransferEncoding _transferEncoding;
 
@@ -99,6 +101,7 @@ class HttpMessage {
 
 	virtual void loadTypeUsedHeaders() = 0;
 
+	virtual void prepareHeaders() = 0;
 	virtual void formatTypeLine() = 0;
 
 	static HttpVersion parseHttpVersion(const std::string &input);

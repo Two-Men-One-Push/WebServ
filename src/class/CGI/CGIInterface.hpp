@@ -9,7 +9,7 @@
 class HttpTransaction;
 class WebServer;
 
-class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
+class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
 	std::string _execPath;
 	HttpTransaction &_httpTransaction;
@@ -22,9 +22,13 @@ class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
 
 	pid_t _cgiPid;
 
+	bool _processSucces;
+
 	void startInterface(HttpTransaction &httpTransaction, WebServer &server);
 	void startCgi(const HttpRequest &request);
 	void setupEnv(std::vector<std::string> &env, const HttpRequest &request);
+	int waitChild();
+	bool killChild();
 
   public:
 	CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server);
@@ -37,7 +41,8 @@ class CGIInterface: public Pipe::IPipeWriter, public Pipe::IPipeReader {
 
 	/** Do you think this is related to _inPipe or _outPipe ? guess */
 	void inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer);
-	void killChild();
+
+	bool running() const;
 
 	Pipe &in();
 	Pipe &out();

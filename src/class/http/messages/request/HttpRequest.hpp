@@ -38,6 +38,7 @@ class HttpRequest : public HttpMessage {
 	bool recvTypeLine(std::istream &input);
 	void loadTypeUsedHeaders();
 
+	void prepareHeaders();
 	void formatTypeLine();
 
   public:
@@ -50,7 +51,10 @@ class HttpRequest : public HttpMessage {
 
 	const std::string &uri() const;
 
-	std::ostream &printTypeInfo(std::ostream &os) const;
+	void closeInput();
+
+	std::ostream &
+	printTypeInfo(std::ostream &os) const;
 
 	static std::map<std::string, HttpMethod> implementedHttpMethod;
 	static std::string getAllowHeader();

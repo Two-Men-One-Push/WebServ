@@ -18,9 +18,28 @@ class HttpResponse : public HttpMessage {
 	HttpStatus::Code _status;
 	std::string _message;
 
+	enum FirstLineParsingState {
+		RESPONSE_VERSION,
+		RESPONSE_STATUS,
+		RESPONSE_MESSAGE,
+	};
+
+	FirstLineParsingState _firstLineState;
+
+	static size_t _maxVersionSize;
+	static size_t _maxStatusSize;
+	static size_t _maxMessageSize;
+
+	size_t getMaxMethodSize();
+
+	bool parseResponseVersion(std::istream &input);
+	bool parseResponseStatus(std::istream &input);
+	bool parseResponseMessage(std::istream &input);
+
 	CGIInterface *_cgiInterface;
 
 	void formatHead();
+	void loadCGIStatus(const std::string &statusString);
 
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
@@ -36,6 +55,10 @@ class HttpResponse : public HttpMessage {
 
 	HttpStatus::Code status() const;
 	void status(int status);
+
+	void closeInput();
+
+	void prepareHeaders();
 
 	bool hasBody() const;
 
