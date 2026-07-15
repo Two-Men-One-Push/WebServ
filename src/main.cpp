@@ -12,9 +12,9 @@ int main(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 	//WebServer server;
-	if (argc != 3)
+	if (argc != 2)
 	{
-		std::cerr << "Usage: " << argv[0] << " <config_file> <url>" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
 		return 1;
 	}
 	try
@@ -30,10 +30,6 @@ int main(int argc, char **argv) {
 			std::cerr << "configuration has errors, cannot continue" << std::endl;
 			return 1;
 		}
-		URL url(argv[2]);
-		Debug::printURL(std::cout, url);
-		Location location = Router::resolveLocation(url, config.http().servers()[0].locations());
-		Debug::printLocation(std::cout, location, 0);
 	}
 	catch (const std::exception &e)
 	{
