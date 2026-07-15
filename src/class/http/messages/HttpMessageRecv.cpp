@@ -23,8 +23,8 @@ bool HttpMessage::recvFrom(std::istream &input) {
 		if (!this->recvTypeLine(input)) return false;
 		this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
 		// fallthrough
-	case HttpMessage::RECV_MESSAGE_HEADERS:
 		if (!this->recvMessageHeaders(input)) return false;
+	case HttpMessage::RECV_MESSAGE_HEADERS:
 		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
 		// fallthrough
 	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
@@ -65,11 +65,12 @@ void HttpMessage::loadBaseUsedHeaders() {
 		throw HttpExceptions::BadRequestException();
 	}
 	this->loadTranferEncoding();
+	this->loadConnection();
 	this->loadContentLength();
 }
 
 bool HttpMessage::hasBody() const {
-	return this->_transferEncoding != TE_UNDEFINED || this->_contentLength != 0;
+	return this->_transferEncoding != TE_UNDEFINED || this->_inputWillClose || this->_contentLength != 0;
 }
 
 bool HttpMessage::inCompleted() const {
@@ -86,25 +87,28 @@ bool HttpMessage::inCompleted() const {
  */
 
 bool HttpMessage::recvMessageHeaders(std::istream &input) {
-	if (!this->extractMessageHeaders(input)) {
-		return false;
-	}
-
 	std::string &buffer = this->_inBuffer;
 
 	std::pair<std::string, std::string> headerField;
-	// parse message headers
-	size_t pos = 0;
 	while (true) {
-		// get next header line
-		size_t lineEnd = buffer.find("\r\n", pos);
-		std::string line = buffer.substr(pos, lineEnd - pos);
-		pos = lineEnd + 2;
+		while (true) {
+			if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
 
+			int c = input.get();
+			if (c == std::stringstream::traits_type::eof())
+				return false;
+			buffer += static_cast<char>(c);
+			if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
+				buffer.resize(buffer.size() - 2);
+				break;
+			}
+		}
+		// get next header line
+		std::string line = buffer;
+		buffer.clear();
 		// if empty it's the end of headers
 		if (line.empty()) {
 			if (!headerField.first.empty()) this->_headers.insert(headerField);
-			buffer.clear();
 			return true;
 		}
 
@@ -122,23 +126,6 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 			if (!istoken(headerField.first)) throw HttpExceptions::BadRequestException();
 			toHeaderCase(headerField.first);
 			headerField.second = trim(line.substr(headerNamePos + 1));
-		}
-	}
-}
-
-bool HttpMessage::extractMessageHeaders(std::istream &input) {
-	// Extract content until end of headers ("\r\n\r\n")
-	std::string &buffer = this->_inBuffer;
-
-	while (true) {
-		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
-
-		int c = input.get();
-		if (c == std::stringstream::traits_type::eof())
-			return false;
-		buffer += static_cast<char>(c);
-		if (buffer.size() >= 4 && buffer.compare(buffer.size() - 4, 4, "\r\n\r\n") == 0) {
-			return true;
 		}
 	}
 }
@@ -164,19 +151,32 @@ bool HttpMessage::collectRawBody(std::istream &input) {
 	char buffer[READ_SIZE];
 
 	while (true) {
-		size_t toRead = std::min(sizeof(buffer), this->_contentLength - this->_readSize);
-		if (toRead == 0)
-			break;
+		size_t toRead;
+		if (!this->_inputWillClose) {
+			toRead = std::min(sizeof(buffer), this->_contentLength - this->_readSize);
+			if (toRead == 0)
+				break;
+		} else {
+			toRead = READ_SIZE;
+		}
 		input.read(buffer, toRead);
 		std::streamsize n = input.gcount();
-		if (n == 0)
+		if (n == 0) {
 			break;
+		}
 		this->writeBody(buffer, n);
-		this->_readSize += n;
+		if (!this->_inputWillClose) {
+			this->_readSize += n;
+		} else {
+			this->_contentLength += n;
+		}
 	}
 
-	if (this->_readSize < this->_contentLength) return false;
-	return true;
+	if (!this->_inputWillClose) {
+		return this->_readSize >= this->_contentLength;
+	} else {
+		return false;
+	}
 }
 
 bool HttpMessage::collectChunkedBody(std::istream &input) {

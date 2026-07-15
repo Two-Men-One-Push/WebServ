@@ -33,8 +33,8 @@ if method == "POST" and "application/x-www-form-urlencoded" in ctype:
     params.update(parse_query_string(body))
 
 # CGI response — headers first, then blank line, then body
-print("Content-Type: text/html")
-print()
+print("Content-Type: text/html", end="\r\n")
+print(end="\r\n")
 print("<!DOCTYPE html>")
 print("<html><head><title>CGI Test</title></head><body>")
 print("<h1>CGI Debug</h1>")

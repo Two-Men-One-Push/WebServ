@@ -63,8 +63,6 @@ bool ClientSocket::canHandleEpollOut() const {
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
-	static int i = 0;
-	std::cout << "it : " << i++ << std::endl;
 	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR)) {
 		if (events & EPOLLIN) {
 			std::cout << "EPOLLIN" << std::endl;
@@ -78,15 +76,15 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 		if (events & EPOLLERR) {
 			std::cout << "EPOLLERR" << std::endl;
 		}
-		if (events & EPOLLIN) {
-			this->onEpollIn(webServer);
-		}
-		if (events & EPOLLOUT) {
-			this->onEpollOut(webServer);
-		}
 		if (events & EPOLLHUP || events & EPOLLERR) {
-			std::cout << "delete of : " << this << ": EPOLLHUP || EPOLLERR" << std::endl;
 			webServer.requestDelete(this);
+		} else {
+			if (events & EPOLLIN) {
+				this->onEpollIn(webServer);
+			}
+			if (events & EPOLLOUT) {
+				this->onEpollOut(webServer);
+			}
 		}
 	} else {
 		std::cerr << "Unhandled event : " << events << std::endl;
@@ -104,7 +102,6 @@ void ClientSocket::onEpollIn(WebServer &server) {
 
 	if (!readLen) this->_closed = true;
 	if (readLen < 0) {
-		std::cout << "delete of : " << this << ": readLen < 0" << std::endl;
 		server.requestDelete(this);
 		return;
 	};
@@ -121,6 +118,8 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
 			this->_transactions.push(new HttpTransaction());
+		} else if (this->_closed) {
+			this->_transactions.back()->closeRequestInput();
 		}
 	}
 
@@ -133,9 +132,14 @@ void ClientSocket::onEpollIn(WebServer &server) {
 
 void ClientSocket::onEpollOut(WebServer &webServer) {
 	HttpTransaction *transaction = this->_transactions.front();
-	if (transaction->sendResponse(*this)) {
+	bool sendCompleted;
+	try {
+		sendCompleted = transaction->sendResponse(*this);
+	} catch (...) {
+		webServer.requestDelete(this);
+	}
+	if (sendCompleted) {
 		if (transaction->isLast()) {
-			std::cout << "delete of : " << this << ": transaction is last" << std::endl;
 			webServer.requestDelete(this);
 		}
 		delete transaction;

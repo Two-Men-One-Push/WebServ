@@ -13,9 +13,9 @@ int main(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 	//WebServer server;
-	if (argc != 3)
+	if (argc != 2)
 	{
-		std::cerr << "Usage: " << argv[0] << " <config_file> <url>" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
 		return 1;
 	}
 	try
@@ -32,12 +32,9 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 		URL url(argv[2]);
-		//Debug::printURL(std::cout, url);
-		HttpRequest req;
-		req.method(GET);
-		req.uri(argv[2]);
-		Ressource ressource = Router::resolveRessource(req, config.http().servers()[0]);
-		Debug::printRessource(std::cout, ressource);
+		Debug::printURL(std::cout, url);
+		Location location = Router::resolveLocation(url, config.http().servers()[0].locations());
+		Debug::printLocation(std::cout, location, 0);
 	}
 	catch (const std::exception &e)
 	{

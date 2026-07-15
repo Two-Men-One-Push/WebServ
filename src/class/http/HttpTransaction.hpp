@@ -29,6 +29,9 @@ class HttpTransaction {
 	bool sendRequestBody(const Fd &output);
 	bool sendResponse(const Fd &output);
 
+	void closeRequestInput();
+	void closeResponseInput();
+
 	void error(const HttpException &e);
 
 	bool isLast() const;

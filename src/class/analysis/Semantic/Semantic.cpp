@@ -117,7 +117,14 @@ void	Semantic::parseCGI(std::list<Directive>::const_iterator it, std::map<std::s
 	if (checkShape(*it, ARGS_AT_LEAST_TWO, BODY_FORBIDDEN, diag))
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != --(it->args().end()); ++arg)
+		{
+			if (arg->rawContent().find_last_of('.') != 0)
+			{
+				diag.report("invalid CGI extension '" + arg->rawContent() + "'", *arg);
+				continue;
+			}
 			cgi[arg->content()] = it->args().back().content();
+		}
 	}
 }
 
