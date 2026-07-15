@@ -10,7 +10,7 @@ std::ostream	&operator<<(std::ostream &os, HttpStatus::Code code)
 	os << "\t<title>An Error Occured</title>" << std::endl;
 	os << "</head>" << std::endl;
 	os << "<body>" << std::endl;
-	os << "\t" << int(code) << " " << HttpStatus::reasonPhrase(code) << std::endl;
+	os << "\t" << int(code) << ": " << HttpStatus::reasonPhrase(code) << std::endl;
 	os << "</body>" << std::endl;
 	os << "</html>" << std::endl;
 	return os;
