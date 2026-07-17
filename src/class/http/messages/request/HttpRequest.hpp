@@ -1,6 +1,7 @@
 #ifndef HTTPREQUEST_HPP
 #define HTTPREQUEST_HPP
 
+#include "URL/URL.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
 #include <cstddef>
@@ -13,7 +14,7 @@ class HttpRequest : public HttpMessage {
 	HttpRequest &operator=(const HttpRequest &other);
 
 	HttpMethod _method;
-	std::string _uri;
+	URL _uri;
 
 	enum FirstLineParsingState {
 		REQUEST_METHOD,
@@ -47,9 +48,11 @@ class HttpRequest : public HttpMessage {
 	~HttpRequest();
 
 	HttpMethod method() const;
+	void method(const HttpMethod &newMethod);
 	std::string methodStr() const;
 
-	const std::string &uri() const;
+	const URL &uri() const;
+	void uri(const URL &newUri);
 
 	void closeInput();
 

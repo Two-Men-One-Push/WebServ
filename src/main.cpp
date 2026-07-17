@@ -4,6 +4,7 @@
 #include "analysis/Preprocessor/Preprocessor.hpp"
 #include "analysis/Semantic/Semantic.hpp"
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
+#include "http/messages/request/HttpRequest.hpp"
 #include <iostream>
 #include "URL/URL.hpp"
 #include "Router/Router.hpp"
@@ -12,9 +13,9 @@ int main(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 	//WebServer server;
-	if (argc != 2)
+	if (argc != 3)
 	{
-		std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <config_file> <url>" << std::endl;
 		return 1;
 	}
 	try
@@ -30,6 +31,12 @@ int main(int argc, char **argv) {
 			std::cerr << "configuration has errors, cannot continue" << std::endl;
 			return 1;
 		}
+		HttpRequest req;
+		req.method(GET);
+		req.uri(URL(argv[2]));
+		Debug::printURL(std::cout, req.uri());
+		Ressource ressource = Router::resolveRessource(req, config.http().servers()[0]);
+		Debug::printRessource(std::cout, ressource);
 	}
 	catch (const std::exception &e)
 	{

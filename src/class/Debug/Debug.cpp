@@ -87,7 +87,7 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 	}
 	os << std::endl;
 	os << std::string(indent + 1, '\t') << "Error Pages:" << std::endl;
-	for (std::map<int, std::pair<int, std::string> >::const_iterator error_it = location.errorPages().begin(); error_it != location.errorPages().end(); ++error_it)
+	for (std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator error_it = location.errorPages().begin(); error_it != location.errorPages().end(); ++error_it)
 	{
 		os << std::string(indent + 2, '\t') << "error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
 	}
@@ -131,7 +131,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 	os << "	Http:" << std::endl;
 	os << "		Client Max Body Size: " << config.http().clientMaxBodySize() << std::endl;
 	os << "		Error Pages:" << std::endl;
-	for (std::map<int, std::pair<int, std::string> >::const_iterator it = config.http().errorPages().begin(); it != config.http().errorPages().end(); ++it)
+	for (std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = config.http().errorPages().begin(); it != config.http().errorPages().end(); ++it)
 	{
 		os << "			error code: " << it->first << " response code: " << it->second.first << " page: " << it->second.second << std::endl;
 	}
@@ -175,7 +175,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << std::endl;
 		os << "				Error Pages:" << std::endl;
-		for (std::map<int, std::pair<int, std::string> >::const_iterator error_it = it->errorPages().begin(); error_it != it->errorPages().end(); ++error_it)
+		for (std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator error_it = it->errorPages().begin(); error_it != it->errorPages().end(); ++error_it)
 		{
 			os << "					error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
 		}
@@ -189,13 +189,13 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << std::endl;
 		os << "				Autoindex: " << (it->autoindex() ? "on" : "off") << std::endl;
-		os << "				Redirection: ";
+		os << "				Redirection:" << std::endl;
 		if (it->redirection().first != 0)
 		{
 			if (it->redirection().first >= 300 || it->redirection().first <= 399)
-				os << "code: " << it->redirection().first << " url: " << it->redirection().second;
+				os << "	code: " << it->redirection().first << " url: " << it->redirection().second;
 			else
-				os << "code: " << it->redirection().first << " message: " << it->redirection().second;
+				os << "	code: " << it->redirection().first << " message: " << it->redirection().second;
 		}
 		else
 			os << "none";
@@ -223,20 +223,36 @@ void	Debug::printURL(std::ostream &os, const URL &url)
 {
 	os << "URL:" << std::endl;
 	os << "	Format: " << url.formatStr() << std::endl;
+	os << "	Raw URL: " << url.raw() << std::endl;
 	os << "	Scheme: " << url.scheme() << std::endl;
 	os << "	User: " << url.user() << std::endl;
 	os << "	Host: " << url.host() << std::endl;
 	os << "	Port: " << url.port() << std::endl;
-	os << "	Raw Path: " << url.rawPath() << std::endl;
-	os << "	Path Segments: ";
-	for (std::vector<std::string>::const_iterator it = url.path().begin(); it != url.path().end(); ++it)
+	os << "	Raw URL Segments:		";
+	for (std::vector<std::string>::const_iterator it = url.rawSegments().begin(); it != url.rawSegments().end(); ++it)
 	{
-		if (it != url.path().begin())
+		if (it != url.rawSegments().begin())
 			os << ", ";
 		os << *it;
 	}
 	os << std::endl;
-	os << "	Raw Query: " << url.rawQuery() << std::endl;
+	os << "	URL Segments:			";
+	for (std::vector<std::string>::const_iterator it = url.segments().begin(); it != url.segments().end(); ++it)
+	{
+		if (it != url.segments().begin())
+			os << ", ";
+		os << *it;
+	}
+	os << std::endl;
+	os << "	Normalized URL Segments:	";
+	for (std::vector<std::string>::const_iterator it = url.normalizedSegments().begin(); it != url.normalizedSegments().end(); ++it)
+	{
+		if (it != url.normalizedSegments().begin())
+			os << ", ";
+		os << *it;
+	}
+	os << std::endl;
+	os << "	Query String: " << url.queryString() << std::endl;
 	os << "	Query Parameters: ";
 	for (std::map<std::string, std::string>::const_iterator it = url.query().begin(); it != url.query().end(); ++it)
 	{
@@ -245,6 +261,19 @@ void	Debug::printURL(std::ostream &os, const URL &url)
 		os << it->first << "=" << it->second;
 	}
 	os << std::endl;
-	os << "	Raw Fragment: " << url.rawFragment() << std::endl;
+	os << "	Fragment String: " << url.fragmentString() << std::endl;
 	os << "	Fragment: " << url.fragment() << std::endl;
+}
+
+void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
+{
+	os << "Ressource:" << std::endl;
+	os << "	Type: " << ressource.typeStr() << std::endl;
+	os << "	Path: " << ressource.path() << std::endl;
+	os << "	MIME Type: " << ressource.mimeType() << std::endl;
+	os << "	Response Code: " << ressource.responseCode() << std::endl;
+	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;
+	os << "	Path Info: " << ressource.pathInfo() << std::endl;
+	os << "	Query String: " << ressource.queryString() << std::endl;
+	os << "	Fragment String: " << ressource.fragmentString() << std::endl;
 }

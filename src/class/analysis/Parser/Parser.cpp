@@ -41,6 +41,8 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 				++it;
 				return directive;
 			case Token::NEWLINE:
+				++it;
+				break;
 			case Token::LBRACE:
 				parseBlock(it, end, directive);
 				return directive;

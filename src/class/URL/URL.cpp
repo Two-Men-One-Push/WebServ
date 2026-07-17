@@ -1,50 +1,55 @@
 #include "URL.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
+#include <string>
 
 URL::URL():
-_format(ERROR),
+_format(URL_ERROR),
+_raw(""),
 _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
-_rawPath(""),
-_path(),
-_rawQuery(""),
+_path(""),
+_rawSegments(),
+_segments(),
+_queryString(""),
 _query(),
-_rawFragment(""),
+_fragmentString(""),
 _fragment("")
 {
 }
 
 URL::URL(const std::string &url):
-_format(ERROR),
+_format(URL_ERROR),
+_raw(url),
 _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
-_rawPath(""),
-_path(),
-_rawQuery(""),
+_path(""),
+_rawSegments(),
+_segments(),
+_queryString(""),
 _query(),
-_rawFragment(""),
+_fragmentString(""),
 _fragment("")
 {
 	if (url == "*")
 	{
-		this->_format = ASTERISK;
+		this->_format = URL_ASTERISK;
 	}
 	else if (url[0] == '/')
 	{
-		this->_format = ORIGIN;
+		this->_format = URL_ORIGIN;
 		std::string origin = url;
 		size_t fragment_pos = origin.find('#');
 		if (fragment_pos != std::string::npos)
 		{
-			this->_rawFragment = '#' + origin.substr(fragment_pos + 1);
+			this->_fragmentString = origin.substr(fragment_pos);
 			if (decode(this->_fragment, origin.substr(fragment_pos + 1)))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
 				return ;
 			}
 			origin.erase(fragment_pos);
@@ -52,8 +57,8 @@ _fragment("")
 		size_t query_pos = origin.find('?');
 		if (query_pos != std::string::npos)
 		{
+			this->_queryString = origin.substr(query_pos);
 			std::string query_str = origin.substr(query_pos + 1);
-			this->_rawQuery = '?' + query_str;
 			origin.erase(query_pos);
 			size_t start = 0;
 			while (start < query_str.length())
@@ -68,13 +73,13 @@ _fragment("")
 					std::string key;
 					if (decode(key, pair.substr(0, equal_pos)))
 					{
-						this->_format = ERROR;
+						this->_format = URL_ERROR;
 						return ;
 					}
 					std::string value;
 					if (decode(value, pair.substr(equal_pos + 1)))
 					{
-						this->_format = ERROR;
+						this->_format = URL_ERROR;
 						return ;
 					}
 					this->_query[key] = value;
@@ -84,7 +89,7 @@ _fragment("")
 					std::string key;
 					if (decode(key, pair))
 					{
-						this->_format = ERROR;
+						this->_format = URL_ERROR;
 						return ;
 					}
 					this->_query[key] = "";
@@ -92,43 +97,59 @@ _fragment("")
 				start = end + 1;
 			}
 		}
+		std::string	decoded_origin;
+		if (decode(decoded_origin, origin))
+		{
+			this->_format = URL_ERROR;
+			return ;
+		}
 		std::string	normalized_path;
-		if (pathNormalize(normalized_path, origin))
+		if (pathNormalize(normalized_path, decoded_origin))
 		{
-			this->_format = ERROR;
+			this->_format = URL_ERROR;
 			return ;
 		}
-		if (decode(this->_rawPath, normalized_path))
-		{
-			this->_format = ERROR;
-			return ;
-		}
-		normalized_path = trim_path(normalized_path);
 		size_t	start = 0;
 		while (start < normalized_path.length())
 		{
 			size_t	end = normalized_path.find('/', start);
 			if (end == std::string::npos)
 				end = normalized_path.length();
-			std::string segment = normalized_path.substr(start, end - start);
-			std::string decoded_segment;
+			std::string	segment = normalized_path.substr(start, end - start);
+			if (!segment.empty())
+				this->_normalizedSegments.push_back(segment);
+			start = end + 1;
+		}
+		std::string path = trim_path(origin);
+		start = 0;
+		while (start < path.length())
+		{
+			size_t	end = path.find('/', start);
+			if (end == std::string::npos)
+				end = path.length();
+			std::string	segment = path.substr(start, end - start);
+			std::string	decoded_segment;
 			if (decode(decoded_segment, segment))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
 				return ;
 			}
-			this->_path.push_back(decoded_segment);
+			if (!segment.empty() && !decoded_segment.empty())
+			{
+				this->_rawSegments.push_back(segment);
+				this->_segments.push_back(decoded_segment);
+			}
 			start = end + 1;
 		}
 	}
 	else if (url.find("http://") == 0 || url.find("https://") == 0)
 	{
-		this->_format = ABSOLUTE;
+		this->_format = URL_ABSOLUTE;
 		std::string	absolute = url;
 		size_t scheme_end = absolute.find("://");
 		if (scheme_end == std::string::npos)
 		{
-			this->_format = ERROR;
+			this->_format = URL_ERROR;
 			return ;
 		}
 		this->_scheme = absolute.substr(0, scheme_end);
@@ -149,7 +170,7 @@ _fragment("")
 		{
 			if (decode(this->_user, authority.substr(0, user_end)))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
 				return ;
 			}
 			authority.erase(0, user_end + 1);
@@ -157,35 +178,59 @@ _fragment("")
 		size_t port_start = authority.find_last_of(':');
 		if (port_start != std::string::npos)
 		{
+			if (port_start == 0)
+			{
+				this->_format = URL_ERROR;
+				return ;
+			}
 			if (decode(this->_host, authority.substr(0, port_start)))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
+				return ;
+			}
+			if (port_start + 1 >= authority.length())
+			{
+				this->_format = URL_ERROR;
 				return ;
 			}
 			std::string	port_str;
 			if (decode(port_str, authority.substr(port_start + 1)))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
 				return ;
 			}
 			if (!parseInt(port_str, this->_port))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
+				return ;
+			}
+			if (this->_port < 0 || this->_port > 65535)
+			{
+				this->_format = URL_ERROR;
 				return ;
 			}
 		}
 		else
 		{
-			this->_host = authority;
+			if (authority.empty())
+			{
+				this->_format = URL_ERROR;
+				return ;
+			}
+			if (decode(this->_host, authority))
+			{
+				this->_format = URL_ERROR;
+				return ;
+			}
 		}
 		std::string origin = absolute;
 		size_t fragment_pos = origin.find('#');
 		if (fragment_pos != std::string::npos)
 		{
-			this->_rawFragment = '#' + origin.substr(fragment_pos + 1);
+			this->_fragmentString = origin.substr(fragment_pos);
 			if (decode(this->_fragment, origin.substr(fragment_pos + 1)))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
 				return ;
 			}
 			origin.erase(fragment_pos);
@@ -193,8 +238,8 @@ _fragment("")
 		size_t query_pos = origin.find('?');
 		if (query_pos != std::string::npos)
 		{
+			this->_queryString = origin.substr(query_pos);
 			std::string query_str = origin.substr(query_pos + 1);
-			this->_rawQuery = '?' + query_str;
 			origin.erase(query_pos);
 			size_t start = 0;
 			while (start < query_str.length())
@@ -209,13 +254,13 @@ _fragment("")
 					std::string key;
 					if (decode(key, pair.substr(0, equal_pos)))
 					{
-						this->_format = ERROR;
+						this->_format = URL_ERROR;
 						return ;
 					}
 					std::string value;
 					if (decode(value, pair.substr(equal_pos + 1)))
 					{
-						this->_format = ERROR;
+						this->_format = URL_ERROR;
 						return ;
 					}
 					this->_query[key] = value;
@@ -225,7 +270,7 @@ _fragment("")
 					std::string key;
 					if (decode(key, pair))
 					{
-						this->_format = ERROR;
+						this->_format = URL_ERROR;
 						return ;
 					}
 					this->_query[key] = "";
@@ -235,38 +280,54 @@ _fragment("")
 		}
 		if (origin.empty())
 			return ;
+		std::string	decoded_origin;
+		if (decode(decoded_origin, origin))
+		{
+			this->_format = URL_ERROR;
+			return ;
+		}
 		std::string	normalized_path;
-		if (pathNormalize(normalized_path, origin))
+		if (pathNormalize(normalized_path, decoded_origin))
 		{
-			this->_format = ERROR;
+			this->_format = URL_ERROR;
 			return ;
 		}
-		if (decode(this->_rawPath, normalized_path))
-		{
-			this->_format = ERROR;
-			return ;
-		}
-		normalized_path = trim_path(normalized_path);
 		size_t	start = 0;
 		while (start < normalized_path.length())
 		{
 			size_t	end = normalized_path.find('/', start);
 			if (end == std::string::npos)
 				end = normalized_path.length();
-			std::string segment = normalized_path.substr(start, end - start);
-			std::string decoded_segment;
+			std::string	segment = normalized_path.substr(start, end - start);
+			if (!segment.empty())
+				this->_normalizedSegments.push_back(segment);
+			start = end + 1;
+		}
+		std::string path = trim_path(origin);
+		start = 0;
+		while (start < path.length())
+		{
+			size_t	end = path.find('/', start);
+			if (end == std::string::npos)
+				end = path.length();
+			std::string	segment = path.substr(start, end - start);
+			std::string	decoded_segment;
 			if (decode(decoded_segment, segment))
 			{
-				this->_format = ERROR;
+				this->_format = URL_ERROR;
 				return ;
 			}
-			this->_path.push_back(decoded_segment);
+			if (!segment.empty() && !decoded_segment.empty())
+			{
+				this->_rawSegments.push_back(segment);
+				this->_segments.push_back(decoded_segment);
+			}
 			start = end + 1;
 		}
 	}
 	else
 	{
-		this->_format = AUTHORITY;
+		this->_format = URL_AUTHORITY;
 	}
 }
 
@@ -274,21 +335,40 @@ URL::~URL()
 {
 }
 
-URL::URL(const URL &copy): _scheme(copy._scheme), _user(copy._user), _host(copy._host), _port(copy._port), _path(copy._path), _query(copy._query), _fragment(copy._fragment)
-{
-}
+URL::URL(const URL &copy):
+_format(copy._format),
+_raw(copy._raw),
+_scheme(copy._scheme),
+_user(copy._user),
+_host(copy._host),
+_port(copy._port),
+_path(copy._path),
+_rawSegments(copy._rawSegments),
+_segments(copy._segments),
+_normalizedSegments(copy._normalizedSegments),
+_queryString(copy._queryString),
+_query(copy._query),
+_fragmentString(copy._fragmentString),
+_fragment(copy._fragment)
+{}
 
 URL	&URL::operator=(const URL &other)
 {
 	if (this != &other)
 	{
 		this->_format = other._format;
+		this->_raw = other._raw;
 		this->_scheme = other._scheme;
 		this->_user = other._user;
 		this->_host = other._host;
 		this->_port = other._port;
 		this->_path = other._path;
+		this->_rawSegments = other._rawSegments;
+		this->_segments = other._segments;
+		this->_normalizedSegments = other._normalizedSegments;
+		this->_queryString = other._queryString;
 		this->_query = other._query;
+		this->_fragmentString = other._fragmentString;
 		this->_fragment = other._fragment;
 	}
 	return (*this);
@@ -313,6 +393,8 @@ bool	URL::decode(std::string &output, const std::string &str)
 					return true;
 				if (iscntrl(static_cast<char>(MSB + LSB)))
 					return true;
+				if (static_cast<char>(MSB + LSB) == '/')
+					return true;
 				char c = static_cast<char>(MSB + LSB);
 				output += c;
 				i += 2;
@@ -334,18 +416,18 @@ const std::string	URL::formatStr() const
 {
 	switch (this->_format)
 	{
-		case ABSOLUTE:
-			return ("ABSOLUTE");
-		case ORIGIN:
-			return ("ORIGIN");
-		case AUTHORITY:
-			return ("AUTHORITY");
-		case ASTERISK:
-			return ("ASTERISK");
+		case URL_ABSOLUTE:
+			return ("URL_ABSOLUTE");
+		case URL_ORIGIN:
+			return ("URL_ORIGIN");
+		case URL_AUTHORITY:
+			return ("URL_AUTHORITY");
+		case URL_ASTERISK:
+			return ("URL_ASTERISK");
 		default:
-			return ("ERROR");
+			return ("URL_ERROR");
 	}
-	return ("ERROR");
+	return ("URL_ERROR");
 }
 
 const urlFormat	&URL::format() const
@@ -356,6 +438,16 @@ const urlFormat	&URL::format() const
 urlFormat	&URL::format()
 {
 	return (this->_format);
+}
+
+const std::string	&URL::raw() const
+{
+	return (this->_raw);
+}
+
+std::string	&URL::raw()
+{
+	return (this->_raw);
 }
 
 const std::string	&URL::scheme() const
@@ -398,34 +490,44 @@ int	&URL::port()
 	return (this->_port);
 }
 
-const std::string	&URL::rawPath() const
+const std::vector<std::string>	&URL::rawSegments() const
 {
-	return (this->_rawPath);
+	return (this->_rawSegments);
 }
 
-std::string	&URL::rawPath()
+std::vector<std::string>	&URL::rawSegments()
 {
-	return (this->_rawPath);
+	return (this->_rawSegments);
 }
 
-const std::vector<std::string>	&URL::path() const
+const std::vector<std::string>	&URL::segments() const
 {
-	return (this->_path);
+	return (this->_segments);
 }
 
-std::vector<std::string>	&URL::path()
+std::vector<std::string>	&URL::segments()
 {
-	return (this->_path);
+	return (this->_segments);
 }
 
-const std::string	&URL::rawQuery() const
+const std::vector<std::string>	&URL::normalizedSegments() const
 {
-	return (this->_rawQuery);
+	return (this->_normalizedSegments);
 }
 
-std::string	&URL::rawQuery()
+std::vector<std::string>	&URL::normalizedSegments()
 {
-	return (this->_rawQuery);
+	return (this->_normalizedSegments);
+}
+
+const std::string	&URL::queryString() const
+{
+	return (this->_queryString);
+}
+
+std::string	&URL::queryString()
+{
+	return (this->_queryString);
 }
 
 const std::map<std::string, std::string>	&URL::query() const
@@ -438,14 +540,14 @@ std::map<std::string, std::string>	&URL::query()
 	return (this->_query);
 }
 
-const std::string	&URL::rawFragment() const
+const std::string	&URL::fragmentString() const
 {
-	return (this->_rawFragment);
+	return (this->_fragmentString);
 }
 
-std::string	&URL::rawFragment()
+std::string	&URL::fragmentString()
 {
-	return (this->_rawFragment);
+	return (this->_fragmentString);
 }
 
 const std::string	&URL::fragment() const

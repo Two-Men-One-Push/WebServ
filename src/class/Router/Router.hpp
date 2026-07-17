@@ -1,7 +1,9 @@
 #pragma once
 
-#include "model/Location/Location.hpp"
-#include "URL/URL.hpp"
+#include "http/messages/request/HttpRequest.hpp"
+#include "model/Server/Server.hpp"
+#include "Ressource/Ressource.hpp"
+#include "http/HttpStatus.hpp"
 
 class	Router
 {
@@ -10,6 +12,6 @@ class	Router
 		Router();
 		~Router();
 
-		static const Location	&resolveLocation(const URL &url, const std::vector<Location> &locations);
-		static size_t	matchLength(const URL &url, const std::string &locationPath);
+		static Ressource	resolveRessource(const HttpRequest &req, const Server &server);
+		static Ressource	resolveErrorRessource(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server);
 };

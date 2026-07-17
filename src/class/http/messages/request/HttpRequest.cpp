@@ -1,4 +1,5 @@
 #include "./HttpRequest.hpp"
+#include "URL/URL.hpp"
 #include "http/messages/Body/BodyStringStream.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
@@ -78,10 +79,18 @@ std::string HttpRequest::methodStr() const {
 	return httpMethodString(this->_method);
 }
 
-const std::string &HttpRequest::uri() const {
+const URL &HttpRequest::uri() const {
 	return this->_uri;
 }
 
 std::ostream &HttpRequest::printTypeInfo(std::ostream &os) const {
-	return os << this->methodStr() << " " << this->_uri << " " << this->versionStr() << '\n';
+	return os << this->methodStr() << " " << this->_uri.raw() << " " << this->versionStr() << '\n';
+}
+
+void HttpRequest::method(const HttpMethod &newMethod) {
+	this->_method = newMethod;
+}
+
+void HttpRequest::uri(const URL &newUri) {
+	this->_uri = newUri;
 }

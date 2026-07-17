@@ -22,8 +22,8 @@ bool HttpMessage::recvFrom(std::istream &input) {
 	case HttpMessage::RECV_MESSAGE_TYPES:
 		if (!this->recvTypeLine(input)) return false;
 		this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
-		// fallthrough
 		if (!this->recvMessageHeaders(input)) return false;
+		// fallthrough
 	case HttpMessage::RECV_MESSAGE_HEADERS:
 		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
 		// fallthrough

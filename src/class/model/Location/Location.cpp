@@ -1,18 +1,18 @@
 #include "model/Location/Location.hpp"
-#include "model/Http/Http.hpp"
+#include "http/HttpStatus.hpp"
 
-Location::Location(Http &parent, const std::string &path):
-_path(path),
+Location::Location():
+_path(""),
 _root(""),
 _index_files(),
-_error_pages(parent.errorPages()),
-_client_max_body_size(parent.clientMaxBodySize()),
+_error_pages(),
+_client_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE),
 _allowed_methods(),
 _autoindex(false),
-_redirection(0, ""),
+_redirection(HttpStatus::NoStatus, ""),
 _cgi(),
 _upload_path(""),
-_types(parent.types())
+_types()
 {}
 
 Location::Location(Location &parent, const std::string &path):
@@ -23,7 +23,7 @@ _error_pages(parent.errorPages()),
 _client_max_body_size(parent.clientMaxBodySize()),
 _allowed_methods(),
 _autoindex(parent.autoindex()),
-_redirection(0, ""),
+_redirection(HttpStatus::NoStatus, ""),
 _cgi(),
 _upload_path(),
 _types(parent.types())
@@ -97,12 +97,12 @@ std::vector<std::string>	&Location::indexFiles()
 	return (this->_index_files);
 }
 
-const std::map<int, std::pair<int, std::string> >	&Location::errorPages() const
+const std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	&Location::errorPages() const
 {
 	return (this->_error_pages);
 }
 
-std::map<int, std::pair<int, std::string> >	&Location::errorPages()
+std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	&Location::errorPages()
 {
 	return (this->_error_pages);
 }
@@ -137,12 +137,12 @@ bool	&Location::autoindex()
 	return (this->_autoindex);
 }
 
-const std::pair<int, std::string>	&Location::redirection() const
+const std::pair<HttpStatus::Code, std::string>	&Location::redirection() const
 {
 	return (this->_redirection);
 }
 
-std::pair<int, std::string>	&Location::redirection()
+std::pair<HttpStatus::Code, std::string>	&Location::redirection()
 {
 	return (this->_redirection);
 }

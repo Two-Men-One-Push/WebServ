@@ -7,8 +7,9 @@
 #include "IR/Directive/Directive.hpp"
 #include "IR/AST/AST.hpp"
 #include "model/Config/Config.hpp"
-#include <ostream>
 #include "URL/URL.hpp"
+#include "Ressource/Ressource.hpp"
+#include <ostream>
 
 class	Debug
 {
@@ -23,4 +24,5 @@ class	Debug
 		static void	printLocation(std::ostream &os, const Location &location, size_t indent);
 		static void	printConfig(std::ostream &os, const Config &config);
 		static void	printURL(std::ostream &os, const URL &url);
+		static void	printRessource(std::ostream &os, const Ressource &ressource);
 };
