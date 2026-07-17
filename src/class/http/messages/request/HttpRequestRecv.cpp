@@ -85,12 +85,12 @@ bool HttpRequest::parseRequestUri(std::istream &input) {
 			return false;
 		buffer += static_cast<char>(c);
 		if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
-			this->_uri = "/";
+			this->_uri = URL("/");
 			return true;
 		}
 	}
 
-	this->_uri = buffer;
+	this->_uri = URL(buffer);
 
 	// !:! other checks required here
 

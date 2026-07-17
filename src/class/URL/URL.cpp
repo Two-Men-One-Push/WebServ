@@ -1,14 +1,17 @@
 #include "URL.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
+#include <string>
 
 URL::URL():
 _format(URL_ERROR),
+_raw(""),
 _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
 _path(""),
+_rawSegments(),
 _segments(),
 _queryString(""),
 _query(),
@@ -19,11 +22,13 @@ _fragment("")
 
 URL::URL(const std::string &url):
 _format(URL_ERROR),
+_raw(url),
 _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
 _path(""),
+_rawSegments(),
 _segments(),
 _queryString(""),
 _query(),
@@ -92,25 +97,48 @@ _fragment("")
 				start = end + 1;
 			}
 		}
-		if (decode(this->_path, origin))
+		std::string	decoded_origin;
+		if (decode(decoded_origin, origin))
 		{
 			this->_format = URL_ERROR;
 			return ;
 		}
 		std::string	normalized_path;
-		if (pathNormalize(normalized_path, this->_path))
+		if (pathNormalize(normalized_path, decoded_origin))
 		{
 			this->_format = URL_ERROR;
 			return ;
 		}
-		normalized_path = trim_path(normalized_path);
 		size_t	start = 0;
 		while (start < normalized_path.length())
 		{
 			size_t	end = normalized_path.find('/', start);
 			if (end == std::string::npos)
 				end = normalized_path.length();
-			this->_segments.push_back(normalized_path.substr(start, end - start));
+			std::string	segment = normalized_path.substr(start, end - start);
+			if (!segment.empty())
+				this->_normalizedSegments.push_back(segment);
+			start = end + 1;
+		}
+		std::string path = trim_path(origin);
+		start = 0;
+		while (start < path.length())
+		{
+			size_t	end = path.find('/', start);
+			if (end == std::string::npos)
+				end = path.length();
+			std::string	segment = path.substr(start, end - start);
+			std::string	decoded_segment;
+			if (decode(decoded_segment, segment))
+			{
+				this->_format = URL_ERROR;
+				return ;
+			}
+			if (!segment.empty() && !decoded_segment.empty())
+			{
+				this->_rawSegments.push_back(segment);
+				this->_segments.push_back(decoded_segment);
+			}
 			start = end + 1;
 		}
 	}
@@ -252,25 +280,48 @@ _fragment("")
 		}
 		if (origin.empty())
 			return ;
-		if (decode(this->_path, origin))
+		std::string	decoded_origin;
+		if (decode(decoded_origin, origin))
 		{
 			this->_format = URL_ERROR;
 			return ;
 		}
 		std::string	normalized_path;
-		if (pathNormalize(normalized_path, this->_path))
+		if (pathNormalize(normalized_path, decoded_origin))
 		{
 			this->_format = URL_ERROR;
 			return ;
 		}
-		normalized_path = trim_path(normalized_path);
 		size_t	start = 0;
 		while (start < normalized_path.length())
 		{
 			size_t	end = normalized_path.find('/', start);
 			if (end == std::string::npos)
 				end = normalized_path.length();
-			this->_segments.push_back(normalized_path.substr(start, end - start));
+			std::string	segment = normalized_path.substr(start, end - start);
+			if (!segment.empty())
+				this->_normalizedSegments.push_back(segment);
+			start = end + 1;
+		}
+		std::string path = trim_path(origin);
+		start = 0;
+		while (start < path.length())
+		{
+			size_t	end = path.find('/', start);
+			if (end == std::string::npos)
+				end = path.length();
+			std::string	segment = path.substr(start, end - start);
+			std::string	decoded_segment;
+			if (decode(decoded_segment, segment))
+			{
+				this->_format = URL_ERROR;
+				return ;
+			}
+			if (!segment.empty() && !decoded_segment.empty())
+			{
+				this->_rawSegments.push_back(segment);
+				this->_segments.push_back(decoded_segment);
+			}
 			start = end + 1;
 		}
 	}
@@ -284,22 +335,40 @@ URL::~URL()
 {
 }
 
-URL::URL(const URL &copy): _scheme(copy._scheme), _user(copy._user), _host(copy._host), _port(copy._port), _path(copy._path), _segments(copy._segments), _query(copy._query), _fragment(copy._fragment)
-{
-}
+URL::URL(const URL &copy):
+_format(copy._format),
+_raw(copy._raw),
+_scheme(copy._scheme),
+_user(copy._user),
+_host(copy._host),
+_port(copy._port),
+_path(copy._path),
+_rawSegments(copy._rawSegments),
+_segments(copy._segments),
+_normalizedSegments(copy._normalizedSegments),
+_queryString(copy._queryString),
+_query(copy._query),
+_fragmentString(copy._fragmentString),
+_fragment(copy._fragment)
+{}
 
 URL	&URL::operator=(const URL &other)
 {
 	if (this != &other)
 	{
 		this->_format = other._format;
+		this->_raw = other._raw;
 		this->_scheme = other._scheme;
 		this->_user = other._user;
 		this->_host = other._host;
 		this->_port = other._port;
 		this->_path = other._path;
+		this->_rawSegments = other._rawSegments;
 		this->_segments = other._segments;
+		this->_normalizedSegments = other._normalizedSegments;
+		this->_queryString = other._queryString;
 		this->_query = other._query;
+		this->_fragmentString = other._fragmentString;
 		this->_fragment = other._fragment;
 	}
 	return (*this);
@@ -323,6 +392,8 @@ bool	URL::decode(std::string &output, const std::string &str)
 				if (LSB == std::string::npos)
 					return true;
 				if (iscntrl(static_cast<char>(MSB + LSB)))
+					return true;
+				if (static_cast<char>(MSB + LSB) == '/')
 					return true;
 				char c = static_cast<char>(MSB + LSB);
 				output += c;
@@ -369,6 +440,16 @@ urlFormat	&URL::format()
 	return (this->_format);
 }
 
+const std::string	&URL::raw() const
+{
+	return (this->_raw);
+}
+
+std::string	&URL::raw()
+{
+	return (this->_raw);
+}
+
 const std::string	&URL::scheme() const
 {
 	return (this->_scheme);
@@ -409,14 +490,14 @@ int	&URL::port()
 	return (this->_port);
 }
 
-const std::string	&URL::path() const
+const std::vector<std::string>	&URL::rawSegments() const
 {
-	return (this->_path);
+	return (this->_rawSegments);
 }
 
-std::string	&URL::path()
+std::vector<std::string>	&URL::rawSegments()
 {
-	return (this->_path);
+	return (this->_rawSegments);
 }
 
 const std::vector<std::string>	&URL::segments() const
@@ -427,6 +508,16 @@ const std::vector<std::string>	&URL::segments() const
 std::vector<std::string>	&URL::segments()
 {
 	return (this->_segments);
+}
+
+const std::vector<std::string>	&URL::normalizedSegments() const
+{
+	return (this->_normalizedSegments);
+}
+
+std::vector<std::string>	&URL::normalizedSegments()
+{
+	return (this->_normalizedSegments);
 }
 
 const std::string	&URL::queryString() const

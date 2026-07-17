@@ -75,25 +75,35 @@ void	Semantic::parseClientMaxBodySize(std::list<Directive>::const_iterator it, s
 	}
 }
 
-void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map<int, std::pair<int, std::string> > &error_pages, DiagnosticContext &diag)
+void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> > &error_pages, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_AT_LEAST_TWO, BODY_FORBIDDEN, diag))
 	{
 		std::string							path = it->args().back().content();
 		std::vector<Word>::const_iterator	penultimate = --(--it->args().end());
 		int									response_code = 0;
+		HttpStatus::Code 					response_httpCode;
 		if (penultimate->rawContent()[0] == '=')
 		{
 			if (!parseInt(penultimate->rawContent().substr(1), response_code))
 				diag.report("invalid response code '" + penultimate->rawContent().substr(1) + "'", *penultimate);
 			if (response_code < 100 || response_code > 599)
 				diag.report("response code must be between 100 and 599", *penultimate);
+			try
+			{
+				response_httpCode = HttpStatus::fromInt(response_code);
+			}
+			catch (const std::invalid_argument &)
+			{
+				diag.report("invalid response code '" + penultimate->rawContent().substr(1) + "'", *penultimate);
+			}
 		}
 		if (response_code == 0)
 			penultimate = --it->args().end();
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != penultimate; ++arg)
 		{
 			int code;
+			HttpStatus::Code httpCode;
 			if (!parseInt(arg->rawContent(), code))
 			{
 				diag.report("invalid response code '" + arg->rawContent() + "'", *arg);
@@ -104,10 +114,19 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 				diag.report("response code must be between 100 and 599", *arg);
 				continue;
 			}
+			try
+			{
+				httpCode = HttpStatus::fromInt(code);
+			}
+			catch (const std::invalid_argument &)
+			{
+				diag.report("invalid error code '" + arg->rawContent() + "'", *arg);
+				continue;
+			}
 			if (response_code == 0)
-				error_pages[code] = std::make_pair(code, path);
+				error_pages[httpCode] = std::make_pair(httpCode, path);
 			else
-				error_pages[code] = std::make_pair(response_code, path);
+				error_pages[httpCode] = std::make_pair(response_httpCode, path);
 		}
 	}
 }
@@ -118,7 +137,7 @@ void	Semantic::parseCGI(std::list<Directive>::const_iterator it, std::map<std::s
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != --(it->args().end()); ++arg)
 		{
-			if (arg->rawContent().find_last_of('.') != 0)
+			if (arg->rawContent().find('/') != std::string::npos)
 			{
 				diag.report("invalid CGI extension '" + arg->rawContent() + "'", *arg);
 				continue;
@@ -243,7 +262,7 @@ void	Semantic::parseAutoindex(std::list<Directive>::const_iterator it, bool &aut
 	}
 }
 
-void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pair<int, std::string> &redirection, DiagnosticContext &diag)
+void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pair<HttpStatus::Code, std::string> &redirection, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_TWO, BODY_FORBIDDEN, diag))
 	{
@@ -253,7 +272,16 @@ void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pa
 		else if (code < 100 || code > 599)
 			diag.report("response code must be between 100 and 599", it->args().front());
 		else
-			redirection = std::make_pair(code, it->args().back().content());
+		{
+			try
+			{
+				redirection = std::make_pair(HttpStatus::fromInt(code), it->args().back().content());
+			}
+			catch (const std::invalid_argument &)
+			{
+				diag.report("invalid response code '" + it->args().front().rawContent() + "'", it->args().front());
+			}
+		}
 	}
 }
 

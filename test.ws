@@ -1,6 +1,6 @@
 http {
 	include mime.types;
-	error_page 400 =500 /home/cyber/Documents/WebServ/www/400.html;
+	error_page 404 =404 /home/cyber/Documents/WebServ/www/404.html;
 	
 	server {
 		listen 80;
@@ -8,21 +8,10 @@ http {
 		root /home/cyber/Documents/WebServ/www;
 
 		index index.html;
+		autoindex on;
+		cgi html chrome/;
 		location A {
-
-			autoindex on;
-			location B {
-				cgi	.py python;
-				location C {
-
-					location D {
-
-						location E {
-
-						}
-					}
-				}
-			}
+			cgi html chromeA;
 		}
 	}
 }

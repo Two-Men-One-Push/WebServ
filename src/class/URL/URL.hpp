@@ -10,12 +10,15 @@ class URL
 {
 	private:
 		urlFormat							_format;
+		std::string							_raw;
 		std::string							_scheme;
 		std::string							_user;
 		std::string							_host;
 		int									_port;
 		std::string							_path;
+		std::vector<std::string>			_rawSegments;
 		std::vector<std::string>			_segments;
+		std::vector<std::string>			_normalizedSegments;
 		std::string							_queryString;
 		std::map<std::string, std::string>	_query;
 		std::string							_fragmentString;
@@ -31,6 +34,8 @@ class URL
 
 		const std::string	formatStr() const;
 
+		const std::string							&raw() const;
+		std::string									&raw();
 		const urlFormat								&format() const;
 		urlFormat									&format();
 		const std::string							&scheme() const;
@@ -41,10 +46,12 @@ class URL
 		std::string									&host();
 		const int									&port() const;
 		int											&port();
-		const std::string							&path() const;
-		std::string									&path();
+		const std::vector<std::string>				&rawSegments() const;
+		std::vector<std::string>					&rawSegments();
 		const std::vector<std::string>				&segments() const;
 		std::vector<std::string>					&segments();
+		const std::vector<std::string>				&normalizedSegments() const;
+		std::vector<std::string>					&normalizedSegments();
 		const std::string							&queryString() const;
 		std::string									&queryString();
 		const std::map<std::string, std::string>	&query() const;

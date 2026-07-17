@@ -4,7 +4,7 @@
 void HttpRequest::formatTypeLine() {
 	std::stringstream ss;
 
-	ss << this->methodStr() << ' ' << this->_uri << ' ' << this->versionStr() << "\r\n";
+	ss << this->methodStr() << ' ' << this->_uri.raw() << ' ' << this->versionStr() << "\r\n";
 
 	this->_outBuffer += ss.str();
 }

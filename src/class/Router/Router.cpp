@@ -8,6 +8,7 @@
 #include "Ressource/Ressource.hpp"
 #include "http/HttpStatus.hpp"
 #include <sys/stat.h>
+#include "utils/parsing.hpp"
 
 Router::Router()
 {
@@ -20,9 +21,11 @@ Router::~Router()
 size_t	matchLength(const URL &url, const std::string &locationPath)
 {
 	size_t match_length = 0;
-	std::vector<std::string>	location_segment = splitPath(locationPath);
+	std::string	normalized_locationPath;
+	pathNormalize(normalized_locationPath, locationPath);
+	std::vector<std::string>	location_segment = splitPath(normalized_locationPath);
 	std::vector<std::string>::const_iterator it_location = location_segment.begin();
-	for (std::vector<std::string>::const_iterator it = url.segments().begin(); it != url.segments().end() && it_location != location_segment.end(); ++it)
+	for (std::vector<std::string>::const_iterator it = url.normalizedSegments().begin(); it != url.normalizedSegments().end() && it_location != location_segment.end(); ++it)
 	{
 		if (it->compare(*it_location) == 0)
 		{
@@ -46,34 +49,34 @@ std::string	getFileExtension(const std::string &path)
 	size_t dot_pos = last_segment.find_last_of('.');
 	if (dot_pos == std::string::npos || dot_pos == 0)
 		return "";
-	return last_segment.substr(dot_pos);
+	return last_segment.substr(dot_pos + 1);
+}
+
+Ressource	&getErrorPage(Ressource &ressource, const Location &location, HttpStatus::Code errorCode)
+{
+	ressource.type() = RESSOURCE_ERROR;
+	ressource.responseCode() = errorCode;
+	ressource.mimeType() = "text/html";
+	std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = location.errorPages().find(errorCode);
+	if (it != location.errorPages().end())
+	{
+		ressource.path() = it->second.second;
+		ressource.responseCode() = it->second.first;
+	}
+	return ressource;
 }
 
 Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 {
 	Ressource	ressource;
 	size_t	longestMatchLength = 0;
-	URL	url(req.uri());
-	if (url.format() == URL_ERROR)
-	{
-		ressource.type() = RESSOURCE_ERROR;
-		ressource.responseCode() = HttpStatus::BadRequest;
-		ressource.mimeType() = "text/html";
-		std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::BadRequest);
-		if (it != server.errorPages().end())
-		{
-			ressource.path() = it->second.second;
-			ressource.responseCode() = it->second.first;
-		}
-		return ressource;
-	}
 	const Location	*bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it)
 	{
-		size_t match_lenght = matchLength(url, it->path());
-		if (longestMatchLength < match_lenght)
+		size_t match_length = matchLength(req.uri(), it->path());
+		if (longestMatchLength < match_length)
 		{
-			longestMatchLength = match_lenght;
+			longestMatchLength = match_length;
 			bestMatch = &(*it);
 		}
 	}
@@ -91,39 +94,24 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 		}
 		if (!methodeAllowed)
 		{
-			ressource.type() = RESSOURCE_ERROR;
-			ressource.responseCode() = HttpStatus::MethodNotAllowed;
-			ressource.mimeType() = "text/html";
-			std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::MethodNotAllowed);
-			if (it != server.errorPages().end())
-			{
-				ressource.path() = it->second.second;
-				ressource.responseCode() = it->second.first;
-			}
-			return ressource;
+			return getErrorPage(ressource, location, HttpStatus::MethodNotAllowed);
 		}
 	}
-	if (location.redirection().first != -1)
+	if (location.redirection().first != HttpStatus::NoStatus)
 	{
 		ressource.type() = RESSOURCE_REDIRECT;
 		ressource.responseCode() = location.redirection().first;
 		ressource.path() = location.redirection().second;
 		return ressource;
 	}
-	std::string path = location.root() + url.path();
-	std::vector<std::string> location_segments = splitPath(location.path());
-	std::vector<std::string> url_segments = url.segments();
-	for (std::vector<std::string>::const_iterator it = location_segments.begin(); it != location_segments.end(); ++it)
+	std::string	cgiScriptPath = location.root();
+	for (std::vector<std::string>::const_iterator it = req.uri().rawSegments().begin(); it != req.uri().rawSegments().end(); ++it)
 	{
-		if (url_segments.size() > 0 && *it == *url_segments.begin())
-			url_segments.erase(url_segments.begin());
-		else
-			break;
-	}
-	std::string	cgiScriptPath = location.root() + location.path();
-	for (std::vector<std::string>::const_iterator it = url_segments.begin(); it != url_segments.end(); ++it)
-	{
-		cgiScriptPath += "/" + *it;
+		std::string	decodedSegment;
+		URL::decode(decodedSegment, *it);
+		cgiScriptPath += "/" + decodedSegment;
+		if (decodedSegment == ".." || decodedSegment == ".")
+			continue;
 		std::map<std::string, std::string>::const_iterator cgi_it = location.cgi().find(getFileExtension(cgiScriptPath));
 		if (cgi_it != location.cgi().end())
 		{
@@ -133,13 +121,22 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 				ressource.type() = RESSOURCE_CGI;
 				ressource.cgiInterpreter() = cgi_it->second;
 				ressource.path() = cgiScriptPath;
-				ressource.pathInfo() = path.substr(cgiScriptPath.length());
-				ressource.queryString() = url.queryString();
-				ressource.fragmentString() = url.fragmentString();
+				std::string	pathInfo;
+				it++;
+				for (std::vector<std::string>::const_iterator pathinfo_it = it; pathinfo_it != req.uri().rawSegments().end(); ++pathinfo_it)
+				{
+					pathInfo += "/" + *pathinfo_it;
+				}
+				ressource.pathInfo() = pathInfo;
+				ressource.queryString() = req.uri().queryString();
+				ressource.fragmentString() = req.uri().fragmentString();
 				return ressource;
 			}
 		}
 	}
+	std::string path = location.root();
+	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
+		path += "/" + *it;
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) == 0)
 	{
@@ -149,7 +146,7 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 			{
 				for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it)
 				{
-					std::string indexPath = location.root() + location.path() + "/" + *it;
+					std::string indexPath = location.root() + "/" + *it;
 					struct stat index_stat;
 					if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG))
 					{
@@ -174,16 +171,7 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 			}
 			else
 			{
-				ressource.type() = RESSOURCE_ERROR;
-				ressource.responseCode() = HttpStatus::Forbidden;
-				ressource.mimeType() = "text/html";
-				std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::Forbidden);
-				if (it != server.errorPages().end())
-				{
-					ressource.path() = it->second.second;
-					ressource.responseCode() = it->second.first;
-				}
-				return ressource;
+				return getErrorPage(ressource, location, HttpStatus::Forbidden);
 			}
 		}
 		else if (path_stat.st_mode & S_IFREG)
@@ -200,30 +188,12 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 		}
 		else
 		{
-			ressource.type() = RESSOURCE_ERROR;
-			ressource.responseCode() = HttpStatus::NotFound;
-			ressource.mimeType() = "text/html";
-			std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::NotFound);
-			if (it != server.errorPages().end())
-			{
-				ressource.path() = it->second.second;
-				ressource.responseCode() = it->second.first;
-			}
-			return ressource;
+			return getErrorPage(ressource, location, HttpStatus::NotFound);
 		}
 	}
 	else
 	{
-		ressource.type() = RESSOURCE_ERROR;
-		ressource.responseCode() = HttpStatus::NotFound;
-		ressource.mimeType() = "text/html";
-		std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::NotFound);
-		if (it != server.errorPages().end())
-		{
-			ressource.path() = it->second.second;
-			ressource.responseCode() = it->second.first;
-		}
-		return ressource;
+		return getErrorPage(ressource, location, HttpStatus::NotFound);
 	}
 }
 
@@ -231,39 +201,16 @@ Ressource	Router::resolveErrorRessource(const HttpRequest &req, HttpStatus::Code
 {
 	Ressource	ressource;
 	size_t	longestMatchLength = 0;
-	URL	url(req.uri());
-	if (url.format() == URL_ERROR)
-	{
-		ressource.type() = RESSOURCE_ERROR;
-		ressource.responseCode() = HttpStatus::BadRequest;
-		ressource.mimeType() = "text/html";
-		std::map<int, std::pair<int, std::string> >::const_iterator it = server.errorPages().find(HttpStatus::BadRequest);
-		if (it != server.errorPages().end())
-		{
-			ressource.path() = it->second.second;
-			ressource.responseCode() = it->second.first;
-		}
-		return ressource;
-	}
 	const Location	*bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it)
 	{
-		size_t match_lenght = matchLength(url, it->path());
-		if (longestMatchLength < match_lenght)
+		size_t match_length = matchLength(req.uri(), it->path());
+		if (longestMatchLength < match_length)
 		{
-			longestMatchLength = match_lenght;
+			longestMatchLength = match_length;
 			bestMatch = &(*it);
 		}
 	}
 	const Location	&location = *bestMatch;
-	ressource.type() = RESSOURCE_ERROR;
-	ressource.responseCode() = errorCode;
-	ressource.mimeType() = "text/html";
-	std::map<int, std::pair<int, std::string> >::const_iterator it = location.errorPages().find(errorCode);
-	if (it != location.errorPages().end())
-	{
-		ressource.path() = it->second.second;
-		ressource.responseCode() = it->second.first;
-	}
-	return ressource;
+	return getErrorPage(ressource, location, errorCode);
 }

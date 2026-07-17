@@ -1,10 +1,11 @@
 #include "Ressource/Ressource.hpp"
+#include "http/HttpStatus.hpp"
 
 Ressource::Ressource():
 _type(RESSOURCE_NONE),
 _path(""),
 _mimeType(""),
-_responseCode(-1),
+_responseCode(HttpStatus::NoStatus),
 _cgiInterpreter(""),
 _pathInfo(""),
 _queryString(""),
@@ -68,12 +69,12 @@ std::string	&Ressource::mimeType()
 	return (this->_mimeType);
 }
 
-const int	&Ressource::responseCode() const
+const HttpStatus::Code	&Ressource::responseCode() const
 {
 	return (this->_responseCode);
 }
 
-int	&Ressource::responseCode()
+HttpStatus::Code	&Ressource::responseCode()
 {
 	return (this->_responseCode);
 }
