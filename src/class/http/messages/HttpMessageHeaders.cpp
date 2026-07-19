@@ -25,4 +25,5 @@ void HttpMessage::loadContentLength() {
 void HttpMessage::loadConnection() {
 	HeaderMap &headerMap = this->_headers;
 	if (!headerMap.has("Connection")) return;
+	if (headerMap.at("Connection") == "close") this->_keepAlive = false;;
 }

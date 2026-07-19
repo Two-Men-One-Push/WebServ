@@ -118,6 +118,7 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 		}
 	}
 	this->_version = HttpMessage::parseHttpVersion(buffer);
+	if (this->_version == HTTP1_0) this->_keepAlive = false;
 	buffer.clear();
 	return true;
 }
