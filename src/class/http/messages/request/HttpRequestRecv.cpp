@@ -1,4 +1,5 @@
 #include "./HttpRequest.hpp"
+#include "URL/URL.hpp"
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
@@ -92,6 +93,7 @@ bool HttpRequest::parseRequestUri(std::istream &input) {
 	}
 
 	this->_uri = URL(buffer);
+	if (this->_uri.format() == URL_ERROR) throw HttpExceptions::BadRequestException();
 
 	buffer.clear();
 	return true;
