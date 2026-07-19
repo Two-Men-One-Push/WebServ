@@ -7,11 +7,11 @@
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
 
-HttpTransaction::HttpTransaction() : _request(), _response(), _isLast(false) {
+HttpTransaction::HttpTransaction() : _request(), _response() {
 	std::cout << "New HTTP transaction created" << std::endl;
 }
 
-HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other._request), _response(other._response), _isLast(other._isLast) {}
+HttpTransaction::HttpTransaction(const HttpTransaction &other) : _request(other._request), _response(other._response) {}
 
 HttpTransaction::~HttpTransaction() {}
 
@@ -77,13 +77,13 @@ void HttpTransaction::closeResponseInput() {
 
 void HttpTransaction::error(const HttpException &e) {
 	this->_response.error(e);
-	this->_isLast = true;
+	this->_response.keepAlive(false);
 }
 
-bool HttpTransaction::isLast() const {
-	return this->_isLast || !this->_response.keepAlive();
+bool HttpTransaction::keepAlive() const {
+	return this->_request.keepAlive() && this->_response.keepAlive();
 }
 
-void HttpTransaction::isLast(bool isLast) {
-	this->_isLast = isLast;
+void HttpTransaction::kill() {
+	this->_response.keepAlive(false);
 }

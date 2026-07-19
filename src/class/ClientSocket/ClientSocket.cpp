@@ -117,7 +117,7 @@ void ClientSocket::onEpollIn(WebServer &server) {
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
-			if (!this->_transactions.back()->isLast()) {
+			if (this->_transactions.back()->keepAlive()) {
 				// If the request parsing is completed but we're waiting for other to come
 				this->_transactions.push(new HttpTransaction());
 			} else {
@@ -131,7 +131,7 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		}
 	}
 
-	if (this->_inClosed) this->_transactions.back()->isLast(true);
+	if (this->_inClosed) this->_transactions.back()->kill();
 
 	if (this->canHandleEpollOut()) {
 		server.epoll().mod(*this);
@@ -147,7 +147,7 @@ void ClientSocket::onEpollOut(WebServer &webServer) {
 		webServer.requestDelete(this);
 	}
 	if (sendCompleted) {
-		if (transaction->isLast()) {
+		if (!transaction->keepAlive()) {
 			webServer.requestDelete(this);
 		}
 		delete transaction;

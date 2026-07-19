@@ -147,6 +147,7 @@ class HttpMessage {
 	TransferEncoding tranferEncording() const { return _transferEncoding; }
 
 	bool keepAlive() const { return _keepAlive; }
+	void keepAlive(bool value) { this->_keepAlive = value; }
 
 	virtual std::ostream &printTypeInfo(std::ostream &os) const = 0;
 	std::ostream &print(std::ostream &os) const;
