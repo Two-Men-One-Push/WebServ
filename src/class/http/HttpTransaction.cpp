@@ -68,11 +68,11 @@ void HttpTransaction::closeRequestInput() {
 }
 
 void HttpTransaction::closeResponseInput() {
-	// try {
+	try {
 		this->_response.closeInput();
-	// } catch (const HttpException &e) {
-	// 	this->error(e);
-	// }
+	} catch (const HttpException &e) {
+		this->error(e);
+	}
 }
 
 void HttpTransaction::error(const HttpException &e) {
