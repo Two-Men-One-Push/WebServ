@@ -14,8 +14,7 @@ void HttpMessage::loadTranferEncoding() {
 void HttpMessage::loadContentLength() {
 	HeaderMap &headerMap = this->_headers;
 	if (!headerMap.has("Content-Length")) return;
-	if (this->_transferEncoding != TE_UNDEFINED) throw HttpExceptions::BadRequestException();
-	this->_inputWillClose = false;
+
 	try {
 		this->_contentLength = parseULong(headerMap.at("Content-Length"));
 	} catch (const std::exception &) {
@@ -26,8 +25,4 @@ void HttpMessage::loadContentLength() {
 void HttpMessage::loadConnection() {
 	HeaderMap &headerMap = this->_headers;
 	if (!headerMap.has("Connection")) return;
-	if (headerMap.at("Connection") == "keep-alive") {
-		this->_inputWillClose = false;
-		_contentLength = 0;
-	}
 }

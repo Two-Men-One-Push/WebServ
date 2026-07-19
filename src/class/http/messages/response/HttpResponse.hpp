@@ -60,7 +60,7 @@ class HttpResponse : public HttpMessage {
 
 	void prepareHeaders();
 
-	bool hasBody() const;
+	void checkBodyType();
 
 	void file();
 	void cgi(CGIInterface &cgi);

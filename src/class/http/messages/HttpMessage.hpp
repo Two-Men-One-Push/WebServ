@@ -39,6 +39,7 @@ class HttpMessage {
 
 	void writeBody(const char *buffer, size_t size);
 	bool collectRawBody(std::istream &input);
+	bool collectRawBodyToEOF(std::istream &input);
 	bool collectChunkedBody(std::istream &input);
 
 	// HEADER LOADER
@@ -66,6 +67,7 @@ class HttpMessage {
 	};
 
 	OutState _outState;
+	std::pair<std::string, std::string> _bufferedHeaderField;
 	std::size_t _sentSize;
 	bool _bodyEmpty;
 
@@ -92,14 +94,22 @@ class HttpMessage {
 	std::string _inBuffer;
 	std::string _outBuffer;
 
-	bool _inputWillClose;
 	size_t _contentLength;
+	bool _keepAlive;
 	TransferEncoding _transferEncoding;
+
+	enum {
+		BT_NONE,
+		BT_CONTENT_LENGTH,
+		BT_CHUNKED,
+		BT_EOF,
+	} _bodyType;
 
 	virtual bool recvTypeLine(std::istream &input) = 0;
 	void loadBaseUsedHeaders();
 
 	virtual void loadTypeUsedHeaders() = 0;
+	virtual void checkBodyType();
 
 	virtual void prepareHeaders() = 0;
 	virtual void formatTypeLine() = 0;
@@ -116,7 +126,7 @@ class HttpMessage {
 
 	void setHeader(const std::string &fieldName, const std::string &fieldValue);
 
-	virtual bool hasBody() const;
+	bool hasBody() const;
 
 	bool recvFrom(std::istream &input);
 	void inState(InState state);
@@ -134,8 +144,9 @@ class HttpMessage {
 
 	size_t contentLength() const { return _contentLength; }
 
-	TransferEncoding transferEncoding() const;
-	std::string transferEncodingStr() const;
+	TransferEncoding tranferEncording() const { return _transferEncoding; }
+
+	bool keepAlive() const { return _keepAlive; }
 
 	virtual std::ostream &printTypeInfo(std::ostream &os) const = 0;
 	std::ostream &print(std::ostream &os) const;

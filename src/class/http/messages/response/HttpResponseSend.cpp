@@ -1,3 +1,4 @@
+#include "http/messages/HttpMessage.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
 #include <sstream>
@@ -15,7 +16,7 @@ void HttpResponse::prepareHeaders() {
 	HeaderMap &headers = this->_headers;
 	std::stringstream ss;
 
-	if (this->_inputWillClose) {
+	if (this->_bodyType == BT_EOF) {
 		ss << this->_contentLength;
 		headers["Content-Length"] = ss.str();
 	}

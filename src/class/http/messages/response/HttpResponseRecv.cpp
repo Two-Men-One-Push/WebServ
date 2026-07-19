@@ -143,6 +143,20 @@ void HttpResponse::loadCGIStatus(const std::string &statusString) {
 	this->_message = statusString.substr(spacePos + 1);
 }
 
+/**
+ * This behavior is described by the RFC depending of the version
+ */
+void HttpResponse::checkBodyType() {
+	/** @see https://datatracker.ietf.org/doc/html/rfc9112#section-6.3-2.1 first case talking about response messages (aka HTTP response) */
+	if (this->_cgiInterface != NULL) {
+		this->_bodyType = BT_EOF;
+	} else if (HttpStatus::isInformational(this->_status) || this->_status == HttpStatus::NoContent || this->_status == HttpStatus::NotModified) {
+		this->_bodyType = BT_NONE;
+	} else {
+		this->HttpMessage::checkBodyType();
+	}
+}
+
 void HttpResponse::closeInput() {
 	if (this->_inState == RECV_MESSAGE_BODY) {
 		this->_inState = RECV_COMPLETED;

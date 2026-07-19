@@ -68,11 +68,11 @@ void HttpTransaction::closeRequestInput() {
 }
 
 void HttpTransaction::closeResponseInput() {
-	try {
+	// try {
 		this->_response.closeInput();
-	} catch (const HttpException &e) {
-		this->error(e);
-	}
+	// } catch (const HttpException &e) {
+	// 	this->error(e);
+	// }
 }
 
 void HttpTransaction::error(const HttpException &e) {
@@ -81,9 +81,7 @@ void HttpTransaction::error(const HttpException &e) {
 }
 
 bool HttpTransaction::isLast() const {
-	return this->_isLast ||
-		   (this->_response.headers().has("Connection") &&
-			this->_response.headers().at("Connection") == "close");
+	return this->_isLast || !this->_response.keepAlive();
 }
 
 void HttpTransaction::isLast(bool isLast) {

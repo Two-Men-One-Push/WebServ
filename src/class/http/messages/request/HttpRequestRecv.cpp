@@ -1,6 +1,7 @@
 #include "./HttpRequest.hpp"
 #include "http/errors/HttpStandardException.hpp"
 #include "http/messages/HttpMessage.hpp"
+#include "http/types.hpp"
 #include "utils/parsing.hpp"
 #include <iostream>
 #include <istream>
@@ -92,8 +93,6 @@ bool HttpRequest::parseRequestUri(std::istream &input) {
 
 	this->_uri = URL(buffer);
 
-	// !:! other checks required here
-
 	buffer.clear();
 	return true;
 }
@@ -125,10 +124,18 @@ void HttpRequest::loadTypeUsedHeaders() {
 	return;
 }
 
-void HttpRequest::closeInput() {
-	if (this->_inputWillClose && this->_inState == RECV_MESSAGE_BODY) {
-		this->_inState = RECV_COMPLETED;
+void HttpRequest::checkBodyType() {
+	if (this->_version == HTTP1_0) {
+		if (this->_contentLength > 0) {
+			this->_bodyType = BT_CONTENT_LENGTH;
+		} else {
+			this->_bodyType = BT_NONE;
+		}
 	} else {
-		throw HttpExceptions::BadRequestException();
+		this->HttpMessage::checkBodyType();
 	}
+}
+
+void HttpRequest::closeInput() {
+	throw HttpExceptions::BadRequestException();
 }

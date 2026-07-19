@@ -117,7 +117,11 @@ void ClientSocket::onEpollIn(WebServer &server) {
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
-			this->_transactions.push(new HttpTransaction());
+			if (!this->_transactions.back()->isLast()) {
+				this->_transactions.push(new HttpTransaction());
+			} else {
+				break;
+			}
 		} else if (this->_closed) {
 			this->_transactions.back()->closeRequestInput();
 		}

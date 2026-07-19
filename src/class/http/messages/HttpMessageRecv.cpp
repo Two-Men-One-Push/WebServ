@@ -22,14 +22,15 @@ bool HttpMessage::recvFrom(std::istream &input) {
 	case HttpMessage::RECV_MESSAGE_TYPES:
 		if (!this->recvTypeLine(input)) return false;
 		this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
-		if (!this->recvMessageHeaders(input)) return false;
 		// fallthrough
 	case HttpMessage::RECV_MESSAGE_HEADERS:
+		if (!this->recvMessageHeaders(input)) return false;
 		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
 		// fallthrough
 	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
 		this->loadBaseUsedHeaders();
 		this->loadTypeUsedHeaders();
+		this->checkBodyType();
 		this->_inState = HttpMessage::RECV_MESSAGE_BODY;
 		// fallthrough
 	case HttpMessage::RECV_MESSAGE_BODY:
@@ -61,20 +62,37 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 }
 
 void HttpMessage::loadBaseUsedHeaders() {
-	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) {
-		throw HttpExceptions::BadRequestException();
-	}
+	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) throw HttpExceptions::BadRequestException();
+
 	this->loadTranferEncoding();
 	this->loadConnection();
 	this->loadContentLength();
 }
 
-bool HttpMessage::hasBody() const {
-	return this->_transferEncoding != TE_UNDEFINED || this->_inputWillClose || this->_contentLength != 0;
+void HttpMessage::checkBodyType() {
+	if (this->_version == HTTP1_0) {
+		if (this->_contentLength > 0) {
+			this->_bodyType = BT_CONTENT_LENGTH;
+		} else {
+			this->_bodyType = BT_EOF;
+		}
+	} else {
+		if (this->_transferEncoding == TE_CHUNKED) {
+			this->_bodyType = BT_CHUNKED;
+		} else if (this->_contentLength > 0) {
+			this->_bodyType = BT_CONTENT_LENGTH;
+		} else {
+			this->_bodyType = BT_NONE;
+		}
+	}
 }
 
 bool HttpMessage::inCompleted() const {
 	return this->_inState == HttpMessage::RECV_COMPLETED;
+}
+
+bool HttpMessage::hasBody() const {
+	return this->_bodyType != BT_NONE;
 }
 
 /**
@@ -89,14 +107,15 @@ bool HttpMessage::inCompleted() const {
 bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
 
-	std::pair<std::string, std::string> headerField;
+	std::pair<std::string, std::string> &headerField = this->_bufferedHeaderField;
 	while (true) {
 		while (true) {
 			if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
 
 			int c = input.get();
-			if (c == std::stringstream::traits_type::eof())
+			if (c == std::stringstream::traits_type::eof()) {
 				return false;
+			}
 			buffer += static_cast<char>(c);
 			if (buffer.size() >= 2 && buffer.compare(buffer.size() - 2, 2, "\r\n") == 0) {
 				buffer.resize(buffer.size() - 2);
@@ -131,8 +150,9 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 }
 
 bool HttpMessage::recvBody(std::istream &input) {
-	if (this->_transferEncoding == TE_UNDEFINED) return this->collectRawBody(input);
-	if (this->_transferEncoding == TE_CHUNKED) return this->collectChunkedBody(input);
+	if (this->_bodyType == BT_CHUNKED) return this->collectChunkedBody(input);
+	if (this->_bodyType == BT_CONTENT_LENGTH) return this->collectRawBody(input);
+	if (this->_bodyType == BT_EOF) return this->collectRawBodyToEOF(input);
 	throw HttpExceptions::NotImplementedException();
 }
 
@@ -151,32 +171,38 @@ bool HttpMessage::collectRawBody(std::istream &input) {
 	char buffer[READ_SIZE];
 
 	while (true) {
-		size_t toRead;
-		if (!this->_inputWillClose) {
-			toRead = std::min(sizeof(buffer), this->_contentLength - this->_readSize);
-			if (toRead == 0)
-				break;
-		} else {
-			toRead = READ_SIZE;
-		}
+		size_t toRead = std::min(sizeof(buffer), this->_contentLength - this->_readSize);
+		if (toRead == 0)
+			break;
+
 		input.read(buffer, toRead);
+
 		std::streamsize n = input.gcount();
 		if (n == 0) {
 			break;
 		}
+
 		this->writeBody(buffer, n);
-		if (!this->_inputWillClose) {
-			this->_readSize += n;
-		} else {
-			this->_contentLength += n;
-		}
+		this->_readSize += n;
 	}
 
-	if (!this->_inputWillClose) {
-		return this->_readSize >= this->_contentLength;
-	} else {
-		return false;
+	return this->_readSize >= this->_contentLength;
+}
+
+bool HttpMessage::collectRawBodyToEOF(std::istream &input) {
+	char buffer[READ_SIZE];
+
+	while (true) {
+		input.read(buffer, READ_SIZE);
+
+		std::streamsize n = input.gcount();
+		if (n == 0) break;
+
+		this->writeBody(buffer, n);
+		this->_contentLength += n;
 	}
+
+	return false;
 }
 
 bool HttpMessage::collectChunkedBody(std::istream &input) {

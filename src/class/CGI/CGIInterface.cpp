@@ -62,7 +62,6 @@ void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &s
 	if (pid == -1) throw WebservErrors::SysError("waitpid", errno);
 	if (pid == 0) return;
 	this->_cgiPid = -1;
-	std::cout << WEXITSTATUS(status) << std::endl;
 }
 
 void CGIInterface::startCgi(const HttpRequest &request) {
