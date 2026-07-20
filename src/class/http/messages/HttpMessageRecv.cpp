@@ -1,5 +1,4 @@
 #include "./HttpMessage.hpp"
-#include "errors/WebservErrors.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/types.hpp"
@@ -160,9 +159,7 @@ bool HttpMessage::recvBody(std::istream &input) {
 void HttpMessage::writeBody(const char *buffer, size_t size) {
 	while (size) {
 		ssize_t written = this->_body->write(buffer, size);
-		if (written < 0) throw WebservErrors::SysError("write", errno);
-		if (written == 0)
-			throw HttpErrors::InternalServerErrorException();
+		if (written < 0) throw HttpErrors::InternalServerErrorException();
 		buffer += written;
 		size -= written;
 	}
