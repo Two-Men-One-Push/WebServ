@@ -1,4 +1,4 @@
-#include "http/errors/HttpStandardException.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
 #include "utils/parsing.hpp"
@@ -7,7 +7,7 @@
 void HttpMessage::loadTranferEncoding() {
 	HeaderMap &headers = this->_headers;
 	if (!headers.has("Transfer-Encoding")) return;
-	if (headers.at("Transfer-Encoding") != "chunked") throw HttpExceptions::NotImplementedException();
+	if (headers.at("Transfer-Encoding") != "chunked") throw HttpErrors::NotImplementedException();
 	this->_transferEncoding = TE_CHUNKED;
 }
 
@@ -18,7 +18,7 @@ void HttpMessage::loadContentLength() {
 	try {
 		this->_contentLength = parseULong(headerMap.at("Content-Length"));
 	} catch (const std::exception &) {
-		throw HttpExceptions::BadRequestException();
+		throw HttpErrors::BadRequestException();
 	}
 }
 

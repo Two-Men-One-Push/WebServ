@@ -1,6 +1,6 @@
 #include "./HttpRequest.hpp"
 #include "URL/URL.hpp"
-#include "http/errors/HttpStandardException.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/types.hpp"
 #include "utils/parsing.hpp"
@@ -54,18 +54,18 @@ bool HttpRequest::parseRequestMethod(std::istream &input) {
 	std::string part;
 
 	while (true) {
-		if (buffer.size() == this->_maxMethodSize) throw HttpExceptions::NotImplementedException();
+		if (buffer.size() == this->_maxMethodSize) throw HttpErrors::NotImplementedException();
 
 		int c = input.get();
 		if (c == ' ')
 			break;
 		if (c == std::stringstream::traits_type::eof())
 			return false;
-		if (!istokenc(c)) throw HttpExceptions::BadRequestException();
+		if (!istokenc(c)) throw HttpErrors::BadRequestException();
 		buffer += static_cast<char>(c);
 	}
 
-	if (HttpRequest::implementedHttpMethod.find(buffer) == HttpRequest::implementedHttpMethod.end()) throw HttpExceptions::NotImplementedException();
+	if (HttpRequest::implementedHttpMethod.find(buffer) == HttpRequest::implementedHttpMethod.end()) throw HttpErrors::NotImplementedException();
 	this->_method = HttpRequest::implementedHttpMethod[buffer];
 	buffer.clear();
 	return true;
@@ -78,7 +78,7 @@ bool HttpRequest::parseRequestUri(std::istream &input) {
 	buffer += part;
 
 	while (true) {
-		if (buffer.size() == this->_maxUriSize) throw HttpExceptions::URITooLongException();
+		if (buffer.size() == this->_maxUriSize) throw HttpErrors::URITooLongException();
 
 		int c = input.get();
 		if (c == ' ')
@@ -93,7 +93,7 @@ bool HttpRequest::parseRequestUri(std::istream &input) {
 	}
 
 	this->_uri = URL(buffer);
-	if (this->_uri.format() == URL_ERROR) throw HttpExceptions::BadRequestException();
+	if (this->_uri.format() == URL_ERROR) throw HttpErrors::BadRequestException();
 
 	buffer.clear();
 	return true;
@@ -105,7 +105,7 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 
 	if (buffer.empty()) {
 		while (true) {
-			if (buffer.size() == this->_maxVersionSize) throw HttpExceptions::BadRequestException();
+			if (buffer.size() == this->_maxVersionSize) throw HttpErrors::BadRequestException();
 
 			int c = input.get();
 			if (c == std::stringstream::traits_type::eof())
@@ -140,5 +140,5 @@ void HttpRequest::checkBodyType() {
 }
 
 void HttpRequest::closeInput() {
-	throw HttpExceptions::BadRequestException();
+	throw HttpErrors::BadRequestException();
 }

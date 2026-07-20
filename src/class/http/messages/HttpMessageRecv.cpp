@@ -1,6 +1,7 @@
 #include "./HttpMessage.hpp"
 #include "errors/WebservErrors.hpp"
-#include "http/errors/HttpStandardException.hpp"
+#include "http/HttpStatus.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include "http/types.hpp"
 #include "utils/parsing.hpp"
 #include <algorithm>
@@ -48,21 +49,21 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 	if (input == "HTTP/1.0") return HTTP1_0;
 	if (input == "HTTP/1.1") return HTTP1_1;
 
-	if (input.compare(0, 5, "HTTP/")) throw HttpExceptions::BadRequestException();
+	if (input.compare(0, 5, "HTTP/")) throw HttpMessage::Exception();
 	bool point = false;
 	for (std::string::const_iterator it = input.begin() + 5; it != input.end(); ++it) {
 		if (*it == '.') {
-			if (point) throw HttpExceptions::BadRequestException();
+			if (point) throw HttpMessage::Exception();
 			point = true;
 		} else if (!std::isdigit(*it)) {
-			throw HttpExceptions::BadRequestException();
+			throw HttpMessage::Exception();
 		}
 	}
-	throw HttpExceptions::HTTPVersionNotSupportedException();
+	throw HttpMessage::Exception().requestStatus(HttpStatus::HTTPVersionNotSupported);
 }
 
 void HttpMessage::loadBaseUsedHeaders() {
-	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) throw HttpExceptions::BadRequestException();
+	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) throw HttpMessage::Exception();
 
 	this->loadTranferEncoding();
 	this->loadConnection();
@@ -110,7 +111,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	std::pair<std::string, std::string> &headerField = this->_bufferedHeaderField;
 	while (true) {
 		while (true) {
-			if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
+			if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
 
 			int c = input.get();
 			if (c == std::stringstream::traits_type::eof()) {
@@ -132,7 +133,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 		}
 
 		if (line[0] == ' ' || line[0] == '\t') {
-			if (headerField.first.empty()) throw HttpExceptions::BadRequestException();
+			if (headerField.first.empty()) throw HttpMessage::Exception();
 			if (!headerField.second.empty()) headerField.second += " ";
 			headerField.second += trim(line);
 		} else {
@@ -140,9 +141,9 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 				this->_headers.insert(headerField);
 			}
 			size_t headerNamePos = line.find(':');
-			if (headerNamePos == line.npos) throw HttpExceptions::BadRequestException();
+			if (headerNamePos == line.npos) throw HttpMessage::Exception();
 			headerField.first = line.substr(0, headerNamePos);
-			if (!istoken(headerField.first)) throw HttpExceptions::BadRequestException();
+			if (!istoken(headerField.first)) throw HttpMessage::Exception();
 			toHeaderCase(headerField.first);
 			headerField.second = trim(line.substr(headerNamePos + 1));
 		}
@@ -153,7 +154,7 @@ bool HttpMessage::recvBody(std::istream &input) {
 	if (this->_bodyType == BT_CHUNKED) return this->collectChunkedBody(input);
 	if (this->_bodyType == BT_CONTENT_LENGTH) return this->collectRawBody(input);
 	if (this->_bodyType == BT_EOF) return this->collectRawBodyToEOF(input);
-	throw HttpExceptions::NotImplementedException();
+	throw HttpMessage::Exception().requestStatus(HttpStatus::NotImplemented);
 }
 
 void HttpMessage::writeBody(const char *buffer, size_t size) {
@@ -161,7 +162,7 @@ void HttpMessage::writeBody(const char *buffer, size_t size) {
 		ssize_t written = this->_body->write(buffer, size);
 		if (written < 0) throw WebservErrors::SysError("write", errno);
 		if (written == 0)
-			throw HttpExceptions::InternalServerErrorException();
+			throw HttpErrors::InternalServerErrorException();
 		buffer += written;
 		size -= written;
 	}
@@ -178,9 +179,7 @@ bool HttpMessage::collectRawBody(std::istream &input) {
 		input.read(buffer, toRead);
 
 		std::streamsize n = input.gcount();
-		if (n == 0) {
-			break;
-		}
+		if (n == 0) break;
 
 		this->writeBody(buffer, n);
 		this->_readSize += n;
@@ -230,7 +229,7 @@ bool HttpMessage::collectChunkedBody(std::istream &input) {
 bool HttpMessage::getChunkSize(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
 	while (true) {
-		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
+		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
 
 		int c = input.get();
 		if (c == std::stringstream::traits_type::eof())
@@ -245,15 +244,15 @@ bool HttpMessage::getChunkSize(std::istream &input) {
 	size_t pos = buffer.find(';');
 	if (pos != buffer.npos) {
 		buffer.resize(pos);
-		if (buffer.size() == 0 || !ishexdigit(buffer[0])) throw HttpExceptions::BadRequestException();
+		if (buffer.size() == 0 || !ishexdigit(buffer[0])) throw HttpMessage::Exception();
 		buffer = trim(buffer, " ");
 	}
-	if (buffer.size() == 0) throw HttpExceptions::BadRequestException();
+	if (buffer.size() == 0) throw HttpMessage::Exception();
 	try {
 		this->_chunkInfo.size = parseHex(buffer);
 		this->_chunkInfo.readSize = 0;
 	} catch (...) {
-		throw HttpExceptions::BadRequestException();
+		throw HttpMessage::Exception();
 	}
 	buffer.clear();
 	if (this->_chunkInfo.size == 0) {
@@ -271,9 +270,10 @@ bool HttpMessage::getChunkContent(std::istream &input) {
 		if (toRead == 0)
 			break;
 		input.read(buffer, toRead);
+
 		std::streamsize n = input.gcount();
-		if (n == 0)
-			break;
+		if (n == 0) break;
+
 		this->writeBody(buffer, n);
 		this->_chunkInfo.readSize += n;
 	}
@@ -291,7 +291,7 @@ bool HttpMessage::getChunkCrlf(std::istream &input) {
 			return false;
 		buffer += static_cast<char>(c);
 	}
-	if (buffer != "\r\n") throw HttpExceptions::BadRequestException();
+	if (buffer != "\r\n") throw HttpMessage::Exception();
 	buffer.clear();
 	this->_chunkInfo.state = BodyChunkInfo::CHUNK_SIZE;
 	return true;
@@ -301,7 +301,7 @@ bool HttpMessage::getChunkedTrailer(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
 
 	while (true) {
-		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpExceptions::BadRequestException();
+		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
 
 		int c = input.get();
 		if (c == std::stringstream::traits_type::eof())

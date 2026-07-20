@@ -1,7 +1,7 @@
 #ifndef HTTPTRANSACTION_HPP
 #define HTTPTRANSACTION_HPP
 
-#include "http/errors/HttpException.hpp"
+#include "http/errors/HttpErrors.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <istream>
@@ -30,7 +30,7 @@ class HttpTransaction {
 	void closeRequestInput();
 	void closeResponseInput();
 
-	void error(const HttpException &e);
+	void error(const HttpError &e);
 
 	bool keepAlive() const;
 	void kill();

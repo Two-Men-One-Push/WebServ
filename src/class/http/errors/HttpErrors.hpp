@@ -4,16 +4,16 @@
 #include "http/HttpStatus.hpp"
 #include <string>
 
-class HttpException : public std::exception {
+class HttpError : public std::exception {
   protected:
 	std::string _message;
 	HttpStatus::Code _status;
 
   public:
-	HttpException(HttpStatus::Code status) throw();
-	HttpException(HttpStatus::Code status, const std::string &detail) throw();
+	HttpError(HttpStatus::Code status) throw();
+	HttpError(HttpStatus::Code status, const std::string &detail) throw();
 
-	virtual ~HttpException() throw();
+	virtual ~HttpError() throw();
 	virtual const char *what() const throw();
 	HttpStatus::Code status() const;
 	const std::string &message() const;

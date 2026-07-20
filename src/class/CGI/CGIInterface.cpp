@@ -3,7 +3,7 @@
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
-#include "http/errors/HttpStandardException.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
 #include <cerrno>
@@ -175,7 +175,7 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			else if (childResult) {
 				this->_httpTransaction.closeResponseInput();
 			} else {
-				this->_httpTransaction.error(HttpExceptions::InternalServerErrorException());
+				this->_httpTransaction.error(HttpErrors::InternalServerErrorException());
 			}
 		} else {
 			return;
@@ -185,7 +185,7 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 		if (this->killChild()) {
 			this->_httpTransaction.closeResponseInput();
 		} else {
-			this->_httpTransaction.error(HttpExceptions::InternalServerErrorException());
+			this->_httpTransaction.error(HttpErrors::InternalServerErrorException());
 		}
 	}
 }

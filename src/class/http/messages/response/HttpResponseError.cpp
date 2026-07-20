@@ -3,7 +3,7 @@
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
 
-void HttpResponse::error(const HttpException &e) {
+void HttpResponse::error(const HttpError &e) {
 	this->_status = e.status();
 	this->_message = e.message();
 

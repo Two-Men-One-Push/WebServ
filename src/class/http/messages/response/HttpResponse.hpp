@@ -3,7 +3,7 @@
 
 #include "CGI/CGIInterface.hpp"
 #include "http/HttpStatus.hpp"
-#include "http/errors/HttpException.hpp"
+#include "http/errors/HttpErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include <istream>
 
@@ -64,7 +64,7 @@ class HttpResponse : public HttpMessage {
 
 	void file();
 	void cgi(CGIInterface &cgi);
-	void error(const HttpException &e);
+	void error(const HttpError &e);
 
 	bool formatCompleted();
 

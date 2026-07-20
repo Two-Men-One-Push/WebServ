@@ -2,14 +2,14 @@
 #define HTTPSTANDARDEXCEPTION_HPP
 
 #include "http/HttpStatus.hpp"
-#include "http/errors/HttpException.hpp"
+#include "http/errors/HttpErrors.hpp"
 
 template <HttpStatus::Code statusT>
-class HttpExceptionT : public HttpException {
+class HttpExceptionT : public HttpError {
   public:
-	HttpExceptionT() throw() : HttpException(statusT) {}
+	HttpExceptionT() throw() : HttpError(statusT) {}
 
-	HttpExceptionT(const std::string &detail) throw() : HttpException(statusT, detail) {}
+	HttpExceptionT(const std::string &detail) throw() : HttpError(statusT, detail) {}
 
 	virtual ~HttpExceptionT() throw() {}
 };
@@ -21,13 +21,14 @@ class HttpExceptionT : public HttpException {
 		Name(const std::string &detail) throw() : HttpExceptionT<HttpStatus::Code>(detail) {} \
 	};
 
-namespace HttpExceptions {
+namespace HttpErrors {
 HTTP_EXCEPTION(NoContentException, NoContent)
 HTTP_EXCEPTION(BadRequestException, BadRequest)
-HTTP_EXCEPTION(NotImplementedException, NotImplemented)
-HTTP_EXCEPTION(HTTPVersionNotSupportedException, HTTPVersionNotSupported)
 HTTP_EXCEPTION(URITooLongException, URITooLong)
 HTTP_EXCEPTION(InternalServerErrorException, InternalServerError)
-}; // namespace HttpExceptions
+HTTP_EXCEPTION(NotImplementedException, NotImplemented)
+HTTP_EXCEPTION(BadGatewayException, BadGateway)
+HTTP_EXCEPTION(HTTPVersionNotSupportedException, HTTPVersionNotSupported)
+}; // namespace HttpErrors
 
 #endif
