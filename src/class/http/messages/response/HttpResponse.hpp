@@ -3,9 +3,9 @@
 
 #include "CGI/CGIInterface.hpp"
 #include "http/HttpStatus.hpp"
-#include "http/errors/HttpErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include <istream>
+#include <string>
 
 #define TMP_SERVER_ROOT "www"
 
@@ -17,6 +17,9 @@ class HttpResponse : public HttpMessage {
 
 	HttpStatus::Code _status;
 	std::string _message;
+
+	std::string _mimeType;
+	std::string _redirectUrl;
 
 	enum FirstLineParsingState {
 		RESPONSE_VERSION,
@@ -36,10 +39,12 @@ class HttpResponse : public HttpMessage {
 	bool parseResponseStatus(std::istream &input);
 	bool parseResponseMessage(std::istream &input);
 
+	void loadCGIStatus();
+	void loadContentType();
+
 	CGIInterface *_cgiInterface;
 
 	void formatHead();
-	void loadCGIStatus(const std::string &statusString);
 
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
@@ -53,7 +58,10 @@ class HttpResponse : public HttpMessage {
 	HttpResponse(const HttpResponse &other);
 	~HttpResponse();
 
+	void replaceBody(IBody *newBody);
+
 	HttpStatus::Code status() const;
+
 	void status(int status);
 
 	void closeInput();
@@ -62,9 +70,11 @@ class HttpResponse : public HttpMessage {
 
 	void checkBodyType();
 
-	void file();
+	void file(const std::string &path, HttpStatus::Code status, const std::string &mimeType);
+	void generate(HttpStatus::Code status);
+	void redirect(const std::string &redirectUrl, HttpStatus::Code status);
+	void autoIndex(const std::string &directoryPath, HttpStatus::Code status);
 	void cgi(CGIInterface &cgi);
-	void error(const HttpError &e);
 
 	bool formatCompleted();
 

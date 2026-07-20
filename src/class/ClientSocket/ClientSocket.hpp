@@ -3,6 +3,7 @@
 
 #include "ASocket/ASocket.hpp"
 #include "http/HttpTransaction.hpp"
+#include "model/Server/Server.hpp"
 #include <netinet/in.h>
 #include <queue>
 #include <sstream>
@@ -14,11 +15,12 @@ class ListeningSocket;
 
 class ClientSocket : public ASocket {
   private:
+	const Server &_serverConfig;
 	struct sockaddr_storage _address;
 	socklen_t _addressLen;
 	bool _inClosed;
 
-	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen);
+	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen, const Server &serverConfig);
 	void onWriteReady();
 	void onEpollIn(WebServer &webServer);
 	void onEpollOut(WebServer &webServer);
@@ -41,7 +43,7 @@ class ClientSocket : public ASocket {
 
 	int fd() const { return _fd; }
 
-	static ClientSocket *createFromListener(int listenerFd);
+	static ClientSocket *createFromListener(int listenerFd, const Server &serverConfig);
 };
 
 #endif

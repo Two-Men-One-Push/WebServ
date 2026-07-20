@@ -2,6 +2,7 @@
 #define LISTENINGSOCKET_HPP
 
 #include "ASocket/ASocket.hpp"
+#include "model/Server/Server.hpp"
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -11,7 +12,8 @@ class ClientSocket;
 
 class ListeningSocket : public ASocket {
   private:
-	ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen);
+	const Server &_serverConfig;
+	ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen, const Server &serverConfig);
 	void onEpollIn(WebServer &webServer) const;
 
   public:
@@ -24,8 +26,8 @@ class ListeningSocket : public ASocket {
 
 	int fd() const { return _fd; }
 
-	static ListeningSocket create(const sockaddr &addr, socklen_t addresslen);
-	static ListeningSocket *createNew(const sockaddr &addr, socklen_t addresslen);
+	static ListeningSocket create(const sockaddr &addr, socklen_t addresslen, const Server &serverConfig);
+	static ListeningSocket *createNew(const sockaddr &addr, socklen_t addresslen, const Server &serverConfig);
 };
 
 #endif

@@ -24,6 +24,8 @@ class HttpExceptionT : public HttpError {
 namespace HttpErrors {
 HTTP_EXCEPTION(NoContentException, NoContent)
 HTTP_EXCEPTION(BadRequestException, BadRequest)
+HTTP_EXCEPTION(ForbiddenException, Forbidden)
+HTTP_EXCEPTION(NotFoundException, NotFound)
 HTTP_EXCEPTION(URITooLongException, URITooLong)
 HTTP_EXCEPTION(InternalServerErrorException, InternalServerError)
 HTTP_EXCEPTION(NotImplementedException, NotImplemented)

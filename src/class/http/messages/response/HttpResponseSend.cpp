@@ -1,4 +1,7 @@
+#include "http/HttpStatus.hpp"
+#include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
+#include "http/types.hpp"
 #include <iostream>
 #include <sstream>
 #include <sys/types.h>
@@ -15,9 +18,18 @@ void HttpResponse::prepareHeaders() {
 	HeaderMap &headers = this->_headers;
 	std::stringstream ss;
 
-	ss << this->_contentLength;
-	headers["Content-Length"] = ss.str();
-	if (!headers.has("Connection") || headers.at("Connection") != "close") {
-		headers["Connection"] = "keep-alive";
+	headers["Date"] = "IL FAUT METTRE LA DATE";
+	if (this->_version == HTTP1_1) {
+		headers["Connection"] = this->_keepAlive ? "keep-alive" : "close";
+	}
+	if (this->_status != HttpStatus::NoContent && this->_status != HttpStatus::NotModified) {
+		ss << this->_contentLength;
+		headers["Content-Length"] = ss.str();
+	}
+	if (this->hasBody()) {
+		headers["Content-Type"] = this->_mimeType;
+	}
+	if (this->status() == HttpStatus::MethodNotAllowed) {
+		headers["Allow"] = HttpRequest::getAllowHeader();
 	}
 }

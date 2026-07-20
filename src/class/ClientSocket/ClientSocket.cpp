@@ -3,6 +3,7 @@
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
+#include "model/Server/Server.hpp"
 #include "utils/formatting.hpp"
 #include <cerrno>
 #include <iostream>
@@ -15,8 +16,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _inClosed(false), _outBuffer(), _transactions() {
+ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen, const Server &serverConfig)
+	: ASocket(fd), _serverConfig(serverConfig),  _address(address), _addressLen(addressLen), _inClosed(false), _outBuffer(), _transactions() {
 	FormattedAddress formattedAddress;
 	formatAddress(address, formattedAddress);
 	std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
@@ -33,7 +34,7 @@ socklen_t ClientSocket::addressLen() const {
 	return _addressLen;
 }
 
-ClientSocket *ClientSocket::createFromListener(int listenerFd) {
+ClientSocket *ClientSocket::createFromListener(int listenerFd, const Server &serverConfig) {
 	struct sockaddr_storage clientAddr;
 	socklen_t addrLen = sizeof(clientAddr);
 
@@ -42,7 +43,7 @@ ClientSocket *ClientSocket::createFromListener(int listenerFd) {
 	if (fd < 0)
 		throw WebservErrors::SysError("accept", errno);
 
-	return new ClientSocket(fd, clientAddr, addrLen);
+	return new ClientSocket(fd, clientAddr, addrLen, serverConfig);
 }
 
 const struct sockaddr_storage &ClientSocket::address() const {
@@ -112,14 +113,14 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {
-		this->_transactions.push(new HttpTransaction());
+		this->_transactions.push(new HttpTransaction(this->_serverConfig));
 	}
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
 			if (this->_transactions.back()->keepAlive()) {
 				// If the request parsing is completed but we're waiting for other to come
-				this->_transactions.push(new HttpTransaction());
+				this->_transactions.push(new HttpTransaction(this->_serverConfig));
 			} else {
 				// If the request parsing is completed but the response will close the connection
 				this->_inClosed = true;

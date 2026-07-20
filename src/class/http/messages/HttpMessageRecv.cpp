@@ -31,8 +31,10 @@ bool HttpMessage::recvFrom(std::istream &input) {
 		this->loadBaseUsedHeaders();
 		this->loadTypeUsedHeaders();
 		this->checkBodyType();
-		this->_inState = HttpMessage::RECV_MESSAGE_BODY;
-		// fallthrough
+		this->_inState = HttpMessage::RECV_WAITING_ROUTING;
+		return false;
+	case HttpMessage::RECV_WAITING_ROUTING:
+		return false;
 	case HttpMessage::RECV_MESSAGE_BODY:
 		if (this->hasBody() && !this->recvBody(input)) return false;
 		this->_inState = HttpMessage::RECV_COMPLETED;
@@ -85,6 +87,14 @@ void HttpMessage::checkBodyType() {
 			this->_bodyType = BT_NONE;
 		}
 	}
+}
+
+bool HttpMessage::waitingRouting() const {
+	return this->_inState == HttpMessage::RECV_WAITING_ROUTING;
+}
+
+void HttpMessage::completeRouting() {
+	this->_inState = RECV_MESSAGE_BODY;
 }
 
 bool HttpMessage::inCompleted() const {

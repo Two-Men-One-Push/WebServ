@@ -2,7 +2,6 @@
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/messages/response/HttpResponse.hpp"
-#include "http/types.hpp"
 #include "utils/parsing.hpp"
 #include <cstddef>
 #include <fcntl.h>
@@ -121,26 +120,10 @@ bool HttpResponse::parseResponseMessage(std::istream &input) {
 }
 
 void HttpResponse::loadTypeUsedHeaders() {
-	HeaderMap &headers = this->_headers;
 	if (this->_cgiInterface != NULL) {
-		if (headers.has("Status")) {
-			this->loadCGIStatus(headers.at("Status"));
-			headers.erase("Status");
-		}
+		this->loadCGIStatus();
 	}
-}
-
-void HttpResponse::loadCGIStatus(const std::string &statusString) {
-	size_t spacePos = statusString.find(' ');
-	if (spacePos == statusString.npos) {
-		throw HttpErrors::InternalServerErrorException();
-	}
-	try {
-		this->_status = HttpStatus::fromInt(parseULong(statusString.substr(0, spacePos)));
-	} catch (...) {
-		throw HttpErrors::InternalServerErrorException();
-	}
-	this->_message = statusString.substr(spacePos + 1);
+	this->loadContentType();
 }
 
 /**

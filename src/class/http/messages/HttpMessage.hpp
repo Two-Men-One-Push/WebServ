@@ -88,6 +88,7 @@ class HttpMessage {
 		RECV_MESSAGE_TYPES,
 		RECV_MESSAGE_HEADERS,
 		RECV_LOAD_MESSAGE_HEADERS,
+		RECV_WAITING_ROUTING,
 		RECV_MESSAGE_BODY,
 		RECV_COMPLETED,
 	};
@@ -168,6 +169,8 @@ class HttpMessage {
 
 	bool recvFrom(std::istream &input);
 	void inState(InState state);
+	bool waitingRouting() const;
+	void completeRouting();
 	bool inCompleted() const;
 
 	bool sendTo(const Fd &output);

@@ -1,11 +1,13 @@
 #include "./CGIInterface.hpp"
 #include "Pipe/Pipe.hpp"
+#include "Ressource/Ressource.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
+#include "utils/formatting.hpp"
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -15,13 +17,16 @@
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
 
-CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server)
-	: _execPath(execPath),
+CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTransaction, WebServer &server)
+	: _interpreter(ressource.cgiInterpreter()),
+	  _cgiScriptPath(ressource.path()),
+	  _pathInfo(ressource.pathInfo()),
 	  _httpTransaction(httpTransaction),
 	  _inPipe(Pipe::createCGIPipe(*this)),
 	  _outPipe(Pipe::createCGIPipe(*this)),
@@ -81,7 +86,7 @@ void CGIInterface::startCgi(const HttpRequest &request) {
 		_exit(1);
 	}
 
-	char *const argv[] = {const_cast<char *>(this->_execPath.c_str()), NULL};
+	char *const argv[] = {const_cast<char *>(this->_interpreter.c_str()), const_cast<char *>(this->_cgiScriptPath.c_str()), NULL};
 
 	std::vector<std::string> env;
 	this->setupEnv(env, request);
@@ -94,7 +99,7 @@ void CGIInterface::startCgi(const HttpRequest &request) {
 	}
 	envp[i] = NULL;
 
-	execve(this->_execPath.c_str(), argv, envp);
+	execve(this->_interpreter.c_str(), argv, envp);
 	perror("execve");
 	_exit(1);
 }
@@ -119,12 +124,13 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &re
 
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-	env.push_back("SCRIPT_NAME=" + this->_execPath);
-	// TODO
-	env.push_back("PATH_INFO=");
+	env.push_back("SCRIPT_NAME=" + this->_cgiScriptPath);
+	env.push_back("PATH_INFO=" + this->_pathInfo);
 
-	// TODO
-	env.push_back("REMOTE_ADDR=127.0.0.1");
+	FormattedAddress formattedAddress;
+	struct sockaddr_storage *address = NULL;
+	formatAddress(*address, formattedAddress);
+	env.push_back("REMOTE_ADDR=" + formattedAddress.address);
 	// TODO
 	env.push_back("REMOTE_HOST=127.0.0.1");
 	env.push_back("REQUEST_METHOD=" + request.methodStr());
@@ -211,10 +217,6 @@ int CGIInterface::waitChild() {
 		this->_cgiPid = -1;
 	}
 	return this->_processSucces;
-}
-
-const std::string &CGIInterface::execPath() const {
-	return this->_execPath;
 }
 
 bool CGIInterface::running() const {

@@ -2,6 +2,7 @@
 #define CGI_HPP
 
 #include "Pipe/Pipe.hpp"
+#include "Ressource/Ressource.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include <string>
 #include <sys/types.h>
@@ -11,7 +12,10 @@ class WebServer;
 
 class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
-	std::string _execPath;
+	std::string _interpreter;
+	std::string _cgiScriptPath;
+	std::string _pathInfo;
+
 	HttpTransaction &_httpTransaction;
 
 	/* The Pipe the parent process reads from */
@@ -31,10 +35,8 @@ class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
 	bool killChild();
 
   public:
-	CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server);
+	CGIInterface(const Ressource &ressource, HttpTransaction &httpTransaction, WebServer &server);
 	virtual ~CGIInterface();
-
-	const std::string &execPath() const;
 
 	/** Do you think this is related to _inPipe or _outPipe ? guess */
 	void outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebServer &webServer);

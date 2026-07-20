@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <utility>
 
 Semantic::Semantic()
 {
@@ -147,17 +148,29 @@ void	Semantic::parseCGI(std::list<Directive>::const_iterator it, std::map<std::s
 	}
 }
 
-void	Semantic::parseListen(std::list<Directive>::const_iterator it, std::vector<int> &listen, Http &http, DiagnosticContext &diag)
+void	Semantic::parseListen(std::list<Directive>::const_iterator it, std::vector<std::pair<std::string, int> > &listen, DiagnosticContext &diag)
 {
-	if (checkShape(*it, ARGS_AT_LEAST_ONE, BODY_FORBIDDEN, diag))
+	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
-			bool	duplicate = false;
-			int		port;
-			if (!parseInt(arg->rawContent(), port))
+			std::string	hostStr;
+			std::string	portStr;
+			size_t	sep = arg->rawContent().find_last_of(":");
+			if (sep != std::string::npos)
 			{
-				diag.report("invalid port number '" + arg->rawContent() + "'", *arg);
+				hostStr = arg->rawContent().substr(0, sep);
+				portStr = arg->rawContent().substr(sep + 1);
+			}
+			else
+			{
+				hostStr = "0.0.0.0";
+				portStr = arg->rawContent();
+			}
+			int			port;
+			if (!parseInt(portStr, port))
+			{
+				diag.report("invalid port number '" + portStr + "'", *arg);
 				continue;
 			}
 			if (port < 0 || port > 65535)
@@ -165,17 +178,7 @@ void	Semantic::parseListen(std::list<Directive>::const_iterator it, std::vector<
 				diag.report("port number must be between 0 and 65535", *arg);
 				continue;
 			}
-			for (std::vector<Server>::const_iterator serv = http.servers().begin(); serv != http.servers().end(); ++serv)
-			{
-				if (std::find(serv->listen().begin(), serv->listen().end(), port) != serv->listen().end())
-				{
-					diag.report("duplicate port number '" + arg->rawContent() + "'", *arg);
-					duplicate = true;
-					break;
-				}
-			}
-			if (!duplicate)
-				listen.push_back(port);
+			listen.push_back(std::make_pair(hostStr, port));
 		}
 	}
 }
@@ -415,10 +418,8 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		const std::string name = it->name().rawContent();
 		if (name == "listen")
 		{
-			if (hasListen)
-				diag.report("duplicate 'listen' directive", *it);
 			hasListen = true;
-			parseListen(it, server.listen(), http, diag);
+			parseListen(it, server.listen(), diag);
 		}
 		else if (name == "server_name")
 		{
