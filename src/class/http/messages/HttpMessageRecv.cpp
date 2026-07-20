@@ -59,7 +59,7 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 			throw HttpMessage::Exception();
 		}
 	}
-	throw HttpErrors::HTTPVersionNotSupportedException();
+	throw HttpMessage::Exception().requestStatus(HttpStatus::HTTPVersionNotSupported);
 }
 
 void HttpMessage::loadBaseUsedHeaders() {
