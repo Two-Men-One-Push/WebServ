@@ -1,3 +1,4 @@
+#include "http/messages/HttpMessage.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
 #include <sstream>
@@ -15,10 +16,8 @@ void HttpResponse::prepareHeaders() {
 	HeaderMap &headers = this->_headers;
 	std::stringstream ss;
 
-	if (this->_inputWillClose) {
-		ss << this->_contentLength;
-		headers["Content-Length"] = ss.str();
-	}
+	ss << this->_contentLength;
+	headers["Content-Length"] = ss.str();
 	if (!headers.has("Connection") || headers.at("Connection") != "close") {
 		headers["Connection"] = "keep-alive";
 	}

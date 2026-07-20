@@ -5,6 +5,7 @@ HttpMessage::HttpMessage()
 	: _readSize(0),
 	  _chunkInfo((BodyChunkInfo){BodyChunkInfo::CHUNK_SIZE, 0, 0}),
 	  _outState(SEND_PREPARE_HEAD),
+	  _bufferedHeaderField("", ""),
 	  _sentSize(0),
 	  _bodyEmpty(false),
 	  _version(HTTP1_1),
@@ -13,9 +14,10 @@ HttpMessage::HttpMessage()
 	  _inState(RECV_MESSAGE_TYPES),
 	  _inBuffer(),
 	  _outBuffer(),
-	  _inputWillClose(true),
 	  _contentLength(0),
-	  _transferEncoding(TE_UNDEFINED) {
+	  _keepAlive(true),
+	  _transferEncoding(TE_UNDEFINED),
+	  _bodyType(BT_NONE) {
 	this->_inBuffer.reserve(TMP_HTTP_BUFFER_SIZE);
 }
 
@@ -23,6 +25,7 @@ HttpMessage::HttpMessage(const HttpMessage &other)
 	: _readSize(other._readSize),
 	  _chunkInfo(other._chunkInfo),
 	  _outState(other._outState),
+	  _bufferedHeaderField(other._bufferedHeaderField),
 	  _sentSize(other._sentSize),
 	  _bodyEmpty(other._bodyEmpty),
 	  _version(other._version),
@@ -31,9 +34,10 @@ HttpMessage::HttpMessage(const HttpMessage &other)
 	  _inState(other._inState),
 	  _inBuffer(other._inBuffer),
 	  _outBuffer(other._outBuffer),
-	  _inputWillClose(other._inputWillClose),
 	  _contentLength(other._contentLength),
-	  _transferEncoding(other._transferEncoding) {}
+	  _keepAlive(other._keepAlive),
+	  _transferEncoding(other._transferEncoding),
+	  _bodyType(other._bodyType) {}
 
 // HttpMessage &HttpMessage::operator=(const HttpMessage &other) {
 // 	if (this != &other) {
@@ -73,13 +77,6 @@ HeaderMap &HttpMessage::headers() {
 	return this->_headers;
 }
 
-TransferEncoding HttpMessage::transferEncoding() const {
-	return this->_transferEncoding;
-}
-
-std::string HttpMessage::transferEncodingStr() const {
-	return transferEncodingString(this->_transferEncoding);
-}
 
 void HttpMessage::end() {
 	this->_inState = HttpMessage::RECV_COMPLETED;
@@ -94,8 +91,6 @@ std::ostream &HttpMessage::print(std::ostream &os) const {
 
 	this->printTypeInfo(os);
 
-	if (headers.has("Tranfer-Encoding"))
-		os << "tranfer_encoding = " << this->transferEncodingStr() << '\n';
 	if (headers.has("Content-Length"))
 		os << "content_length = " << this->_contentLength << '\n';
 

@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen)
-	: ASocket(fd), _address(address), _addressLen(addressLen), _closed(false), _outBuffer(), _transactions() {
+	: ASocket(fd), _address(address), _addressLen(addressLen), _inClosed(false), _outBuffer(), _transactions() {
 	FormattedAddress formattedAddress;
 	formatAddress(address, formattedAddress);
 	std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
@@ -51,7 +51,7 @@ const struct sockaddr_storage &ClientSocket::address() const {
 
 uint32_t ClientSocket::getHandledEvents() const {
 	uint32_t result = 0;
-	if (!this->_closed)
+	if (!this->_inClosed)
 		result |= EPOLLIN;
 	if (this->canHandleEpollOut())
 		result |= EPOLLOUT;
@@ -100,7 +100,7 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	errno = 0;
 	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
-	if (!readLen) this->_closed = true;
+	if (!readLen) this->_inClosed = true;
 	if (readLen < 0) {
 		server.requestDelete(this);
 		return;
@@ -117,13 +117,21 @@ void ClientSocket::onEpollIn(WebServer &server) {
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
-			this->_transactions.push(new HttpTransaction());
-		} else if (this->_closed) {
+			if (this->_transactions.back()->keepAlive()) {
+				// If the request parsing is completed but we're waiting for other to come
+				this->_transactions.push(new HttpTransaction());
+			} else {
+				// If the request parsing is completed but the response will close the connection
+				this->_inClosed = true;
+				break;
+			}
+		} else if (this->_inClosed) {
+			// If the request parsing isn't completed but the input is closed (may lead to errors or not, it will depend of when the connection closed)
 			this->_transactions.back()->closeRequestInput();
 		}
 	}
 
-	if (this->_closed) this->_transactions.back()->isLast(true);
+	if (this->_inClosed) this->_transactions.back()->kill();
 
 	if (this->canHandleEpollOut()) {
 		server.epoll().mod(*this);
@@ -139,7 +147,7 @@ void ClientSocket::onEpollOut(WebServer &webServer) {
 		webServer.requestDelete(this);
 	}
 	if (sendCompleted) {
-		if (transaction->isLast()) {
+		if (!transaction->keepAlive()) {
 			webServer.requestDelete(this);
 		}
 		delete transaction;

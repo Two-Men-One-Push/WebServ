@@ -16,7 +16,7 @@ class ClientSocket : public ASocket {
   private:
 	struct sockaddr_storage _address;
 	socklen_t _addressLen;
-	bool _closed;
+	bool _inClosed;
 
 	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen);
 	void onWriteReady();
@@ -37,7 +37,7 @@ class ClientSocket : public ASocket {
 	u_int32_t getHandledEvents() const;
 	void handleEvents(u_int32_t events, WebServer &webServer);
 
-	bool closed() const { return _closed; }
+	bool closed() const { return _inClosed; }
 
 	int fd() const { return _fd; }
 

@@ -13,8 +13,6 @@ void HttpRequest::prepareHeaders() {
 	HeaderMap &headers = this->_headers;
 	std::stringstream ss;
 
-	if (this->_inputWillClose) {
-		ss << this->_contentLength;
-		headers["Content-Length"] = ss.str();
-	}
+	ss << this->_contentLength;
+	headers["Content-Length"] = ss.str();
 }

@@ -38,6 +38,7 @@ class HttpRequest : public HttpMessage {
 	// Each one of the functions below return if they had enough content to finish their task
 	bool recvTypeLine(std::istream &input);
 	void loadTypeUsedHeaders();
+	void checkBodyType();
 
 	void prepareHeaders();
 	void formatTypeLine();
