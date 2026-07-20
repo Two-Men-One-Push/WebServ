@@ -1,5 +1,5 @@
 #include "http/HttpStatus.hpp"
-#include "http/errors/HttpStandardException.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include "http/types.hpp"
@@ -50,14 +50,14 @@ bool HttpResponse::parseResponseVersion(std::istream &input) {
 	std::string part;
 
 	while (true) {
-		if (buffer.size() == this->_maxVersionSize) throw HttpExceptions::InternalServerErrorException();
+		if (buffer.size() == this->_maxVersionSize) throw HttpErrors::BadGatewayException();
 
 		int c = input.get();
 		if (c == ' ')
 			break;
 		if (c == std::stringstream::traits_type::eof())
 			return false;
-		if (!istokenc(c)) throw HttpExceptions::InternalServerErrorException();
+		if (!istokenc(c)) throw HttpErrors::BadGatewayException();
 		buffer += static_cast<char>(c);
 	}
 
@@ -71,14 +71,14 @@ bool HttpResponse::parseResponseStatus(std::istream &input) {
 
 	while (true) {
 		/** + 1 for space char*/
-		if (buffer.size() == this->_maxStatusSize + 1) throw HttpExceptions::InternalServerErrorException();
+		if (buffer.size() == this->_maxStatusSize + 1) throw HttpErrors::InternalServerErrorException();
 
 		int c = input.get();
 		if (c == ' ')
 			break;
 		if (c == std::stringstream::traits_type::eof())
 			return false;
-		if (!istokenc(c)) throw HttpExceptions::InternalServerErrorException();
+		if (!istokenc(c)) throw HttpErrors::InternalServerErrorException();
 		buffer += static_cast<char>(c);
 	}
 
@@ -86,7 +86,7 @@ bool HttpResponse::parseResponseStatus(std::istream &input) {
 		this->_status = HttpStatus::fromInt(parseULong(buffer));
 	} catch (...) {
 		buffer.clear();
-		throw HttpExceptions::InternalServerErrorException();
+		throw HttpErrors::InternalServerErrorException();
 	}
 	buffer.clear();
 	return true;
@@ -99,7 +99,7 @@ bool HttpResponse::parseResponseMessage(std::istream &input) {
 	buffer += part;
 
 	while (true) {
-		if (buffer.size() == this->_maxMessageSize) throw HttpExceptions::URITooLongException();
+		if (buffer.size() == this->_maxMessageSize) throw HttpErrors::URITooLongException();
 
 		int c = input.get();
 		if (c == ' ')
@@ -133,12 +133,12 @@ void HttpResponse::loadTypeUsedHeaders() {
 void HttpResponse::loadCGIStatus(const std::string &statusString) {
 	size_t spacePos = statusString.find(' ');
 	if (spacePos == statusString.npos) {
-		throw HttpExceptions::InternalServerErrorException();
+		throw HttpErrors::InternalServerErrorException();
 	}
 	try {
 		this->_status = HttpStatus::fromInt(parseULong(statusString.substr(0, spacePos)));
 	} catch (...) {
-		throw HttpExceptions::InternalServerErrorException();
+		throw HttpErrors::InternalServerErrorException();
 	}
 	this->_message = statusString.substr(spacePos + 1);
 }
@@ -161,6 +161,6 @@ void HttpResponse::closeInput() {
 	if (this->_inState == RECV_MESSAGE_BODY) {
 		this->_inState = RECV_COMPLETED;
 	} else {
-		throw HttpExceptions::InternalServerErrorException();
+		throw HttpErrors::InternalServerErrorException();
 	}
 }

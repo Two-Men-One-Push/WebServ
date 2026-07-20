@@ -2,6 +2,8 @@
 #define HTTPMESSAGE_HPP
 
 #include "Fd/Fd.hpp"
+#include "errors/WebservErrors.hpp"
+#include "http/HttpStatus.hpp"
 #include "http/messages/Body/IBody.hpp"
 #include "http/types.hpp"
 #include <cstddef>
@@ -117,7 +119,43 @@ class HttpMessage {
 	static HttpVersion parseHttpVersion(const std::string &input);
 
   public:
+	class Exception : WebservErrors::Runtime {
+		HttpStatus::Code _requestExpect;
+		HttpStatus::Code _responseExpect;
+
+	  public:
+		Exception() throw()
+			: WebservErrors::Runtime(""),
+			  _requestExpect(HttpStatus::BadRequest),
+			  _responseExpect(HttpStatus::BadGateway) {}
+
+		Exception(const std::string &message) throw()
+			: WebservErrors::Runtime(message),
+			  _requestExpect(HttpStatus::BadRequest),
+			  _responseExpect(HttpStatus::BadGateway) {}
+
+		Exception(const Exception &other) throw()
+			: WebservErrors::Runtime(other),
+			  _requestExpect(other._requestExpect),
+			  _responseExpect(other._responseExpect) {}
+
+		HttpStatus::Code requestStatus() const { return this->_requestExpect; }
+
+		Exception &requestStatus(HttpStatus::Code expected) {
+			this->_requestExpect = expected;
+			return *this;
+		}
+
+		HttpStatus::Code responseStatus() const { return this->_responseExpect; }
+
+		Exception &responseStatus(HttpStatus::Code expected) {
+			this->_responseExpect = expected;
+			return *this;
+		}
+	};
+
 	HttpMessage();
+
 	HttpMessage(const HttpMessage &other);
 	virtual ~HttpMessage();
 
@@ -147,6 +185,7 @@ class HttpMessage {
 	TransferEncoding tranferEncording() const { return _transferEncoding; }
 
 	bool keepAlive() const { return _keepAlive; }
+
 	void keepAlive(bool value) { this->_keepAlive = value; }
 
 	virtual std::ostream &printTypeInfo(std::ostream &os) const = 0;

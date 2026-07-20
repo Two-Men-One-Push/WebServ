@@ -1,8 +1,8 @@
 #include "./HttpTransaction.hpp"
 #include "CGI/CGIInterface.hpp"
 #include "WebServer/WebServer.hpp"
-#include "http/errors/HttpException.hpp"
-#include "http/errors/HttpStandardException.hpp"
+#include "http/errors/HttpErrors.hpp"
+#include "http/messages/HttpMessage.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include <iostream>
@@ -20,12 +20,15 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 	try {
 		bool result = this->_request.recvFrom(input);
 		if (result) {
-			this->_response.cgi(*new CGIInterface("www/cgi/test.py", *this, server));
-			// this->_response.error(HttpExceptions::NoContentException());
+			this->_response.cgi(*new CGIInterface("www/cgi/test.pyt", *this, server));
+			// this->_response.error(HttpErrors::NoContentException());
 		}
 		return result;
-	} catch (const HttpException &e) {
+	} catch (const HttpError &e) {
 		this->error(e);
+		return true;
+	} catch (const HttpMessage::Exception &e) {
+		this->error(HttpError(e.requestStatus()));
 		return true;
 	}
 }
@@ -33,8 +36,11 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 bool HttpTransaction::recvResponse(std::istream &input) {
 	try {
 		return this->_response.recvFrom(input);
-	} catch (const HttpException &e) {
-		this->error(HttpExceptions::InternalServerErrorException());
+	} catch (const HttpError &e) {
+		this->error(e);
+		return true;
+	} catch (const HttpMessage::Exception &e) {
+		this->error(HttpError(e.responseStatus()));
 		return true;
 	}
 }
@@ -62,7 +68,7 @@ const HttpResponse &HttpTransaction::response() const {
 void HttpTransaction::closeRequestInput() {
 	try {
 		this->_request.closeInput();
-	} catch (const HttpException &e) {
+	} catch (const HttpError &e) {
 		this->error(e);
 	}
 }
@@ -70,12 +76,12 @@ void HttpTransaction::closeRequestInput() {
 void HttpTransaction::closeResponseInput() {
 	try {
 		this->_response.closeInput();
-	} catch (const HttpException &e) {
+	} catch (const HttpError &e) {
 		this->error(e);
 	}
 }
 
-void HttpTransaction::error(const HttpException &e) {
+void HttpTransaction::error(const HttpError &e) {
 	this->_response.error(e);
 	this->_response.keepAlive(false);
 }
