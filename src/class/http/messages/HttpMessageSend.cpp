@@ -22,6 +22,8 @@ bool HttpMessage::sendTo(const Fd &output) {
 		// fallthrough
 	case SEND_BODY:
 		if (!this->hasBody()) {
+			std::cerr << "NO BODY IG ?" << std::endl;
+			std::cerr << this->_contentLength << std::endl;
 			this->_outState = SEND_COMPLETED;
 			return true;
 		}

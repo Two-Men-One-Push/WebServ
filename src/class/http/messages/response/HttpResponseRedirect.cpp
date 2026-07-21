@@ -1,6 +1,7 @@
 #include "./HttpResponse.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/Body/BodyStringStream.hpp"
+#include "http/messages/HttpMessage.hpp"
 
 void HttpResponse::redirect(const std::string &redirectUrl, HttpStatus::Code status) {
 	BodyStringStream *ssBody = new BodyStringStream();
@@ -8,6 +9,7 @@ void HttpResponse::redirect(const std::string &redirectUrl, HttpStatus::Code sta
 
 	*ssBody << status;
 
+	this->_bodyType = BT_CONTENT_LENGTH;
 	this->_redirectUrl = redirectUrl;
 	this->_status = status;
 	this->_message = HttpStatus::reasonPhrase(status);

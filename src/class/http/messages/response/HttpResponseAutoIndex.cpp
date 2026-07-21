@@ -10,6 +10,7 @@ void HttpResponse::autoIndex(const std::string &directoryPath, HttpStatus::Code 
 
 	*ssBody << status;
 
+	this->_bodyType = BT_CONTENT_LENGTH;
 	this->_status = status;
 	this->_message = HttpStatus::reasonPhrase(status);
 	this->_mimeType = "text/html";

@@ -30,6 +30,7 @@ void HttpResponse::file(const std::string &path, HttpStatus::Code status, const 
 	}
 	this->replaceBody(file);
 
+	this->_bodyType = BT_CONTENT_LENGTH;
 	this->_contentLength = stat_buf.st_size;
 	this->_status = status;
 	this->_message = HttpStatus::reasonPhrase(status);

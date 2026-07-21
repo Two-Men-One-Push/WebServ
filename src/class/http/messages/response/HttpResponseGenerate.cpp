@@ -7,8 +7,9 @@ void HttpResponse::generate(HttpStatus::Code status) {
 	BodyStringStream *ssBody = new BodyStringStream();
 	this->replaceBody(ssBody);
 
-	generateErrorPage(*ssBody, status);
+	*ssBody << status;
 
+	this->_bodyType = BT_CONTENT_LENGTH;
 	this->_status = status;
 	this->_message = HttpStatus::reasonPhrase(status);
 	this->_mimeType = "text/html";
