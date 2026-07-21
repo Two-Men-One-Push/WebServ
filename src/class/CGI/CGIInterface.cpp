@@ -6,7 +6,9 @@
 #include "http/HttpTransaction.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/request/HttpRequest.hpp"
+#include "http/types.hpp"
 #include "utils/formatting.hpp"
+#include <cctype>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -42,6 +44,15 @@ CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTran
 
 CGIInterface::~CGIInterface() {
 	this->killChild();
+}
+
+std::string CGIInterface::toEnvCase(const std::string &s) {
+	std::string result;
+	for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
+		if (*it == '-') result += '_';
+		else result += ::toupper(static_cast<unsigned char>(*it));
+	}
+	return result;
 }
 
 void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &server) {
@@ -105,34 +116,41 @@ void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressou
 void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpTransaction &httpTransaction, const Ressource &ressource) {
 	const HttpRequest &request = httpTransaction.request();
 	std::ostringstream ss;
+	FormattedAddress formattedAddress;
 
-	env.push_back("AUTH_TYPE=");
-	env.push_back("REMOTE_IDENT=");
-	env.push_back("REMOTE_USER=");
-
-	ss << request.contentLength();
-	env.push_back("CONTENT_LENGTH=" + ss.str());
-	ss.str("");
-	env.push_back("CONTENT_TYPE=" + request.mimeType());
+	if (request.hasBody()) {
+		ss << request.contentLength();
+		env.push_back("CONTENT_LENGTH=" + ss.str());
+		ss.str("");
+		env.push_back("CONTENT_TYPE=" + request.mimeType());
+	}
 
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-	env.push_back("SCRIPT_NAME=" + this->_cgiScriptPath);
+	env.push_back("SCRIPT_NAME=" + ressource.scriptName());
+	env.push_back("PATH_TRANSLATED=" + this->_cgiScriptPath);
 	env.push_back("PATH_INFO=" + ressource.pathInfo());
 
-	FormattedAddress formattedAddress;
-	httpTransaction.formatClientAddress(formattedAddress);
-	env.push_back("REMOTE_ADDR=" + formattedAddress.address);
-	env.push_back("REQUEST_METHOD=" + request.methodStr());
 	env.push_back("REQUEST_METHOD=" + request.methodStr());
 	env.push_back("QUERY_STRING=" + request.uri().queryString());
 
 	// TODO
-	env.push_back("SERVER_NAME=webserv");
-	// TODO
-	env.push_back("SERVER_PORT=6969");
+	env.push_back("SERVER_NAME=" + request.host().first);
+
+	httpTransaction.formatClientAddress(formattedAddress);
+	env.push_back("REMOTE_ADDR=" + formattedAddress.address);
+
+	httpTransaction.formatServerAddress(formattedAddress);
+	ss << formattedAddress.port;
+	env.push_back("SERVER_PORT=" + ss.str());
+	ss.str("");
 	env.push_back("SERVER_PROTOCOL=" + request.versionStr());
 	env.push_back("SERVER_SOFTWARE=webserv/0.1");
+
+	for (HeaderMap::const_iterator it = request.headers().begin(); it != request.headers().end(); ++it) {
+		if (it->first == "Content-Length" || it->first == "Content-Type") continue;
+		env.push_back("HTTP_" + CGIInterface::toEnvCase(it->first) + '=' + it->second);
+	}
 }
 
 void CGIInterface::inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer) {

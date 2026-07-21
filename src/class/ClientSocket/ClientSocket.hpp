@@ -15,12 +15,13 @@ class ListeningSocket;
 
 class ClientSocket : public ASocket {
   private:
+	ClientSocket& operator=(const ClientSocket &other);
+	ClientSocket(const ClientSocket &other);
 	const Server &_serverConfig;
-	struct sockaddr_storage _address;
-	socklen_t _addressLen;
+	const struct sockaddr_storage &_serverAddress;
 	bool _inClosed;
 
-	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen, const Server &serverConfig);
+	ClientSocket(int fd, struct sockaddr_storage &_address, socklen_t _addressLen, const sockaddr_storage &serverAddress, const Server &serverConfig);
 	void onWriteReady();
 	void onEpollIn(WebServer &webServer);
 	void onEpollOut(WebServer &webServer);
@@ -43,7 +44,7 @@ class ClientSocket : public ASocket {
 
 	int fd() const { return _fd; }
 
-	static ClientSocket *createFromListener(int listenerFd, const Server &serverConfig);
+	static ClientSocket *createFromListener(const ListeningSocket &listener, const Server &serverConfig);
 };
 
 #endif

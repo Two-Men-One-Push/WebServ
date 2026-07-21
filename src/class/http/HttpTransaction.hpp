@@ -15,6 +15,7 @@ class WebServer;
 class HttpTransaction {
   private:
 	const Server &_serverConfig;
+	const struct sockaddr_storage &_serverAddress;
 	const struct sockaddr_storage &_clientAddress;
 
 	HttpRequest _request;
@@ -24,7 +25,7 @@ class HttpTransaction {
 	void handleErrorRessource(const Ressource &ressource, const HttpError &e);
 
   public:
-	HttpTransaction(const Server &serverConfig, const struct sockaddr_storage &clientAddress);
+	HttpTransaction(const Server &serverConfig, const struct sockaddr_storage &serverAddress, const struct sockaddr_storage &clientAddress);
 	HttpTransaction(const HttpTransaction &other);
 	HttpTransaction &operator=(const HttpTransaction &other);
 	~HttpTransaction();
@@ -44,6 +45,8 @@ class HttpTransaction {
 
 	void error(const HttpError &e);
 
+	const struct sockaddr_storage &serverAddress() const;
+	void formatServerAddress(FormattedAddress &target) const;
 	const struct sockaddr_storage &clientAddress() const;
 	void formatClientAddress(FormattedAddress &target) const;
 	bool keepAlive() const;

@@ -26,6 +26,7 @@ HttpRequest::HttpRequest()
 	: HttpMessage(),
 	  _method(UNKNOWN),
 	  _uri(),
+	  _host("", ""),
 	  _firstLineState(HttpRequest::REQUEST_METHOD) {
 	this->_maxMethodSize = this->getMaxMethodSize();
 	this->_body = new BodyStringStream();

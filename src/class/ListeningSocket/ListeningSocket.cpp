@@ -4,14 +4,27 @@
 #include "errors/WebservErrors.hpp"
 #include "model/Server/Server.hpp"
 #include <cerrno>
+#include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
-ListeningSocket::ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen, const Server &serverConfig)
-	: ASocket(socketFd), _serverConfig(serverConfig) {
+int ListeningSocket::createFd(const sockaddr &addr) {
+	const int socketFd = socket(addr.sa_family, SOCK_STREAM, 0);
+
+	if (socketFd < 0) {
+		throw WebservErrors::SysError("socket", errno);
+	}
+
+	return socketFd;
+}
+
+ListeningSocket::ListeningSocket(const sockaddr &address, socklen_t addressLen, const Server &serverConfig)
+	: ASocket(ListeningSocket::createFd(address), address, addressLen), _serverConfig(serverConfig) {
+
+
 	int opt = 1;
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -27,29 +40,7 @@ ListeningSocket::ListeningSocket(int socketFd, const sockaddr &address, socklen_
 ListeningSocket::~ListeningSocket() {}
 
 ClientSocket *ListeningSocket::acceptConnexion(void) const {
-	return ClientSocket::createFromListener(_fd, this->_serverConfig);
-}
-
-ListeningSocket ListeningSocket::create(const sockaddr &addr, socklen_t addresslen, const Server &serverConfig) {
-
-	const int socketFd = socket(addr.sa_family, SOCK_STREAM, 0);
-
-	if (socketFd < 0) {
-		throw WebservErrors::SysError("socket", errno);
-	}
-
-	return ListeningSocket(socketFd, addr, addresslen, serverConfig);
-}
-
-ListeningSocket *ListeningSocket::createNew(const sockaddr &addr, socklen_t addresslen, const Server &serverConfig) {
-
-	const int socketFd = socket(addr.sa_family, SOCK_STREAM, 0);
-
-	if (socketFd < 0) {
-		throw WebservErrors::SysError("socket", errno);
-	}
-
-	return new ListeningSocket(socketFd, addr, addresslen, serverConfig);
+	return ClientSocket::createFromListener(*this, this->_serverConfig);
 }
 
 u_int32_t ListeningSocket::getHandledEvents() const {
@@ -70,4 +61,8 @@ void ListeningSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 
 void ListeningSocket::onEpollIn(WebServer &webServer) const {
 	webServer.addClient(this->acceptConnexion());
+}
+
+int ListeningSocket::accept(struct sockaddr *address, socklen_t *addressLen) const {
+	return ::accept(this->_fd, address, addressLen);
 }

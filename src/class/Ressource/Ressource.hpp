@@ -21,6 +21,7 @@ class	Ressource
 		std::string			_mimeType;
 		HttpStatus::Code	_responseCode;
 		std::string			_cgiInterpreter;
+		std::string			_scriptName;
 		std::string			_pathInfo;
 		std::string			_fragmentString;
 	public:
@@ -39,6 +40,8 @@ class	Ressource
 		HttpStatus::Code		&responseCode();
 		const std::string		&cgiInterpreter() const;
 		std::string				&cgiInterpreter();
+		const std::string		&scriptName() const;
+		std::string				&scriptName();
 		const std::string		&pathInfo() const;
 		std::string				&pathInfo();
 };

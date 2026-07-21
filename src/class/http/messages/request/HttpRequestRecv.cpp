@@ -123,7 +123,8 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 	return true;
 }
 
-void HttpRequest::loadTypeUsedHeaders() {
+void HttpRequest::loadTypeHeaders() {
+	this->loadHost();
 	return;
 }
 

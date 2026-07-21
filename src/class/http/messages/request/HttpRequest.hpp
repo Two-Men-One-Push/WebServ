@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <sys/socket.h>
+#include <utility>
 
 class HttpRequest : public HttpMessage {
   private:
@@ -16,6 +17,8 @@ class HttpRequest : public HttpMessage {
 
 	HttpMethod _method;
 	URL _uri;
+
+	std::pair<std::string, std::string> _host;
 
 	enum FirstLineParsingState {
 		REQUEST_METHOD,
@@ -35,10 +38,12 @@ class HttpRequest : public HttpMessage {
 	bool parseRequestUri(std::istream &input);
 	bool parseRequestVersion(std::istream &input);
 
+	void loadHost();
+
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
 	bool recvTypeLine(std::istream &input);
-	void loadTypeUsedHeaders();
+	void loadTypeHeaders();
 	void checkBodyType();
 
 	void prepareHeaders();
@@ -49,14 +54,15 @@ class HttpRequest : public HttpMessage {
 	HttpRequest(const HttpRequest &other);
 	~HttpRequest();
 
+	void closeInput();
+
 	HttpMethod method() const;
 	void method(const HttpMethod &newMethod);
 	std::string methodStr() const;
-
 	const URL &uri() const;
 	void uri(const URL &newUri);
 
-	void closeInput();
+	const std::pair<std::string, std::string> &host() const { return this->_host; }
 
 	std::ostream &
 	printTypeInfo(std::ostream &os) const;

@@ -119,7 +119,7 @@ bool HttpResponse::parseResponseMessage(std::istream &input) {
 	return true;
 }
 
-void HttpResponse::loadTypeUsedHeaders() {
+void HttpResponse::loadTypeHeaders() {
 	if (this->_cgiInterface != NULL) {
 		this->loadCGIStatus();
 	}

@@ -7,8 +7,9 @@
 bool ishexdigit(char c);
 bool ishexstr(const std::string &s);
 bool isseparator(char c);
-bool istokenc(char c);
+bool istokenc(unsigned char c);
 bool istoken(const std::string &s);
+bool isheadervalue(const std::string &s);
 
 void split(const std::string &s, const std::string &delim, std::vector<std::string> &out);
 std::string trim(const std::string &s, const std::string &set = " \t");

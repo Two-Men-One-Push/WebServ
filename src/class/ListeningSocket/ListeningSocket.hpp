@@ -12,11 +12,14 @@ class ClientSocket;
 
 class ListeningSocket : public ASocket {
   private:
+	sockaddr_storage _address;
 	const Server &_serverConfig;
-	ListeningSocket(int socketFd, const sockaddr &address, socklen_t addressLen, const Server &serverConfig);
 	void onEpollIn(WebServer &webServer) const;
 
+	static int createFd(const sockaddr &addr);
+
   public:
+	ListeningSocket(const sockaddr &address, socklen_t addresslen, const Server &serverConfig);
 	~ListeningSocket();
 
 	ClientSocket *acceptConnexion(void) const;
@@ -25,6 +28,10 @@ class ListeningSocket : public ASocket {
 	u_int32_t getHandledEvents() const;
 
 	int fd() const { return _fd; }
+
+	const sockaddr_storage &address() const { return this->_address; };
+
+	int accept(struct sockaddr *address, socklen_t *addressLen) const;
 
 	static ListeningSocket create(const sockaddr &addr, socklen_t addresslen, const Server &serverConfig);
 	static ListeningSocket *createNew(const sockaddr &addr, socklen_t addresslen, const Server &serverConfig);

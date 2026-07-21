@@ -15,8 +15,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockaddr_storage &clientAddress)
+HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockaddr_storage &serverAddress, const struct sockaddr_storage &clientAddress)
 	: _serverConfig(serverConfig),
+	  _serverAddress(serverAddress),
 	  _clientAddress(clientAddress),
 	  _request(),
 	  _response() {
@@ -25,6 +26,7 @@ HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockad
 
 HttpTransaction::HttpTransaction(const HttpTransaction &other)
 	: _serverConfig(other._serverConfig),
+	  _serverAddress(other._serverAddress),
 	  _clientAddress(other._clientAddress),
 	  _request(other._request),
 	  _response(other._response) {}
@@ -165,6 +167,14 @@ void HttpTransaction::error(const HttpError &e) {
 	const Ressource errorRessource = Router::resolveErrorRessource(this->_request, e.status(), this->_serverConfig);
 	this->handleErrorRessource(errorRessource, e);
 	this->_response.keepAlive(false);
+}
+
+const struct sockaddr_storage &HttpTransaction::serverAddress() const {
+	return this->_serverAddress;
+}
+
+void HttpTransaction::formatServerAddress(FormattedAddress &target) const {
+	formatAddress(this->_serverAddress, target);
 }
 
 const struct sockaddr_storage &HttpTransaction::clientAddress() const {

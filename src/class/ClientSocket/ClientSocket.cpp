@@ -1,11 +1,13 @@
 #include "./ClientSocket.hpp"
 #include "ASocket/ASocket.hpp"
+#include "ListeningSocket/ListeningSocket.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
 #include "model/Server/Server.hpp"
 #include "utils/formatting.hpp"
 #include <cerrno>
+#include <cstring>
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
@@ -16,8 +18,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen, const Server &serverConfig)
-	: ASocket(fd), _serverConfig(serverConfig), _address(address), _addressLen(addressLen), _inClosed(false), _outBuffer(), _transactions() {
+ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen, const struct sockaddr_storage &serverAddress, const Server &serverConfig)
+	: ASocket(fd, address, addressLen), _serverConfig(serverConfig), _serverAddress(serverAddress), _inClosed(false), _outBuffer(), _transactions() {
 	FormattedAddress formattedAddress;
 	formatAddress(address, formattedAddress);
 	std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
@@ -30,20 +32,15 @@ ClientSocket::~ClientSocket() {
 	}
 }
 
-socklen_t ClientSocket::addressLen() const {
-	return _addressLen;
-}
-
-ClientSocket *ClientSocket::createFromListener(int listenerFd, const Server &serverConfig) {
+ClientSocket *ClientSocket::createFromListener(const ListeningSocket &listener, const Server &serverConfig) {
 	struct sockaddr_storage clientAddr;
 	socklen_t addrLen = sizeof(clientAddr);
 
-	const int fd = accept(listenerFd, reinterpret_cast<struct sockaddr *>(&clientAddr), &addrLen);
+	const int fd = listener.accept(reinterpret_cast<struct sockaddr *>(&clientAddr), &addrLen);
 
-	if (fd < 0)
-		throw WebservErrors::SysError("accept", errno);
+	if (fd < 0) throw WebservErrors::SysError("accept", errno);
 
-	return new ClientSocket(fd, clientAddr, addrLen, serverConfig);
+	return new ClientSocket(fd, clientAddr, addrLen, listener.address(), serverConfig);
 }
 
 const struct sockaddr_storage &ClientSocket::address() const {
@@ -113,12 +110,12 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {
-		this->_transactions.push(new HttpTransaction(this->_serverConfig, this->_address));
+		this->_transactions.push(new HttpTransaction(this->_serverConfig, this->_serverAddress, this->_address));
 	}
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
 		if (this->_transactions.back()->request().inCompleted()) {
-			this->_transactions.push(new HttpTransaction(this->_serverConfig, this->_address));
+			this->_transactions.push(new HttpTransaction(this->_serverConfig, this->_serverAddress, this->_address));
 		}
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
 			if (!this->_transactions.back()->keepAlive()) {

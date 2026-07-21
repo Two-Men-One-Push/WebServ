@@ -23,10 +23,6 @@
 WebServer::WebServer(const Config &config) : _epoll() {
 	this->startListeningSockets(config);
 
-	// HttpTransaction testTransaction;
-	// CGIInterface test("./www/cgi/test-test.py", testTransaction, *this);
-	// CGIInterface test("/bin/cat", testTransaction, *this);
-
 	while (true) {
 		std::vector<EpollEvent> events;
 		_epoll.wait(events);
@@ -66,7 +62,7 @@ void WebServer::startListeningSockets(const Config &config) {
 
 			for (addrinfo *currentAddressInfo = res; currentAddressInfo != NULL; currentAddressInfo = currentAddressInfo->ai_next) {
 				try {
-					_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen, *sit));
+					_listeningSockets.push_back(new ListeningSocket(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen, *sit));
 				} catch (...) {
 					freeaddrinfo(res);
 					throw;

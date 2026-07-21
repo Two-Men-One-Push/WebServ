@@ -7,6 +7,7 @@ _path(""),
 _mimeType(""),
 _responseCode(HttpStatus::NoStatus),
 _cgiInterpreter(""),
+_scriptName(""),
 _pathInfo("")
 {
 }
@@ -85,6 +86,16 @@ const std::string	&Ressource::cgiInterpreter() const
 std::string	&Ressource::cgiInterpreter()
 {
 	return (this->_cgiInterpreter);
+}
+
+const std::string	&Ressource::scriptName() const
+{
+	return (this->_scriptName);
+}
+
+std::string	&Ressource::scriptName()
+{
+	return (this->_scriptName);
 }
 
 const std::string	&Ressource::pathInfo() const

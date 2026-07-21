@@ -28,8 +28,8 @@ bool HttpMessage::recvFrom(std::istream &input) {
 		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
 		// fallthrough
 	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
-		this->loadBaseUsedHeaders();
-		this->loadTypeUsedHeaders();
+		this->loadCommonHeaders();
+		this->loadTypeHeaders();
 		this->checkBodyType();
 		this->_inState = HttpMessage::RECV_WAITING_ROUTING;
 		return false;
@@ -63,7 +63,7 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 	throw HttpMessage::Exception().requestStatus(HttpStatus::HTTPVersionNotSupported);
 }
 
-void HttpMessage::loadBaseUsedHeaders() {
+void HttpMessage::loadCommonHeaders() {
 	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) throw HttpMessage::Exception();
 
 	this->loadTranferEncoding();
@@ -156,6 +156,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 			if (!istoken(headerField.first)) throw HttpMessage::Exception();
 			toHeaderCase(headerField.first);
 			headerField.second = trim(line.substr(headerNamePos + 1));
+			if (!isheadervalue(headerField.second)) throw HttpMessage::Exception();
 		}
 	}
 }

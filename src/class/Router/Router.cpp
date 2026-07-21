@@ -122,12 +122,22 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 				ressource.cgiInterpreter() = cgi_it->second;
 				ressource.path() = cgiScriptPath;
 				std::string	pathInfo;
+				std::string	scriptName;
 				it++;
+				for (std::vector<std::string>::const_iterator script_it = req.uri().rawSegments().begin(); script_it != it; ++script_it)
+				{
+					scriptName += "/" + *script_it;
+				}
+				std::string decodedScriptName;
+				URL::decode(decodedScriptName, scriptName);
+				ressource.scriptName() = scriptName;
 				for (std::vector<std::string>::const_iterator pathinfo_it = it; pathinfo_it != req.uri().rawSegments().end(); ++pathinfo_it)
 				{
 					pathInfo += "/" + *pathinfo_it;
 				}
-				ressource.pathInfo() = pathInfo;
+				std::string decodedPathInfo;
+				URL::decode(decodedPathInfo, pathInfo);
+				ressource.pathInfo() = decodedPathInfo;
 				return ressource;
 			}
 		}

@@ -39,7 +39,6 @@ class HttpResponse : public HttpMessage {
 	bool parseResponseMessage(std::istream &input);
 
 	void loadCGIStatus();
-	void loadContentType();
 
 	CGIInterface *_cgiInterface;
 
@@ -48,7 +47,7 @@ class HttpResponse : public HttpMessage {
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
 	bool recvTypeLine(std::istream &input);
-	void loadTypeUsedHeaders();
+	void loadTypeHeaders();
 
 	void formatTypeLine();
 

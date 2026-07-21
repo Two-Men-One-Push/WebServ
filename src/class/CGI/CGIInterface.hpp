@@ -3,7 +3,6 @@
 
 #include "Pipe/Pipe.hpp"
 #include "Ressource/Ressource.hpp"
-#include "http/messages/request/HttpRequest.hpp"
 #include <string>
 #include <sys/types.h>
 
@@ -47,6 +46,8 @@ class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
 
 	Pipe &in();
 	Pipe &out();
+
+	static std::string toEnvCase(const std::string &s);
 };
 
 #endif

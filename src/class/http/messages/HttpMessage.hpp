@@ -111,9 +111,9 @@ class HttpMessage {
 	} _bodyType;
 
 	virtual bool recvTypeLine(std::istream &input) = 0;
-	void loadBaseUsedHeaders();
+	void loadCommonHeaders();
 
-	virtual void loadTypeUsedHeaders() = 0;
+	virtual void loadTypeHeaders() = 0;
 	virtual void checkBodyType();
 
 	virtual void prepareHeaders() = 0;
