@@ -4,17 +4,30 @@
 #include "Router/Router.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/errors/HttpErrors.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
 #include "model/Server/Server.hpp"
+#include "utils/formatting.hpp"
+#include <exception>
 #include <iostream>
+#include <sys/socket.h>
+#include <unistd.h>
 
-HttpTransaction::HttpTransaction(const Server &serverConfig) : _serverConfig(serverConfig), _request(), _response() {
+HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockaddr_storage &clientAddress)
+	: _serverConfig(serverConfig),
+	  _clientAddress(clientAddress),
+	  _request(),
+	  _response() {
 	std::cout << "New HTTP transaction created" << std::endl;
 }
 
-HttpTransaction::HttpTransaction(const HttpTransaction &other) : _serverConfig(other._serverConfig), _request(other._request), _response(other._response) {}
+HttpTransaction::HttpTransaction(const HttpTransaction &other)
+	: _serverConfig(other._serverConfig),
+	  _clientAddress(other._clientAddress),
+	  _request(other._request),
+	  _response(other._response) {}
 
 HttpTransaction::~HttpTransaction() {}
 
@@ -22,7 +35,7 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 	try {
 		bool result = this->_request.recvFrom(input);
 
-		if (this->_request.waitingRouting()) {
+		if (this->_request.isWaitingRouting()) {
 			const Ressource ressource = Router::resolveRessource(this->_request, this->_serverConfig);
 			try {
 				this->handleRessource(ressource, server);
@@ -30,7 +43,7 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 				Ressource errorRessource = Router::resolveErrorRessource(this->_request, e.status(), this->_serverConfig);
 
 				try {
-					this->handleErrorRessource(errorRessource);
+					this->handleErrorRessource(errorRessource, e);
 				} catch (const HttpError &e) {
 					this->_response.generate(ressource.responseCode());
 				}
@@ -57,7 +70,12 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 		this->_response.redirect(ressource.path(), ressource.responseCode());
 		break;
 	case RESSOURCE_CGI:
-		this->_response.cgi(*new CGIInterface(ressource, *this, server));
+		try {
+			this->_response.cgi(*new CGIInterface(ressource, *this, server));
+		} catch (const std::exception &e) {
+			std::cerr << e.what() << std::endl;
+			throw HttpErrors::InternalServerErrorException();
+		}
 		break;
 	case RESSOURCE_AUTO_INDEX:
 		this->_response.autoIndex(ressource.path(), ressource.responseCode());
@@ -74,21 +92,30 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 	}
 }
 
-void HttpTransaction::handleErrorRessource(const Ressource &errorRessource) {
+void HttpTransaction::handleErrorRessource(const Ressource &errorRessource, const HttpError &ressourceError) {
 	if (errorRessource.path().empty()) {
-		this->_response.generate(errorRessource.responseCode());
+		this->_response.generate(errorRessource.responseCode(), ressourceError.message());
 	} else {
 		try {
 			this->_response.file(errorRessource.path(), errorRessource.responseCode(), errorRessource.mimeType());
 		} catch (const HttpError &e) {
-			this->_response.generate(e.status());
+			this->_response.generate(e.status(), e.message());
 		}
 	}
 }
 
 bool HttpTransaction::recvResponse(std::istream &input) {
 	try {
-		return this->_response.recvFrom(input);
+		bool result = this->_response.recvFrom(input);
+		if (result) {
+			return true;
+		} else {
+			if (this->_response.isWaitingRouting()) {
+				this->_response.completeRouting();
+				this->_response.recvFrom(input);
+			}
+			return false;
+		}
 	} catch (const HttpError &e) {
 		this->error(e);
 		return true;
@@ -136,8 +163,16 @@ void HttpTransaction::closeResponseInput() {
 
 void HttpTransaction::error(const HttpError &e) {
 	const Ressource errorRessource = Router::resolveErrorRessource(this->_request, e.status(), this->_serverConfig);
-	this->handleErrorRessource(errorRessource);
+	this->handleErrorRessource(errorRessource, e);
 	this->_response.keepAlive(false);
+}
+
+const struct sockaddr_storage &HttpTransaction::clientAddress() const {
+	return this->_clientAddress;
+}
+
+void HttpTransaction::formatClientAddress(FormattedAddress &target) const {
+	formatAddress(this->_clientAddress, target);
 }
 
 bool HttpTransaction::keepAlive() const {

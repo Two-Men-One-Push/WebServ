@@ -123,7 +123,6 @@ void HttpResponse::loadTypeUsedHeaders() {
 	if (this->_cgiInterface != NULL) {
 		this->loadCGIStatus();
 	}
-	this->loadContentType();
 }
 
 /**
@@ -143,7 +142,10 @@ void HttpResponse::checkBodyType() {
 void HttpResponse::closeInput() {
 	if (this->_inState == RECV_MESSAGE_BODY) {
 		this->_inState = RECV_COMPLETED;
+		if (this->_cgiInterface != NULL) {
+			this->_bodyType = BT_CONTENT_LENGTH;
+		}
 	} else {
-		throw HttpErrors::InternalServerErrorException();
+		throw HttpErrors::InternalServerErrorException("This");
 	}
 }

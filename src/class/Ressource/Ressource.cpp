@@ -7,9 +7,7 @@ _path(""),
 _mimeType(""),
 _responseCode(HttpStatus::NoStatus),
 _cgiInterpreter(""),
-_pathInfo(""),
-_queryString(""),
-_fragmentString("")
+_pathInfo("")
 {
 }
 
@@ -97,24 +95,4 @@ const std::string	&Ressource::pathInfo() const
 std::string	&Ressource::pathInfo()
 {
 	return (this->_pathInfo);
-}
-
-const std::string	&Ressource::queryString() const
-{
-	return (this->_queryString);
-}
-
-std::string	&Ressource::queryString()
-{
-	return (this->_queryString);
-}
-
-const std::string	&Ressource::fragmentString() const
-{
-	return (this->_fragmentString);
-}
-
-std::string	&Ressource::fragmentString()
-{
-	return (this->_fragmentString);
 }

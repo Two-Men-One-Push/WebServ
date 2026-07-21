@@ -11,6 +11,6 @@ struct FormattedAddress {
 	uint16_t port;
 };
 
-void formatAddress(struct sockaddr_storage &address, FormattedAddress &out);
+void formatAddress(const struct sockaddr_storage &address, FormattedAddress &out);
 
 #endif

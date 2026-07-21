@@ -128,8 +128,6 @@ Ressource	Router::resolveRessource(const HttpRequest &req, const Server &server)
 					pathInfo += "/" + *pathinfo_it;
 				}
 				ressource.pathInfo() = pathInfo;
-				ressource.queryString() = req.uri().queryString();
-				ressource.fragmentString() = req.uri().fragmentString();
 				return ressource;
 			}
 		}

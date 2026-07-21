@@ -18,8 +18,7 @@ class HttpResponse : public HttpMessage {
 	HttpStatus::Code _status;
 	std::string _message;
 
-	std::string _mimeType;
-	std::string _redirectUrl;
+	std::string _location;
 
 	enum FirstLineParsingState {
 		RESPONSE_VERSION,
@@ -72,6 +71,7 @@ class HttpResponse : public HttpMessage {
 
 	void file(const std::string &path, HttpStatus::Code status, const std::string &mimeType);
 	void generate(HttpStatus::Code status);
+	void generate(HttpStatus::Code status, const std::string &message);
 	void redirect(const std::string &redirectUrl, HttpStatus::Code status);
 	void autoIndex(const std::string &directoryPath, HttpStatus::Code status);
 	void cgi(CGIInterface &cgi);

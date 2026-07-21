@@ -1,16 +1,13 @@
 #include "./HttpResponse.hpp"
 #include "http/HttpStatus.hpp"
-#include "http/messages/Body/BodyStringStream.hpp"
 #include "http/messages/HttpMessage.hpp"
+#include "defaultErrorPage.hpp"
 
 void HttpResponse::redirect(const std::string &redirectUrl, HttpStatus::Code status) {
-	BodyStringStream *ssBody = new BodyStringStream();
-	this->replaceBody(ssBody);
+	this->replaceBody(NULL);
 
-	*ssBody << status;
-
-	this->_bodyType = BT_CONTENT_LENGTH;
-	this->_redirectUrl = redirectUrl;
+	this->_bodyType = BT_NONE;
+	this->_location = redirectUrl;
 	this->_status = status;
 	this->_message = HttpStatus::reasonPhrase(status);
 	this->_mimeType = "";

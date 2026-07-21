@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen, const Server &serverConfig)
-	: ASocket(fd), _serverConfig(serverConfig),  _address(address), _addressLen(addressLen), _inClosed(false), _outBuffer(), _transactions() {
+	: ASocket(fd), _serverConfig(serverConfig), _address(address), _addressLen(addressLen), _inClosed(false), _outBuffer(), _transactions() {
 	FormattedAddress formattedAddress;
 	formatAddress(address, formattedAddress);
 	std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
@@ -113,15 +113,15 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {
-		this->_transactions.push(new HttpTransaction(this->_serverConfig));
+		this->_transactions.push(new HttpTransaction(this->_serverConfig, this->_address));
 	}
 
 	while (inBuffer.peek() != std::stringstream::traits_type::eof()) {
+		if (this->_transactions.back()->request().inCompleted()) {
+			this->_transactions.push(new HttpTransaction(this->_serverConfig, this->_address));
+		}
 		if (this->_transactions.back()->recvRequest(inBuffer, server)) {
-			if (this->_transactions.back()->keepAlive()) {
-				// If the request parsing is completed but we're waiting for other to come
-				this->_transactions.push(new HttpTransaction(this->_serverConfig));
-			} else {
+			if (!this->_transactions.back()->keepAlive()) {
 				// If the request parsing is completed but the response will close the connection
 				this->_inClosed = true;
 				break;
@@ -146,6 +146,7 @@ void ClientSocket::onEpollOut(WebServer &webServer) {
 		sendCompleted = transaction->sendResponse(*this);
 	} catch (...) {
 		webServer.requestDelete(this);
+		return;
 	}
 	if (sendCompleted) {
 		if (!transaction->keepAlive()) {

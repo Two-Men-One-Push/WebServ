@@ -67,8 +67,9 @@ void HttpMessage::loadBaseUsedHeaders() {
 	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) throw HttpMessage::Exception();
 
 	this->loadTranferEncoding();
-	this->loadConnection();
 	this->loadContentLength();
+	this->loadConnection();
+	this->loadContentType();
 }
 
 void HttpMessage::checkBodyType() {
@@ -89,7 +90,7 @@ void HttpMessage::checkBodyType() {
 	}
 }
 
-bool HttpMessage::waitingRouting() const {
+bool HttpMessage::isWaitingRouting() const {
 	return this->_inState == HttpMessage::RECV_WAITING_ROUTING;
 }
 

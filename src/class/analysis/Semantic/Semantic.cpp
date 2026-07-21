@@ -88,8 +88,6 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 		{
 			if (!parseInt(penultimate->rawContent().substr(1), response_code))
 				diag.report("invalid response code '" + penultimate->rawContent().substr(1) + "'", *penultimate);
-			if (response_code < 100 || response_code > 599)
-				diag.report("response code must be between 100 and 599", *penultimate);
 			try
 			{
 				response_httpCode = HttpStatus::fromInt(response_code);
@@ -108,11 +106,6 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 			if (!parseInt(arg->rawContent(), code))
 			{
 				diag.report("invalid response code '" + arg->rawContent() + "'", *arg);
-				continue;
-			}
-			if (code < 100 || code > 599)
-			{
-				diag.report("response code must be between 100 and 599", *arg);
 				continue;
 			}
 			try
@@ -272,8 +265,6 @@ void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pa
 		int code;
 		if (!parseInt(it->args().front().rawContent(), code))
 			diag.report("invalid response code '" + it->args().front().rawContent() + "'", it->args().front());
-		else if (code < 100 || code > 599)
-			diag.report("response code must be between 100 and 599", it->args().front());
 		else
 		{
 			try

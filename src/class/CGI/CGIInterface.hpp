@@ -14,7 +14,6 @@ class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
 	std::string _interpreter;
 	std::string _cgiScriptPath;
-	std::string _pathInfo;
 
 	HttpTransaction &_httpTransaction;
 
@@ -29,8 +28,8 @@ class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
 	bool _processSucces;
 
 	void startInterface(HttpTransaction &httpTransaction, WebServer &server);
-	void startCgi(const HttpRequest &request);
-	void setupEnv(std::vector<std::string> &env, const HttpRequest &request);
+	void startCgi(const HttpTransaction &httpTransaction, const Ressource &ressource);
+	void setupEnv(std::vector<std::string> &env, const HttpTransaction &httpTransaction, const Ressource &ressource);
 	int waitChild();
 	bool killChild();
 

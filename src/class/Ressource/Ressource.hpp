@@ -22,7 +22,6 @@ class	Ressource
 		HttpStatus::Code	_responseCode;
 		std::string			_cgiInterpreter;
 		std::string			_pathInfo;
-		std::string			_queryString;
 		std::string			_fragmentString;
 	public:
 		Ressource();
@@ -42,8 +41,4 @@ class	Ressource
 		std::string				&cgiInterpreter();
 		const std::string		&pathInfo() const;
 		std::string				&pathInfo();
-		const std::string		&queryString() const;
-		std::string				&queryString();
-		const std::string		&fragmentString() const;
-		std::string				&fragmentString();
 };

@@ -49,6 +49,7 @@ class HttpMessage {
 	void loadTranferEncoding();
 	void loadContentLength();
 	void loadConnection();
+	void loadContentType();
 
 	// BODY LOADING INFO
 
@@ -98,6 +99,7 @@ class HttpMessage {
 	std::string _outBuffer;
 
 	size_t _contentLength;
+	std::string _mimeType;
 	bool _keepAlive;
 	TransferEncoding _transferEncoding;
 
@@ -169,7 +171,7 @@ class HttpMessage {
 
 	bool recvFrom(std::istream &input);
 	void inState(InState state);
-	bool waitingRouting() const;
+	bool isWaitingRouting() const;
 	void completeRouting();
 	bool inCompleted() const;
 
@@ -186,6 +188,10 @@ class HttpMessage {
 	size_t contentLength() const { return _contentLength; }
 
 	TransferEncoding tranferEncording() const { return _transferEncoding; }
+
+	void mimeType(const std::string &newMimeType) { this->_mimeType = newMimeType; }
+
+	const std::string &mimeType() const { return this->_mimeType; }
 
 	bool keepAlive() const { return _keepAlive; }
 

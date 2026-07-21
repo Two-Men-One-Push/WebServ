@@ -29,7 +29,10 @@ void HttpResponse::prepareHeaders() {
 	if (this->hasBody()) {
 		headers["Content-Type"] = this->_mimeType;
 	}
-	if (this->status() == HttpStatus::MethodNotAllowed) {
+	if (!this->_location.empty()) {
+		headers["Location"] = this->_location;
+	}
+	if (this->_status == HttpStatus::MethodNotAllowed) {
 		headers["Allow"] = HttpRequest::getAllowHeader();
 	}
 }

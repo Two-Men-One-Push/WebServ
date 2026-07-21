@@ -274,6 +274,4 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
 	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;
 	os << "	Path Info: " << ressource.pathInfo() << std::endl;
-	os << "	Query String: " << ressource.queryString() << std::endl;
-	os << "	Fragment String: " << ressource.fragmentString() << std::endl;
 }

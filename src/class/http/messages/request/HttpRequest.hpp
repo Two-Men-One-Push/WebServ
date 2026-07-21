@@ -8,6 +8,7 @@
 #include <istream>
 #include <map>
 #include <string>
+#include <sys/socket.h>
 
 class HttpRequest : public HttpMessage {
   private:

@@ -46,7 +46,7 @@ _fragment("")
 		size_t fragment_pos = origin.find('#');
 		if (fragment_pos != std::string::npos)
 		{
-			this->_fragmentString = origin.substr(fragment_pos);
+			this->_fragmentString = origin.substr(fragment_pos + 1);
 			if (decode(this->_fragment, origin.substr(fragment_pos + 1)))
 			{
 				this->_format = URL_ERROR;
@@ -57,7 +57,7 @@ _fragment("")
 		size_t query_pos = origin.find('?');
 		if (query_pos != std::string::npos)
 		{
-			this->_queryString = origin.substr(query_pos);
+			this->_queryString = origin.substr(query_pos + 1);
 			std::string query_str = origin.substr(query_pos + 1);
 			origin.erase(query_pos);
 			size_t start = 0;
@@ -227,7 +227,7 @@ _fragment("")
 		size_t fragment_pos = origin.find('#');
 		if (fragment_pos != std::string::npos)
 		{
-			this->_fragmentString = origin.substr(fragment_pos);
+			this->_fragmentString = origin.substr(fragment_pos + 1);
 			if (decode(this->_fragment, origin.substr(fragment_pos + 1)))
 			{
 				this->_format = URL_ERROR;
@@ -238,7 +238,7 @@ _fragment("")
 		size_t query_pos = origin.find('?');
 		if (query_pos != std::string::npos)
 		{
-			this->_queryString = origin.substr(query_pos);
+			this->_queryString = origin.substr(query_pos + 1);
 			std::string query_str = origin.substr(query_pos + 1);
 			origin.erase(query_pos);
 			size_t start = 0;
@@ -384,7 +384,7 @@ bool	URL::decode(std::string &output, const std::string &str)
 			if (i + 2 < str.length())
 			{
 				std::string hex = str.substr(i + 1, 2);
-				
+
 				size_t MSB = std::string("0123456789abcdef").find(tolower(hex[0])) * 16;
 				if (MSB == std::string::npos)
 					return true;

@@ -63,7 +63,6 @@ cgi_vars = [
     "SERVER_PORT",
     "SERVER_PROTOCOL",
     "REQUEST_METHOD",
-    "REQUEST_URI",
     "SCRIPT_NAME",
     "PATH_INFO",
     "QUERY_STRING",
