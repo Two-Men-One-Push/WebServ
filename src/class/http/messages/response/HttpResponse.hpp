@@ -7,8 +7,6 @@
 #include <istream>
 #include <string>
 
-#define TMP_SERVER_ROOT "www"
-
 class ClientSocket;
 
 class HttpResponse : public HttpMessage {

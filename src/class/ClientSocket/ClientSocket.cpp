@@ -3,7 +3,6 @@
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/HttpTransaction.hpp"
-#include "utils/formatting.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>
@@ -22,10 +21,7 @@ ClientSocket::ClientSocket(const ListeningSocket &listeningSocket)
 	  _serverAddress(listeningSocket.address()),
 	  _inClosed(false),
 	  _outBuffer(),
-	  _transactions() {
-	FormattedAddress formattedAddress;
-	formatAddress(this->_address, formattedAddress);
-}
+	  _transactions() {}
 
 ClientSocket::~ClientSocket() {
 	while (!this->_transactions.empty()) {

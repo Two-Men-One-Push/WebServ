@@ -20,10 +20,7 @@ HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockad
 	  _serverAddress(serverAddress),
 	  _clientAddress(clientAddress),
 	  _request(),
-	  _response() {
-	FormattedAddress formatedAddr;
-	formatAddress(serverAddress, formatedAddr);
-}
+	  _response() {}
 
 HttpTransaction::HttpTransaction(const HttpTransaction &other)
 	: _serverConfig(other._serverConfig),

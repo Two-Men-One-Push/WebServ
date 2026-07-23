@@ -49,6 +49,15 @@ int ASocket::createFdFromListener(const ListeningSocket &listener, struct sockad
 }
 
 ASocket::ASocket(const ListeningSocket &listeningSocket)
-	: AEpollWatchable(ASocket::createFdFromListener(listeningSocket, this->_address)) {}
+	: AEpollWatchable(ASocket::createFdFromListener(listeningSocket, this->_address)) {
+	const int baseFlags = fcntl(this->_fd, F_GETFL, 0);
+	if (baseFlags < 0) {
+		throw WebservErrors::SysError("fcntl", errno, "Getting flags");
+	}
+	if (baseFlags & O_NONBLOCK) return;
+	if (fcntl(this->_fd, F_SETFL, baseFlags | O_NONBLOCK) < 0) {
+		throw WebservErrors::SysError("fcntl", errno, "Setting flags");
+	}
+}
 
 ASocket::~ASocket() {}

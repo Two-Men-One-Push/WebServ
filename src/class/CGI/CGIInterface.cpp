@@ -25,8 +25,7 @@
 #include <vector>
 
 CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTransaction, WebServer &server)
-	: _interpreter(ressource.cgiInterpreter()),
-	  _httpTransaction(httpTransaction),
+	: _httpTransaction(httpTransaction),
 	  _inPipe(Pipe::createCGIPipe(*this)),
 	  _outPipe(Pipe::createCGIPipe(*this)),
 	  _processSucces(false) {
@@ -94,7 +93,7 @@ void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressou
 		_exit(1);
 	}
 
-	char *const argv[] = {const_cast<char *>(this->_interpreter.c_str()), const_cast<char *>(ressource.path().c_str()), NULL};
+	char *const argv[] = {const_cast<char *>(ressource.cgiInterpreter().c_str()), const_cast<char *>(ressource.path().c_str()), NULL};
 
 	std::vector<std::string> env;
 	this->setupEnv(env, httpTransaction, ressource);
@@ -107,7 +106,7 @@ void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressou
 	}
 	envp[i] = NULL;
 
-	execve(this->_interpreter.c_str(), argv, envp);
+	execve(ressource.cgiInterpreter().c_str(), argv, envp);
 	perror("execve");
 	_exit(1);
 }
@@ -133,7 +132,6 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpTransaction
 	env.push_back("REQUEST_METHOD=" + request.methodStr());
 	env.push_back("QUERY_STRING=" + request.uri().queryString());
 
-	// TODO
 	env.push_back("SERVER_NAME=" + request.host().first);
 
 	httpTransaction.formatClientAddress(formattedAddress);
