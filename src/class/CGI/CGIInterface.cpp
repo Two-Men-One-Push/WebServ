@@ -26,7 +26,6 @@
 
 CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTransaction, WebServer &server)
 	: _interpreter(ressource.cgiInterpreter()),
-	  _cgiScriptPath(ressource.path()),
 	  _httpTransaction(httpTransaction),
 	  _inPipe(Pipe::createCGIPipe(*this)),
 	  _outPipe(Pipe::createCGIPipe(*this)),
@@ -95,7 +94,7 @@ void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressou
 		_exit(1);
 	}
 
-	char *const argv[] = {const_cast<char *>(this->_interpreter.c_str()), const_cast<char *>(this->_cgiScriptPath.c_str()), NULL};
+	char *const argv[] = {const_cast<char *>(this->_interpreter.c_str()), const_cast<char *>(ressource.path().c_str()), NULL};
 
 	std::vector<std::string> env;
 	this->setupEnv(env, httpTransaction, ressource);
@@ -103,7 +102,7 @@ void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressou
 
 	size_t i = 0;
 	while (i < env.size()) {
-		envp[i] = (char *)(env[i].c_str());
+		envp[i] = const_cast<char *>(env[i].c_str());
 		++i;
 	}
 	envp[i] = NULL;
@@ -128,7 +127,7 @@ void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpTransaction
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
 	env.push_back("SCRIPT_NAME=" + ressource.scriptName());
-	env.push_back("PATH_TRANSLATED=" + this->_cgiScriptPath);
+	env.push_back("PATH_TRANSLATED=" + ressource.path());
 	env.push_back("PATH_INFO=" + ressource.pathInfo());
 
 	env.push_back("REQUEST_METHOD=" + request.methodStr());
@@ -177,9 +176,9 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			throw WebservErrors::SysError("read", errno);
 		}
 
-		std::cerr << "\e[0;31m";
-		std::cerr.write(buffer, readLen);
-		std::cerr << "\e[0m\n";
+		// std::cerr << "\e[0;31m";
+		// std::cerr.write(buffer, readLen);
+		// std::cerr << "\e[0m\n";
 		input.write(buffer, readLen);
 
 		if (this->_httpTransaction.recvResponse(input)) {

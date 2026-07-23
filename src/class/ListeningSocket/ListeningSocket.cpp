@@ -24,7 +24,6 @@ int ListeningSocket::createFd(const sockaddr &addr) {
 ListeningSocket::ListeningSocket(const sockaddr &address, socklen_t addressLen, const Server &serverConfig)
 	: ASocket(ListeningSocket::createFd(address), address, addressLen), _serverConfig(serverConfig) {
 
-
 	int opt = 1;
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -40,7 +39,7 @@ ListeningSocket::ListeningSocket(const sockaddr &address, socklen_t addressLen, 
 ListeningSocket::~ListeningSocket() {}
 
 ClientSocket *ListeningSocket::acceptConnexion(void) const {
-	return ClientSocket::createFromListener(*this, this->_serverConfig);
+	return new ClientSocket(*this);
 }
 
 u_int32_t ListeningSocket::getHandledEvents() const {
@@ -51,16 +50,18 @@ void ListeningSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 	if (events & EPOLLIN) {
 		this->onEpollIn(webServer);
 	} else if (events & EPOLLHUP) {
-		std::cout << "Unhandled event : EPOLLHUP" << std::endl;
+		std::cerr << "Unhandled event : EPOLLHUP : WTF" << std::endl;
 	} else if (events & EPOLLERR) {
-		std::cout << "Unhandled event : EPOLLERR" << std::endl;
-	} else {
-		std::cout << "Unhandled event :" << events << std::endl;
 	}
 }
 
 void ListeningSocket::onEpollIn(WebServer &webServer) const {
 	webServer.addClient(this->acceptConnexion());
+}
+
+void ListeningSocket::onEpollErr(WebServer &webServer) const {
+	(void)webServer;
+	throw WebservErrors::Runtime("ListeningSocket::handleEvents: unknown error on listening socket");
 }
 
 int ListeningSocket::accept(struct sockaddr *address, socklen_t *addressLen) const {

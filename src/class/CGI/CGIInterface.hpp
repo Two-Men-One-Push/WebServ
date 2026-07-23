@@ -12,7 +12,6 @@ class WebServer;
 class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
 	std::string _interpreter;
-	std::string _cgiScriptPath;
 
 	HttpTransaction &_httpTransaction;
 

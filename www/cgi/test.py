@@ -68,7 +68,6 @@ cgi_vars = [
     "SCRIPT_NAME",
     "PATH_INFO",
     "QUERY_STRING",
-    "SERVER_NAME",
     "HTTP_HOST",
     "HTTP_USER_AGENT",
     "HTTP_ACCEPT",

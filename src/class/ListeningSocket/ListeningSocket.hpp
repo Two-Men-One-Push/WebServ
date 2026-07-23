@@ -12,9 +12,9 @@ class ClientSocket;
 
 class ListeningSocket : public ASocket {
   private:
-	sockaddr_storage _address;
 	const Server &_serverConfig;
 	void onEpollIn(WebServer &webServer) const;
+	void onEpollErr(WebServer &webServer) const;
 
 	static int createFd(const sockaddr &addr);
 
@@ -28,6 +28,8 @@ class ListeningSocket : public ASocket {
 	u_int32_t getHandledEvents() const;
 
 	int fd() const { return _fd; }
+
+	const Server &serverConfig() const { return _serverConfig; };
 
 	const sockaddr_storage &address() const { return this->_address; };
 

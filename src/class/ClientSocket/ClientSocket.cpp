@@ -2,9 +2,7 @@
 #include "ASocket/ASocket.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "WebServer/WebServer.hpp"
-#include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
-#include "model/Server/Server.hpp"
 #include "utils/formatting.hpp"
 #include <cerrno>
 #include <cstring>
@@ -18,11 +16,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-ClientSocket::ClientSocket(int fd, struct sockaddr_storage &address, socklen_t addressLen, const struct sockaddr_storage &serverAddress, const Server &serverConfig)
-	: ASocket(fd, address, addressLen), _serverConfig(serverConfig), _serverAddress(serverAddress), _inClosed(false), _outBuffer(), _transactions() {
+ClientSocket::ClientSocket(const ListeningSocket &listeningSocket)
+	: ASocket(listeningSocket),
+	  _serverConfig(listeningSocket.serverConfig()),
+	  _serverAddress(listeningSocket.address()),
+	  _inClosed(false),
+	  _outBuffer(),
+	  _transactions() {
 	FormattedAddress formattedAddress;
-	formatAddress(address, formattedAddress);
-	std::cout << "New connection to " << formattedAddress.address << ':' << formattedAddress.port << " created" << std::endl;
+	formatAddress(this->_address, formattedAddress);
 }
 
 ClientSocket::~ClientSocket() {
@@ -30,17 +32,6 @@ ClientSocket::~ClientSocket() {
 		delete this->_transactions.front();
 		this->_transactions.pop();
 	}
-}
-
-ClientSocket *ClientSocket::createFromListener(const ListeningSocket &listener, const Server &serverConfig) {
-	struct sockaddr_storage clientAddr;
-	socklen_t addrLen = sizeof(clientAddr);
-
-	const int fd = listener.accept(reinterpret_cast<struct sockaddr *>(&clientAddr), &addrLen);
-
-	if (fd < 0) throw WebservErrors::SysError("accept", errno);
-
-	return new ClientSocket(fd, clientAddr, addrLen, listener.address(), serverConfig);
 }
 
 const struct sockaddr_storage &ClientSocket::address() const {
@@ -62,18 +53,6 @@ bool ClientSocket::canHandleEpollOut() const {
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR)) {
-		if (events & EPOLLIN) {
-			std::cout << "EPOLLIN" << std::endl;
-		}
-		if (events & EPOLLOUT) {
-			std::cout << "EPOLLOUT" << std::endl;
-		}
-		if (events & EPOLLHUP) {
-			std::cout << "EPOLLHUP" << std::endl;
-		}
-		if (events & EPOLLERR) {
-			std::cout << "EPOLLERR" << std::endl;
-		}
 		if (events & EPOLLHUP || events & EPOLLERR) {
 			webServer.requestDelete(this);
 		} else {
@@ -104,9 +83,9 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		return;
 	};
 
-	std::cerr << "\e[0;31m";
-	std::cerr.write(buffer, readLen);
-	std::cerr << "\e[0m\n";
+	// std::cerr << "\e[0;31m";
+	// std::cerr.write(buffer, readLen);
+	// std::cerr << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {

@@ -21,7 +21,8 @@ HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockad
 	  _clientAddress(clientAddress),
 	  _request(),
 	  _response() {
-	std::cout << "New HTTP transaction created" << std::endl;
+	FormattedAddress formatedAddr;
+	formatAddress(serverAddress, formatedAddr);
 }
 
 HttpTransaction::HttpTransaction(const HttpTransaction &other)

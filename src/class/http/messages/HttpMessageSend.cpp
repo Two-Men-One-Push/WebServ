@@ -22,8 +22,6 @@ bool HttpMessage::sendTo(const Fd &output) {
 		// fallthrough
 	case SEND_BODY:
 		if (!this->hasBody()) {
-			std::cerr << "NO BODY IG ?" << std::endl;
-			std::cerr << this->_contentLength << std::endl;
 			this->_outState = SEND_COMPLETED;
 			return true;
 		}
@@ -46,9 +44,6 @@ bool HttpMessage::sendHead(const Fd &output) {
 
 	if (buffer.empty()) this->formatHead();
 	ssize_t sent = output.write(buffer.data(), std::min(buffer.size(), (size_t)WRITE_SIZE));
-	std::cerr << "\e[0;32m";
-	std::cerr.write(buffer.data(), sent);
-	std::cerr << "\e[0m\n";
 	buffer.erase(0, sent);
 	return buffer.empty();
 }
@@ -78,9 +73,9 @@ bool HttpMessage::sendBody(const Fd &output) {
 			return false;
 		throw WebservErrors::SysError("write", errno);
 	}
-	std::cerr << "\e[0;32m";
-	std::cerr.write(buffer.data(), sent);
-	std::cerr << "\e[0m\n";
+	// std::cerr << "\e[0;32m";
+	// std::cerr.write(buffer.data(), sent);
+	// std::cerr << "\e[0m\n";
 	this->_sentSize += sent;
 	buffer.erase(0, sent);
 
