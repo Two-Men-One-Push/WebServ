@@ -1,7 +1,6 @@
 #include "./HttpTransaction.hpp"
 #include "CGI/CGIInterface.hpp"
 #include "Ressource/Ressource.hpp"
-#include "Router/Router.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/errors/HttpErrors.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
@@ -36,11 +35,11 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 		bool result = this->_request.recvFrom(input);
 
 		if (this->_request.isWaitingRouting()) {
-			const Ressource ressource = Router::resolveRessource(this->_request, this->_serverConfig);
+			const Ressource ressource(this->_request, this->_serverConfig);
 			try {
 				this->handleRessource(ressource, server);
 			} catch (const HttpError &e) {
-				Ressource errorRessource = Router::resolveErrorRessource(this->_request, e.status(), this->_serverConfig);
+				Ressource errorRessource(this->_request, e.status(), this->_serverConfig);
 
 				try {
 					this->handleErrorRessource(errorRessource, e);
@@ -162,7 +161,7 @@ void HttpTransaction::closeResponseInput() {
 }
 
 void HttpTransaction::error(const HttpError &e) {
-	const Ressource errorRessource = Router::resolveErrorRessource(this->_request, e.status(), this->_serverConfig);
+	const Ressource errorRessource(this->_request, e.status(), this->_serverConfig);
 	this->handleErrorRessource(errorRessource, e);
 	this->_response.keepAlive(false);
 }
