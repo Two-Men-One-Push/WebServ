@@ -24,7 +24,7 @@ class Semantic
 		static void			parseClientMaxBodySize(std::list<Directive>::const_iterator it, size_t &size, DiagnosticContext &diag);
 		static void			parseErrorPages(std::list<Directive>::const_iterator it, std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> > &error_pages, DiagnosticContext &diag);
 		static void			parseCGI(std::list<Directive>::const_iterator it, std::map<std::string, std::string> &cgi, DiagnosticContext &diag);
-		static void			parseListen(std::list<Directive>::const_iterator it, std::vector<int> &listen, Http &http, DiagnosticContext &diag);
+		static void			parseListen(std::list<Directive>::const_iterator it, std::vector<std::pair<std::string, int> > &listen, DiagnosticContext &diag);
 		static void			parseServerNames(std::list<Directive>::const_iterator it, std::vector<std::string> &server_names, Http &http, DiagnosticContext &diag);
 		static void			parseRoot(std::list<Directive>::const_iterator it, std::string &root, DiagnosticContext &diag);
 		static void			parseIndex(std::list<Directive>::const_iterator it, std::vector<std::string> &index_files, DiagnosticContext &diag);

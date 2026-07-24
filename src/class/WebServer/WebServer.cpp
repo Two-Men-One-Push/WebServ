@@ -5,6 +5,8 @@
 #include "Fd/Fd.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "errors/WebservErrors.hpp"
+#include "model/Config/Config.hpp"
+#include "model/Server/Server.hpp"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -18,46 +20,8 @@
 #include <unistd.h>
 #include <vector>
 
-WebServer::WebServer() : _epoll() {
-	/* temp */
-	short port = 6969;
-	std::string ipAddress = "localhost";
-
-	_listeningSockets.reserve(10 /* count server and the number of different listen directives and reserve enough */);
-	/* temp */
-
-	struct addrinfo hints;
-	struct addrinfo *res;
-	std::memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
-	hints.ai_socktype = SOCK_STREAM;
-
-	std::stringstream oss;
-	oss << port;
-
-	const int ret = getaddrinfo(ipAddress.c_str(), oss.str().c_str(), &hints, &res);
-
-	if (ret) {
-		throw WebservErrors::GaiError("getaddrinfo", ret, ipAddress + " " + oss.str());
-	}
-
-	for (addrinfo *currentAddressInfo = res; currentAddressInfo != NULL; currentAddressInfo = currentAddressInfo->ai_next) {
-		try {
-			_listeningSockets.push_back(ListeningSocket::createNew(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen));
-		} catch (...) {
-			freeaddrinfo(res);
-			throw;
-		}
-		_epoll.add(*_listeningSockets.back());
-	}
-
-	freeaddrinfo(res);
-
-	std::cout << "Listening http://" << ipAddress << ":" << port << ' ' << std::endl;
-
-	// HttpTransaction testTransaction;
-	// CGIInterface test("./www/cgi/test-test.py", testTransaction, *this);
-	// CGIInterface test("/bin/cat", testTransaction, *this);
+WebServer::WebServer(const Config &config) : _epoll() {
+	this->startListeningSockets(config);
 
 	while (true) {
 		std::vector<EpollEvent> events;
@@ -74,6 +38,44 @@ WebServer::WebServer() : _epoll() {
 }
 
 WebServer::~WebServer() {}
+
+void WebServer::startListeningSockets(const Config &config) {
+	const std::vector<Server> &serverConfigs = config.http().servers();
+
+	struct addrinfo hints;
+	struct addrinfo *res;
+	std::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
+	hints.ai_socktype = SOCK_STREAM;
+
+	for (std::vector<Server>::const_iterator sit = serverConfigs.begin(); sit != serverConfigs.end(); ++sit) {
+		const std::vector<std::pair<std::string, int> > &listens = sit->listen();
+		for (std::vector<std::pair<std::string, int> >::const_iterator lit = listens.begin(); lit != listens.end(); ++lit) {
+			std::stringstream oss;
+			oss << lit->second;
+
+			const int ret = getaddrinfo(lit->first.c_str(), oss.str().c_str(), &hints, &res);
+
+			if (ret) {
+				throw WebservErrors::GaiError("getaddrinfo", ret, lit->first + " " + oss.str());
+			}
+
+			for (addrinfo *currentAddressInfo = res; currentAddressInfo != NULL; currentAddressInfo = currentAddressInfo->ai_next) {
+				try {
+					_listeningSockets.push_back(new ListeningSocket(*currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen, *sit));
+				} catch (...) {
+					freeaddrinfo(res);
+					throw;
+				}
+				_epoll.add(*_listeningSockets.back());
+			}
+
+			freeaddrinfo(res);
+
+			std::cout << "Listening http://" << lit->first << ":" << lit->second << ' ' << std::endl;
+		}
+	}
+}
 
 void WebServer::addClient(ClientSocket *client) {
 	_clientSockets.push_back(client);

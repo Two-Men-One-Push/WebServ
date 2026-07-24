@@ -18,6 +18,6 @@ const char *SysError::what() const throw() {
 	return _message.c_str();
 }
 
-int SysError::getErr() const {
+int SysError::err() const {
 	return _err;
 }

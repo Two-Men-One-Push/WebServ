@@ -21,14 +21,24 @@ bool isseparator(char c) {
 		   c == '{' || c == '}' || c == ' ' || c == '\t';
 }
 
-bool istokenc(char c) {
+bool istokenc(unsigned char c) {
 	return !(std::iscntrl(c) || isseparator(c));
 }
 
 bool istoken(const std::string &s) {
 	if (s.empty()) return false;
 	for (std::string::const_iterator it = s.begin(); it != s.end(); it++) {
-		if (!istokenc(*it))
+		unsigned char c = static_cast<unsigned char>(*it);
+		if (!istokenc(c))
+			return false;
+	}
+	return true;
+}
+
+bool isheadervalue(const std::string &s) {
+	for (std::string::const_iterator it = s.begin(); it != s.end(); it++) {
+		unsigned char c = static_cast<unsigned char>(*it);
+		if (iscntrl(c) && c != '\t')
 			return false;
 	}
 	return true;

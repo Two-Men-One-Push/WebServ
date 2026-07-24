@@ -1,5 +1,4 @@
 #include "./HttpMessage.hpp"
-#include "errors/WebservErrors.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/types.hpp"
@@ -29,15 +28,17 @@ bool HttpMessage::recvFrom(std::istream &input) {
 		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
 		// fallthrough
 	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
-		this->loadBaseUsedHeaders();
-		this->loadTypeUsedHeaders();
+		this->loadCommonHeaders();
+		this->loadTypeHeaders();
 		this->checkBodyType();
-		this->_inState = HttpMessage::RECV_MESSAGE_BODY;
-		// fallthrough
+		this->_inState = HttpMessage::RECV_WAITING_ROUTING;
+		return false;
+	case HttpMessage::RECV_WAITING_ROUTING:
+		return false;
 	case HttpMessage::RECV_MESSAGE_BODY:
 		if (this->hasBody() && !this->recvBody(input)) return false;
 		this->_inState = HttpMessage::RECV_COMPLETED;
-		std::cerr << *this << std::endl;
+		// std::cerr << *this << std::endl;
 		// fallthrough
 	case HttpMessage::RECV_COMPLETED:
 		return true;
@@ -62,12 +63,13 @@ HttpVersion HttpMessage::parseHttpVersion(const std::string &input) {
 	throw HttpMessage::Exception().requestStatus(HttpStatus::HTTPVersionNotSupported);
 }
 
-void HttpMessage::loadBaseUsedHeaders() {
+void HttpMessage::loadCommonHeaders() {
 	if (this->_headers.has("Transfer-Encoding") && this->_headers.has("Content-Length")) throw HttpMessage::Exception();
 
 	this->loadTranferEncoding();
-	this->loadConnection();
 	this->loadContentLength();
+	this->loadConnection();
+	this->loadContentType();
 }
 
 void HttpMessage::checkBodyType() {
@@ -86,6 +88,14 @@ void HttpMessage::checkBodyType() {
 			this->_bodyType = BT_NONE;
 		}
 	}
+}
+
+bool HttpMessage::isWaitingRouting() const {
+	return this->_inState == HttpMessage::RECV_WAITING_ROUTING;
+}
+
+void HttpMessage::completeRouting() {
+	this->_inState = RECV_MESSAGE_BODY;
 }
 
 bool HttpMessage::inCompleted() const {
@@ -146,6 +156,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 			if (!istoken(headerField.first)) throw HttpMessage::Exception();
 			toHeaderCase(headerField.first);
 			headerField.second = trim(line.substr(headerNamePos + 1));
+			if (!isheadervalue(headerField.second)) throw HttpMessage::Exception();
 		}
 	}
 }
@@ -160,9 +171,7 @@ bool HttpMessage::recvBody(std::istream &input) {
 void HttpMessage::writeBody(const char *buffer, size_t size) {
 	while (size) {
 		ssize_t written = this->_body->write(buffer, size);
-		if (written < 0) throw WebservErrors::SysError("write", errno);
-		if (written == 0)
-			throw HttpErrors::InternalServerErrorException();
+		if (written < 0) throw HttpErrors::InternalServerErrorException();
 		buffer += written;
 		size -= written;
 	}

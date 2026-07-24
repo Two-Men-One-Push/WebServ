@@ -1,5 +1,6 @@
 #include "./HttpResponse.hpp"
 #include "http/HttpStatus.hpp"
+#include "http/messages/Body/IBody.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include <cstddef>
 #include <iostream>
@@ -33,6 +34,11 @@ HttpResponse::HttpResponse(const HttpResponse &other)
 
 HttpResponse::~HttpResponse() {
 	delete this->_cgiInterface;
+}
+
+void HttpResponse::replaceBody(IBody *newBody) {
+	if (this->_body) delete this->_body;
+	this->_body = newBody;
 }
 
 HttpStatus::Code HttpResponse::status() const {

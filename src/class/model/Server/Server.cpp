@@ -29,12 +29,12 @@ Server	&Server::operator=(const Server &other)
 	return (*this);
 }
 
-const std::vector<int>	&Server::listen() const
+const std::vector<std::pair<std::string, int> >	&Server::listen() const
 {
 	return (this->_listen);
 }
 
-std::vector<int>	&Server::listen()
+std::vector<std::pair<std::string, int> >	&Server::listen()
 {
 	return (this->_listen);
 }

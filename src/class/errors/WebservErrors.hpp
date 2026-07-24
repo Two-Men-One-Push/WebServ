@@ -35,7 +35,7 @@ class SysError : public LoggableError {
 
 	virtual const char *what() const throw();
 
-	int getErr() const;
+	int err() const;
 };
 
 class GaiError : public LoggableError {

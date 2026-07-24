@@ -49,6 +49,7 @@ class HttpMessage {
 	void loadTranferEncoding();
 	void loadContentLength();
 	void loadConnection();
+	void loadContentType();
 
 	// BODY LOADING INFO
 
@@ -88,6 +89,7 @@ class HttpMessage {
 		RECV_MESSAGE_TYPES,
 		RECV_MESSAGE_HEADERS,
 		RECV_LOAD_MESSAGE_HEADERS,
+		RECV_WAITING_ROUTING,
 		RECV_MESSAGE_BODY,
 		RECV_COMPLETED,
 	};
@@ -97,6 +99,7 @@ class HttpMessage {
 	std::string _outBuffer;
 
 	size_t _contentLength;
+	std::string _mimeType;
 	bool _keepAlive;
 	TransferEncoding _transferEncoding;
 
@@ -108,9 +111,9 @@ class HttpMessage {
 	} _bodyType;
 
 	virtual bool recvTypeLine(std::istream &input) = 0;
-	void loadBaseUsedHeaders();
+	void loadCommonHeaders();
 
-	virtual void loadTypeUsedHeaders() = 0;
+	virtual void loadTypeHeaders() = 0;
 	virtual void checkBodyType();
 
 	virtual void prepareHeaders() = 0;
@@ -168,6 +171,8 @@ class HttpMessage {
 
 	bool recvFrom(std::istream &input);
 	void inState(InState state);
+	bool isWaitingRouting() const;
+	void completeRouting();
 	bool inCompleted() const;
 
 	bool sendTo(const Fd &output);
@@ -183,6 +188,10 @@ class HttpMessage {
 	size_t contentLength() const { return _contentLength; }
 
 	TransferEncoding tranferEncording() const { return _transferEncoding; }
+
+	void mimeType(const std::string &newMimeType) { this->_mimeType = newMimeType; }
+
+	const std::string &mimeType() const { return this->_mimeType; }
 
 	bool keepAlive() const { return _keepAlive; }
 

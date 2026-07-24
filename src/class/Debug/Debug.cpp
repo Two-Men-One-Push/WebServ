@@ -150,11 +150,11 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 	{
 		os << "			Server:" << std::endl;
 		os << "				Listen: ";
-		for (std::vector<int>::const_iterator port_it = it->listen().begin(); port_it != it->listen().end(); ++port_it)
+		for (std::vector<std::pair<std::string, int> >::const_iterator listen_it = it->listen().begin(); listen_it != it->listen().end(); ++listen_it)
 		{
-			if (port_it != it->listen().begin())
+			if (listen_it != it->listen().begin())
 				os << ", ";
-			os << *port_it;
+			os << listen_it->first << ":" << listen_it->second;
 		}
 		os << std::endl;
 		os << "				Server Names: ";
@@ -274,6 +274,4 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
 	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;
 	os << "	Path Info: " << ressource.pathInfo() << std::endl;
-	os << "	Query String: " << ressource.queryString() << std::endl;
-	os << "	Fragment String: " << ressource.fragmentString() << std::endl;
 }

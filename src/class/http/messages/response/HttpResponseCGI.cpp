@@ -9,5 +9,6 @@ void HttpResponse::cgi(CGIInterface &cgiInterface) {
 	this->_message = HttpStatus::reasonPhrase(HttpStatus::OK);
 	this->_inState = RECV_MESSAGE_HEADERS;
 	this->_body = new BodyStringStream();
+	this->_bodyType = BT_EOF;
 	this->_cgiInterface = &cgiInterface;
 }

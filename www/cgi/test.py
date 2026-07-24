@@ -59,16 +59,15 @@ if params:
 print("<h2>Environment Variables</h2>")
 print("<table border='1' cellpadding='4'>")
 cgi_vars = [
+    "CONTENT_TYPE",
+    "CONTENT_LENGTH",
     "SERVER_NAME",
     "SERVER_PORT",
     "SERVER_PROTOCOL",
     "REQUEST_METHOD",
-    "REQUEST_URI",
     "SCRIPT_NAME",
     "PATH_INFO",
     "QUERY_STRING",
-    "CONTENT_TYPE",
-    "CONTENT_LENGTH",
     "HTTP_HOST",
     "HTTP_USER_AGENT",
     "HTTP_ACCEPT",

@@ -1,4 +1,5 @@
 #include "http/HttpStatus.hpp"
 #include <ostream>
 
-std::ostream	&operator<<(std::ostream &os, HttpStatus::Code code);
+void printDefaultErrorPage(std::ostream &os, HttpStatus::Code code, const std::string &message);
+void printDefaultErrorPage(std::ostream &os, HttpStatus::Code code);

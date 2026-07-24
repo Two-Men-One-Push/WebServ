@@ -9,7 +9,7 @@ class	Http;
 class	Server: public Location
 {
 	private:
-		std::vector<int>							_listen;
+		std::vector<std::pair<std::string, int> >	_listen;
 		std::vector<std::string>					_server_names;
 		std::vector<Location>						_locations;
 	public:
@@ -18,8 +18,8 @@ class	Server: public Location
 		Server(const Server &copy);
 		Server	&operator=(const Server &other);
 
-		const std::vector<int>								&listen() const;
-		std::vector<int>									&listen();
+		const std::vector<std::pair<std::string, int> >		&listen() const;
+		std::vector<std::pair<std::string, int> >			&listen();
 		const std::vector<std::string>						&serverNames() const;
 		std::vector<std::string>							&serverNames();
 		const std::vector<Location>							&locations() const;

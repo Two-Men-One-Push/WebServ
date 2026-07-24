@@ -1,11 +1,14 @@
 #include "./CGIInterface.hpp"
 #include "Pipe/Pipe.hpp"
+#include "Ressource/Ressource.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpTransaction.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
+#include "utils/formatting.hpp"
+#include <cctype>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -15,14 +18,14 @@
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
 
-CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTransaction, WebServer &server)
-	: _execPath(execPath),
-	  _httpTransaction(httpTransaction),
+CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTransaction, WebServer &server)
+	: _httpTransaction(httpTransaction),
 	  _inPipe(Pipe::createCGIPipe(*this)),
 	  _outPipe(Pipe::createCGIPipe(*this)),
 	  _processSucces(false) {
@@ -33,12 +36,21 @@ CGIInterface::CGIInterface(const std::string &execPath, HttpTransaction &httpTra
 	if (this->_cgiPid) {
 		this->startInterface(httpTransaction, server);
 	} else {
-		this->startCgi(httpTransaction.request());
+		this->startCgi(httpTransaction, ressource);
 	}
 }
 
 CGIInterface::~CGIInterface() {
 	this->killChild();
+}
+
+std::string CGIInterface::toEnvCase(const std::string &s) {
+	std::string result;
+	for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
+		if (*it == '-') result += '_';
+		else result += ::toupper(static_cast<unsigned char>(*it));
+	}
+	return result;
 }
 
 void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &server) {
@@ -64,7 +76,7 @@ void CGIInterface::startInterface(HttpTransaction &httpTransaction, WebServer &s
 	this->_cgiPid = -1;
 }
 
-void CGIInterface::startCgi(const HttpRequest &request) {
+void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressource &ressource) {
 	this->_outPipe.releaseIn();
 	this->_inPipe.releaseOut();
 
@@ -81,62 +93,61 @@ void CGIInterface::startCgi(const HttpRequest &request) {
 		_exit(1);
 	}
 
-	char *const argv[] = {const_cast<char *>(this->_execPath.c_str()), NULL};
+	char *const argv[] = {const_cast<char *>(ressource.cgiInterpreter().c_str()), const_cast<char *>(ressource.path().c_str()), NULL};
 
 	std::vector<std::string> env;
-	this->setupEnv(env, request);
+	this->setupEnv(env, httpTransaction, ressource);
 	char **envp = new char *[env.size() + 1];
 
 	size_t i = 0;
 	while (i < env.size()) {
-		envp[i] = (char *)(env[i].c_str());
+		envp[i] = const_cast<char *>(env[i].c_str());
 		++i;
 	}
 	envp[i] = NULL;
 
-	execve(this->_execPath.c_str(), argv, envp);
+	execve(ressource.cgiInterpreter().c_str(), argv, envp);
 	perror("execve");
 	_exit(1);
 }
 
-void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpRequest &request) {
-	const HeaderMap &headers = request.headers();
+void CGIInterface::setupEnv(std::vector<std::string> &env, const HttpTransaction &httpTransaction, const Ressource &ressource) {
+	const HttpRequest &request = httpTransaction.request();
+	std::ostringstream ss;
+	FormattedAddress formattedAddress;
 
-	env.push_back("AUTH_TYPE=");
-	env.push_back("REMOTE_IDENT=");
-	env.push_back("REMOTE_USER=");
-
-	std::ostringstream formatter;
-	formatter << "CONTENT_LENGTH=" << request.contentLength();
-	// env.push_back(formatter.str());
-	formatter.str("");
-
-	if (request.hasBody() && headers.has("Content-Type")) {
-		env.push_back("CONTENT_TYPE=" + headers.at("Content-Type"));
-	} else {
-		env.push_back("CONTENT_TYPE=");
+	if (request.hasBody()) {
+		ss << request.contentLength();
+		env.push_back("CONTENT_LENGTH=" + ss.str());
+		ss.str("");
+		env.push_back("CONTENT_TYPE=" + request.mimeType());
 	}
 
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-	env.push_back("SCRIPT_NAME=" + this->_execPath);
-	// TODO
-	env.push_back("PATH_INFO=");
+	env.push_back("SCRIPT_NAME=" + ressource.scriptName());
+	env.push_back("PATH_TRANSLATED=" + ressource.path());
+	env.push_back("PATH_INFO=" + ressource.pathInfo());
 
-	// TODO
-	env.push_back("REMOTE_ADDR=127.0.0.1");
-	// TODO
-	env.push_back("REMOTE_HOST=127.0.0.1");
 	env.push_back("REQUEST_METHOD=" + request.methodStr());
-	// TODO
-	env.push_back("QUERY_STRING=?qtest1=123&qtest2=abc");
+	env.push_back("QUERY_STRING=" + request.uri().queryString());
 
-	// TODO
-	env.push_back("SERVER_NAME=webserv");
-	// TODO
-	env.push_back("SERVER_PORT=6969");
+	env.push_back("SERVER_NAME=" + request.host().first);
+
+	httpTransaction.formatClientAddress(formattedAddress);
+	env.push_back("REMOTE_ADDR=" + formattedAddress.address);
+
+	httpTransaction.formatServerAddress(formattedAddress);
+	ss << formattedAddress.port;
+	env.push_back("SERVER_PORT=" + ss.str());
+	ss.str("");
 	env.push_back("SERVER_PROTOCOL=" + request.versionStr());
 	env.push_back("SERVER_SOFTWARE=webserv/0.1");
+
+	for (HeaderMap::const_iterator it = request.headers().begin(); it != request.headers().end(); ++it) {
+		if (it->first == "Content-Length" || it->first == "Content-Type") continue;
+		env.push_back("HTTP_" + CGIInterface::toEnvCase(it->first) + '=' + it->second);
+	}
 }
 
 void CGIInterface::inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer) {
@@ -163,9 +174,9 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			throw WebservErrors::SysError("read", errno);
 		}
 
-		std::cerr << "\e[0;31m";
-		std::cerr.write(buffer, readLen);
-		std::cerr << "\e[0m\n";
+		// std::cerr << "\e[0;31m";
+		// std::cerr.write(buffer, readLen);
+		// std::cerr << "\e[0m\n";
 		input.write(buffer, readLen);
 
 		if (this->_httpTransaction.recvResponse(input)) {
@@ -211,10 +222,6 @@ int CGIInterface::waitChild() {
 		this->_cgiPid = -1;
 	}
 	return this->_processSucces;
-}
-
-const std::string &CGIInterface::execPath() const {
-	return this->_execPath;
 }
 
 bool CGIInterface::running() const {

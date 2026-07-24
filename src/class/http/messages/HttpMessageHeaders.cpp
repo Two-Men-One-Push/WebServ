@@ -25,5 +25,11 @@ void HttpMessage::loadContentLength() {
 void HttpMessage::loadConnection() {
 	HeaderMap &headerMap = this->_headers;
 	if (!headerMap.has("Connection")) return;
-	if (headerMap.at("Connection") == "close") this->_keepAlive = false;;
+	if (headerMap.at("Connection") == "close") this->_keepAlive = false;
+}
+
+void HttpMessage::loadContentType() {
+	HeaderMap &headerMap = this->_headers;
+	if (!headerMap.has("Content-Type")) return;
+	this->_mimeType = headerMap.at("Content-Type");
 }
