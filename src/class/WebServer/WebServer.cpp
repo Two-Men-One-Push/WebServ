@@ -8,6 +8,7 @@
 #include "model/Config/Config.hpp"
 #include "model/Server/Server.hpp"
 #include <algorithm>
+#include <csignal>
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
@@ -21,11 +22,16 @@
 #include <vector>
 
 WebServer::WebServer(const Config &config) : _epoll() {
+	::signal(SIGINT, WebServer::sigintHandler);
 	this->startListeningSockets(config);
 
-	while (true) {
+	while (WebServer::running) {
 		std::vector<EpollEvent> events;
-		_epoll.wait(events);
+		try {
+			_epoll.wait(events);
+		} catch (const WebservErrors::SysError &e) {
+			if (e.err() != EINTR && WebServer::signal != SIGINT) throw;
+		}
 		for (std::vector<EpollEvent>::iterator it = events.begin(); it != events.end(); ++it) {
 			it->fd->handleEvents(it->events, *this);
 		}
@@ -37,7 +43,16 @@ WebServer::WebServer(const Config &config) : _epoll() {
 	}
 }
 
-WebServer::~WebServer() {}
+WebServer::~WebServer() {
+	std::vector<ListeningSocket *> &listeningSockets = this->_listeningSockets;
+	for (std::vector<ListeningSocket *>::iterator it = listeningSockets.begin(); it != listeningSockets.end(); ++it) {
+		delete *it;
+	}
+	std::vector<ClientSocket *> &clientSockets = this->_clientSockets;
+	for (std::vector<ClientSocket *>::iterator it = clientSockets.begin(); it != clientSockets.end(); ++it) {
+		delete *it;
+	}
+}
 
 void WebServer::startListeningSockets(const Config &config) {
 	const std::vector<Server> &serverConfigs = config.http().servers();

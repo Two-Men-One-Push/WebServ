@@ -13,6 +13,7 @@ class ClientSocket;
 class ListeningSocket : public ASocket {
   private:
 	const Server &_serverConfig;
+
 	void onEpollIn(WebServer &webServer) const;
 	void onEpollErr(WebServer &webServer) const;
 
