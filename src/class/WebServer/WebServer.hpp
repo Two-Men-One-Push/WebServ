@@ -6,6 +6,7 @@
 #include "Fd/Fd.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
 #include "model/Config/Config.hpp"
+#include <csignal>
 #include <vector>
 
 class WebServer {
@@ -16,9 +17,12 @@ class WebServer {
 	std::vector<ClientSocket *> _clientSockets;
 	std::vector<ClientSocket *> _clientSocketsToDelete;
 
+	void startListeningSockets(const Config &config);
 	void deleteClientSockets();
 
-	void startListeningSockets(const Config &config);
+	static sig_atomic_t running;
+	static sig_atomic_t signal;
+	static void sigintHandler(int);
 
   public:
 	WebServer(const Config &config);

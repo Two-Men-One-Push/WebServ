@@ -4,7 +4,6 @@
 #include "errors/WebservErrors.hpp"
 #include "model/Server/Server.hpp"
 #include <cerrno>
-#include <cstring>
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
