@@ -116,6 +116,11 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			}
 		}
 	}
+	std::string uploadPath = location.root();
+	if (!location.uploadPath().empty() && (req.methodStr() == "POST" || req.methodStr() == "DELETE"))
+	{
+		uploadPath = location.uploadPath();
+	}
 	std::string path = location.root();
 	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
 		path += "/" + *it;
@@ -206,6 +211,10 @@ const std::string Ressource::typeStr() const {
 		return ("RESSOURCE_ERROR");
 	case RESSOURCE_AUTO_INDEX:
 		return ("RESSOURCE_AUTO_INDEX");
+	case RESSOURCE_UPLOAD:
+		return ("RESSOURCE_UPLOAD");
+	case RESSOURCE_DELETE:
+		return ("RESSOURCE_DELETE");
 	default:
 		return ("RESSOURCE_UNKNOWN");
 	}

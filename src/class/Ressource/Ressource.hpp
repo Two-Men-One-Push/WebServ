@@ -12,7 +12,9 @@ typedef enum {
 	RESSOURCE_REDIRECT,
 	RESSOURCE_ERROR,
 	RESSOURCE_AUTO_INDEX,
-} RessourceType;
+	RESSOURCE_UPLOAD,
+	RESSOURCE_DELETE,
+}	RessourceType;
 
 class Ressource {
   private:
