@@ -28,7 +28,7 @@ class Semantic
 		static void			parseServerNames(std::list<Directive>::const_iterator it, std::vector<std::string> &server_names, Http &http, DiagnosticContext &diag);
 		static void			parseRoot(std::list<Directive>::const_iterator it, std::string &root, DiagnosticContext &diag);
 		static void			parseIndex(std::list<Directive>::const_iterator it, std::vector<std::string> &index_files, DiagnosticContext &diag);
-		static void			parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<std::string> &allowed_methods, DiagnosticContext &diag);
+		static void			parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<HttpMethod> &allowed_methods, DiagnosticContext &diag);
 		static void			parseAutoindex(std::list<Directive>::const_iterator it, bool &autoindex, DiagnosticContext &diag);
 		static void			parseRedirection(std::list<Directive>::const_iterator it, std::pair<HttpStatus::Code, std::string> &redirection, DiagnosticContext &diag);
 		static void			parseUploadPath(std::list<Directive>::const_iterator it, std::string &upload_path, DiagnosticContext &diag);

@@ -1,4 +1,5 @@
 #include "analysis/Semantic/Semantic.hpp"
+#include "http/types.hpp"
 #include "utils/parsing.hpp"
 #include "IR/Word/Word.hpp"
 #include <algorithm>
@@ -12,14 +13,6 @@ Semantic::Semantic()
 
 Semantic::~Semantic()
 {
-}
-
-static bool	validMethod(const std::string &method)
-{
-	if (method == "GET" || method == "POST" || method == "DELETE")
-		return true;
-	else
-		return false;
 }
 
 bool	Semantic::checkShape(const Directive &d, ArgShape args, BodyShape body, DiagnosticContext &diag)
@@ -222,21 +215,21 @@ void	Semantic::parseIndex(std::list<Directive>::const_iterator it, std::vector<s
 	}
 }
 
-void	Semantic::parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<std::string> &allowed_methods, DiagnosticContext &diag)
+void	Semantic::parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<HttpMethod> &allowed_methods, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_AT_LEAST_ONE, BODY_FORBIDDEN, diag))
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
-			const std::string method = arg->rawContent();
-			if (!validMethod(method))
+			const HttpMethod method = parseHttpMethod(arg->rawContent());
+			if (method == UNKNOWN)
 			{
-				diag.report("invalid HTTP method '" + method + "'", *arg);
+				diag.report("invalid HTTP method '" + arg->rawContent() + "'", *arg);
 				continue;
 			}
 			if (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end())
 			{
-				diag.report("duplicate allowed method '" + method + "'", *arg);
+				diag.report("duplicate allowed method '" + arg->rawContent() + "'", *arg);
 				continue;
 			}
 			allowed_methods.push_back(method);

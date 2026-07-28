@@ -1,6 +1,7 @@
 #include "Ressource/Ressource.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/request/HttpRequest.hpp"
+#include "http/types.hpp"
 #include "model/Server/Server.hpp"
 #include "utils/parsing.hpp"
 #include <fcntl.h>
@@ -41,7 +42,7 @@ void Ressource::setErrorPage(const Location &location, HttpStatus::Code errorCod
 	this->_mimeType = "text/html";
 	std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = location.errorPages().find(errorCode);
 	if (it != location.errorPages().end()) {
-		this->_path = it->second.second;
+		this->_path = location.root() + it->second.second;
 		this->_responseCode = it->second.first;
 	}
 }
@@ -66,8 +67,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 	const Location &location = *bestMatch;
 	if (!location.allowedMethods().empty()) {
 		bool methodeAllowed = false;
-		for (std::vector<std::string>::const_iterator it = location.allowedMethods().begin(); it != location.allowedMethods().end(); ++it) {
-			if (req.methodStr() == *it) {
+		for (std::vector<HttpMethod>::const_iterator it = location.allowedMethods().begin(); it != location.allowedMethods().end(); ++it) {
+			if (req.method() == *it) {
 				methodeAllowed = true;
 				break;
 			}
@@ -116,11 +117,11 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			}
 		}
 	}
-	std::string uploadPath = location.root();
-	if (!location.uploadPath().empty() && (req.methodStr() == "POST" || req.methodStr() == "DELETE"))
-	{
-		uploadPath = location.uploadPath();
-	}
+	//std::string uploadPath = location.root();
+	//if (!location.uploadPath().empty() && (req.method() == PUT || req.method() == DELETE))
+	//{
+	//	uploadPath = location.uploadPath();
+	//}
 	std::string path = location.root();
 	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
 		path += "/" + *it;

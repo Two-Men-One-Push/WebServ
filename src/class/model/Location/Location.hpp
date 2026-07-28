@@ -1,5 +1,6 @@
 #pragma once
 
+#include "http/types.hpp"
 #include "model/MimeTypes/MimeTypes.hpp"
 #include "http/HttpStatus.hpp"
 #include <vector>
@@ -16,7 +17,7 @@ class	Location
 		std::vector<std::string>												_index_files;
 		std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	_error_pages;
 		size_t																	_client_max_body_size;
-		std::vector<std::string>												_allowed_methods;
+		std::vector<HttpMethod>													_allowed_methods;
 		bool																	_autoindex;
 		std::pair<HttpStatus::Code, std::string>								_redirection;
 		std::map<std::string, std::string>										_cgi;
@@ -39,8 +40,8 @@ class	Location
 		std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >		&errorPages();
 		const size_t																&clientMaxBodySize() const;
 		size_t																		&clientMaxBodySize();
-		const std::vector<std::string>												&allowedMethods() const;
-		std::vector<std::string>													&allowedMethods();
+		const std::vector<HttpMethod>												&allowedMethods() const;
+		std::vector<HttpMethod>														&allowedMethods();
 		const bool																	&autoindex() const;
 		bool																		&autoindex();
 		const std::pair<HttpStatus::Code, std::string>								&redirection() const;

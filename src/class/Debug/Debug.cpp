@@ -1,4 +1,5 @@
 #include "Debug.hpp"
+#include "http/types.hpp"
 #include <list>
 
 void	Debug::printSegment(std::ostream &os, const Segment &segment)
@@ -93,11 +94,11 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 	}
 	os << std::string(indent + 1, '\t') << "Client Max Body Size: " << location.clientMaxBodySize() << std::endl;
 	os << std::string(indent + 1, '\t') << "Allowed Methods: ";
-	for (std::vector<std::string>::const_iterator method_it = location.allowedMethods().begin(); method_it != location.allowedMethods().end(); ++method_it)
+	for (std::vector<HttpMethod>::const_iterator method_it = location.allowedMethods().begin(); method_it != location.allowedMethods().end(); ++method_it)
 	{
 		if (method_it != location.allowedMethods().begin())
 			os << ", ";
-		os << *method_it;
+		os << httpMethodString(*method_it);
 	}
 	os << std::endl;
 	os << std::string(indent + 1, '\t') << "Autoindex: " << (location.autoindex() ? "on" : "off") << std::endl;
@@ -181,11 +182,11 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << "				Client Max Body Size: " << it->clientMaxBodySize() << std::endl;
 		os << "				Allowed Methods: ";
-		for (std::vector<std::string>::const_iterator method_it = it->allowedMethods().begin(); method_it != it->allowedMethods().end(); ++method_it)
+		for (std::vector<HttpMethod>::const_iterator method_it = it->allowedMethods().begin(); method_it != it->allowedMethods().end(); ++method_it)
 		{
 			if (method_it != it->allowedMethods().begin())
 				os << ", ";
-			os << *method_it;
+			os << httpMethodString(*method_it);
 		}
 		os << std::endl;
 		os << "				Autoindex: " << (it->autoindex() ? "on" : "off") << std::endl;

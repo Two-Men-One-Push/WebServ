@@ -117,12 +117,12 @@ size_t	&Location::clientMaxBodySize()
 	return (this->_client_max_body_size);
 }
 
-const std::vector<std::string>	&Location::allowedMethods() const
+const std::vector<HttpMethod>	&Location::allowedMethods() const
 {
 	return (this->_allowed_methods);
 }
 
-std::vector<std::string>	&Location::allowedMethods()
+std::vector<HttpMethod>	&Location::allowedMethods()
 {
 	return (this->_allowed_methods);
 }
