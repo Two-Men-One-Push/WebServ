@@ -18,8 +18,7 @@ http {
 			redirect 301 /cgi/test.py;
 		}
 		location A {
-			cgi html chromeA;
+			editable on;
 		}
 	}
-
 }

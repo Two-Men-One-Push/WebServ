@@ -21,7 +21,7 @@ class	Location
 		bool																	_autoindex;
 		std::pair<HttpStatus::Code, std::string>								_redirection;
 		std::map<std::string, std::string>										_cgi;
-		std::string																_upload_path;
+		bool																	_editable;
 		MimeTypes																_types;
 	public:
 		Location(Location &parent, const std::string &path);
@@ -48,8 +48,8 @@ class	Location
 		std::pair<HttpStatus::Code, std::string>									&redirection();
 		const std::map<std::string, std::string>									&cgi() const;
 		std::map<std::string, std::string>											&cgi();
-		const std::string															&uploadPath() const;
-		std::string																	&uploadPath();
+		const bool																	&editable() const;
+		bool																		&editable();
 		const MimeTypes																&types() const;
 		MimeTypes																	&types();
 };

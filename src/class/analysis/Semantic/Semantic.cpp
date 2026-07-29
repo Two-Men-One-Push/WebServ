@@ -272,10 +272,18 @@ void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pa
 	}
 }
 
-void	Semantic::parseUploadPath(std::list<Directive>::const_iterator it, std::string &upload_path, DiagnosticContext &diag)
+void	Semantic::parseEditable(std::list<Directive>::const_iterator it, bool &editable, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
-		upload_path = it->args().front().content();
+	{
+		const std::string value = it->args().front().rawContent();
+		if (value == "on")
+			editable = true;
+		else if (value == "off")
+			editable = false;
+		else
+			diag.report("invalid value '" + value + "' for 'editable' directive", it->args().front());
+	}
 }
 
 void	Semantic::parseTypes(std::list<Directive>::const_iterator it, MimeTypes &types, DiagnosticContext &diag)
@@ -393,7 +401,7 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	bool	hasAllowMethods = false;
 	bool	hasAutoindex = false;
 	bool	hasRedirection = false;
-	bool	hasUploadPath = false;
+	bool	hasEditable = false;
 
 	locationPathTable.insert("/");
 	server.locations().push_back(server);
@@ -458,12 +466,12 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		}
 		else if (name == "cgi")
 			parseCGI(it, server.cgi(), diag);
-		else if (name == "upload_path")
+		else if (name == "editable")
 		{
-			if (hasUploadPath)
-				diag.report("duplicate 'upload_path' directive", *it);
-			hasUploadPath = true;
-			parseUploadPath(it, server.uploadPath(), diag);
+			if (hasEditable)
+				diag.report("duplicate 'editable' directive", *it);
+			hasEditable = true;
+			parseEditable(it, server.editable(), diag);
 		}
 		else if (name == "types")
 			parseTypes(it, server.types(), diag);
@@ -489,7 +497,7 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 	bool		hasAllowMethods = false;
 	bool		hasAutoindex = false;
 	bool		hasRedirection = false;
-	bool		hasUploadPath = false;
+	bool		hasEditable = false;
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
@@ -540,12 +548,12 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 		}
 		else if (name == "cgi")
 			parseCGI(it, location.cgi(), diag);
-		else if (name == "upload_path")
+		else if (name == "editable")
 		{
-			if (hasUploadPath)
-				diag.report("duplicate 'upload_path' directive", *it);
-			hasUploadPath = true;
-			parseUploadPath(it, location.uploadPath(), diag);
+			if (hasEditable)
+				diag.report("duplicate 'editable' directive", *it);
+			hasEditable = true;
+			parseEditable(it, location.editable(), diag);
 		}
 		else if (name == "types")
 			parseTypes(it, location.types(), diag);

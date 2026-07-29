@@ -118,7 +118,7 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 	{
 		os << std::string(indent + 2, '\t') << "extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
 	}
-	os << std::string(indent + 1, '\t') << "Upload Path: " << location.uploadPath() << std::endl;
+	os << std::string(indent + 1, '\t') << "Editable: " << location.editable() << std::endl;
 	os << std::string(indent + 1, '\t') << "Types:" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator type_it = location.types().types().begin(); type_it != location.types().types().end(); ++type_it)
 	{
@@ -206,7 +206,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		{
 			os << "					extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
 		}
-		os << "				Upload Path: " << it->uploadPath() << std::endl;
+		os << "				Editable: " << it->editable() << std::endl;
 		os << "				Types:" << std::endl;
 		for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
 		{
@@ -275,4 +275,8 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
 	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;
 	os << "	Path Info: " << ressource.pathInfo() << std::endl;
+	os << " Allowed Methods: ";
+	for (std::vector<HttpMethod>::const_iterator it = ressource.allowedMethods().begin(); it != ressource.allowedMethods().end(); ++it)
+		os << httpMethodString(*it) << ", ";
+	os << std::endl;
 }

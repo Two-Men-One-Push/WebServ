@@ -54,7 +54,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 	  _responseCode(HttpStatus::NoStatus),
 	  _cgiInterpreter(""),
 	  _scriptName(""),
-	  _pathInfo("") {
+	  _pathInfo(""),
+	  _allowed_method() {
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
@@ -65,6 +66,7 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		}
 	}
 	const Location &location = *bestMatch;
+	this->_allowed_method = location.allowedMethods();
 	if (!location.allowedMethods().empty()) {
 		bool methodeAllowed = false;
 		for (std::vector<HttpMethod>::const_iterator it = location.allowedMethods().begin(); it != location.allowedMethods().end(); ++it) {
@@ -117,60 +119,83 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			}
 		}
 	}
-	//std::string uploadPath = location.root();
-	//if (!location.uploadPath().empty() && (req.method() == PUT || req.method() == DELETE))
-	//{
-	//	uploadPath = location.uploadPath();
-	//}
 	std::string path = location.root();
+	std::string	request_path = "";
 	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
-		path += "/" + *it;
-	struct stat path_stat;
-	if (stat(path.c_str(), &path_stat) == 0) {
-		if (path_stat.st_mode & S_IFDIR) {
-			if (!location.indexFiles().empty()) {
-				for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it) {
-					std::string indexPath = location.root() + "/" + *it;
-					struct stat index_stat;
-					if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG)) {
-						this->type() = RESSOURCE_STATIC_FILE;
-						this->responseCode() = HttpStatus::OK;
-						this->path() = indexPath;
-						std::map<std::string, std::string>::const_iterator type_it = location.types().types().find(getFileExtension(indexPath));
-						if (type_it != location.types().types().end())
-							this->mimeType() = type_it->second;
-						else
-							this->mimeType() = "application/octet-stream";
-						return;
+		request_path += "/" + *it;
+	path += request_path;
+	if (req.method() == POST)
+	{
+		this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+		return;
+	}
+	else if (req.method() == PUT)
+	{
+		if (!location.editable())
+			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+		this->_type = RESSOURCE_UPLOAD;
+		this->_path = path;
+		this->_responseCode = HttpStatus::Created;
+		this->_mimeType = "text/html";
+	}
+	else if (location.editable() && req.method() == DELETE)
+	{
+		if (!location.editable())
+			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+		this->_type = RESSOURCE_DELETE;
+		this->_path = path;
+		this->_responseCode = HttpStatus::NoContent;
+		this->_mimeType = "text/html";
+	}
+	else if (req.method() == GET || req.method() == HEAD)
+	{
+		struct stat path_stat;
+		if (stat(path.c_str(), &path_stat) == 0) {
+			if (path_stat.st_mode & S_IFDIR) {
+				if (!location.indexFiles().empty()) {
+					for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it) {
+						std::string indexPath = location.root() + "/" + *it;
+						struct stat index_stat;
+						if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG)) {
+							this->type() = RESSOURCE_STATIC_FILE;
+							this->responseCode() = HttpStatus::OK;
+							this->path() = indexPath;
+							std::map<std::string, std::string>::const_iterator type_it = location.types().types().find(getFileExtension(indexPath));
+							if (type_it != location.types().types().end())
+								this->mimeType() = type_it->second;
+							else
+								this->mimeType() = "application/octet-stream";
+							return;
+						}
 					}
 				}
-			}
-			if (location.autoindex()) {
-				this->type() = RESSOURCE_AUTO_INDEX;
+				if (location.autoindex()) {
+					this->type() = RESSOURCE_AUTO_INDEX;
+					this->responseCode() = HttpStatus::OK;
+					this->path() = path;
+					return;
+				} else {
+					this->setErrorPage(location, HttpStatus::Forbidden);
+					return;
+				}
+			} else if (path_stat.st_mode & S_IFREG) {
+				this->type() = RESSOURCE_STATIC_FILE;
 				this->responseCode() = HttpStatus::OK;
 				this->path() = path;
+				std::map<std::string, std::string>::const_iterator it = location.types().types().find(getFileExtension(path));
+				if (it != location.types().types().end())
+					this->mimeType() = it->second;
+				else
+					this->mimeType() = "application/octet-stream";
 				return;
 			} else {
-				this->setErrorPage(location, HttpStatus::Forbidden);
+				this->setErrorPage(location, HttpStatus::NotFound);
 				return;
 			}
-		} else if (path_stat.st_mode & S_IFREG) {
-			this->type() = RESSOURCE_STATIC_FILE;
-			this->responseCode() = HttpStatus::OK;
-			this->path() = path;
-			std::map<std::string, std::string>::const_iterator it = location.types().types().find(getFileExtension(path));
-			if (it != location.types().types().end())
-				this->mimeType() = it->second;
-			else
-				this->mimeType() = "application/octet-stream";
-			return;
 		} else {
 			this->setErrorPage(location, HttpStatus::NotFound);
 			return;
 		}
-	} else {
-		this->setErrorPage(location, HttpStatus::NotFound);
-		return;
 	}
 }
 
@@ -276,4 +301,12 @@ const std::string &Ressource::pathInfo() const {
 
 std::string &Ressource::pathInfo() {
 	return (this->_pathInfo);
+}
+
+const std::vector<HttpMethod> &Ressource::allowedMethods() const {
+	return (this->_allowed_method);
+}
+
+std::vector<HttpMethod> &Ressource::allowedMethods() {
+	return (this->_allowed_method);
 }

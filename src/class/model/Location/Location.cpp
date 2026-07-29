@@ -11,7 +11,7 @@ _allowed_methods(),
 _autoindex(false),
 _redirection(HttpStatus::NoStatus, ""),
 _cgi(),
-_upload_path(""),
+_editable(false),
 _types()
 {}
 
@@ -25,7 +25,7 @@ _allowed_methods(),
 _autoindex(parent.autoindex()),
 _redirection(HttpStatus::NoStatus, ""),
 _cgi(),
-_upload_path(),
+_editable(false),
 _types(parent.types())
 {}
 
@@ -43,7 +43,7 @@ _allowed_methods(copy._allowed_methods),
 _autoindex(copy._autoindex),
 _redirection(copy._redirection),
 _cgi(copy._cgi),
-_upload_path(copy._upload_path),
+_editable(copy._editable),
 _types(copy._types)
 {
 }
@@ -61,7 +61,7 @@ Location	&Location::operator=(const Location &other)
 		this->_autoindex = other._autoindex;
 		this->_redirection = other._redirection;
 		this->_cgi = other._cgi;
-		this->_upload_path = other._upload_path;
+		this->_editable = other._editable;
 		this->_types = other._types;
 	}
 	return (*this);
@@ -157,14 +157,14 @@ std::map<std::string, std::string>	&Location::cgi()
 	return (this->_cgi);
 }
 
-const std::string	&Location::uploadPath() const
+const bool	&Location::editable() const
 {
-	return (this->_upload_path);
+	return (this->_editable);
 }
 
-std::string	&Location::uploadPath()
+bool	&Location::editable()
 {
-	return (this->_upload_path);
+	return (this->_editable);
 }
 
 const MimeTypes	&Location::types() const

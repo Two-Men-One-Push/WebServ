@@ -4,6 +4,7 @@
 #include "http/messages/request/HttpRequest.hpp"
 #include "model/Server/Server.hpp"
 #include <string>
+#include <vector>
 
 typedef enum {
 	RESSOURCE_NONE,
@@ -26,6 +27,7 @@ class Ressource {
 	std::string _scriptName;
 	std::string _pathInfo;
 	std::string _fragmentString;
+	std::vector<HttpMethod>	_allowed_method;
 
 	void setErrorPage(const Location &location, HttpStatus::Code errorCode);
 
@@ -50,4 +52,6 @@ class Ressource {
 	std::string &scriptName();
 	const std::string &pathInfo() const;
 	std::string &pathInfo();
+	const std::vector<HttpMethod> &allowedMethods() const;
+	std::vector<HttpMethod> &allowedMethods();
 };
