@@ -270,7 +270,7 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 {
 	os << "Ressource:" << std::endl;
 	os << "	Type: " << ressource.typeStr() << std::endl;
-	os << "	Path: " << ressource.path() << std::endl;
+	os << "	Path: " << ressource.root() + ressource.location() << std::endl;
 	os << "	MIME Type: " << ressource.mimeType() << std::endl;
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
 	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;

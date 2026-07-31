@@ -42,20 +42,22 @@ void Ressource::setErrorPage(const Location &location, HttpStatus::Code errorCod
 	this->_mimeType = "text/html";
 	std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = location.errorPages().find(errorCode);
 	if (it != location.errorPages().end()) {
-		this->_path = location.root() + it->second.second;
+		this->_root = location.root();
+		this->_location = it->second.second;
 		this->_responseCode = it->second.first;
 	}
 }
 
 Ressource::Ressource(const HttpRequest &req, const Server &server)
 	: _type(RESSOURCE_NONE),
-	  _path(""),
-	  _mimeType(""),
-	  _responseCode(HttpStatus::NoStatus),
-	  _cgiInterpreter(""),
-	  _scriptName(""),
-	  _pathInfo(""),
-	  _allowed_method() {
+	_root(""),
+	_location(""),
+	_mimeType(""),
+	_responseCode(HttpStatus::NoStatus),
+	_cgiInterpreter(""),
+	_scriptName(""),
+	_pathInfo(""),
+	_allowed_method() {
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
@@ -83,10 +85,10 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 	if (location.redirection().first != HttpStatus::NoStatus) {
 		this->type() = RESSOURCE_REDIRECT;
 		this->responseCode() = location.redirection().first;
-		this->path() = location.redirection().second;
+		this->root() = location.redirection().second;//root take redirect path
 		return;
 	}
-	std::string cgiScriptPath = location.root();
+	std::string cgiScriptPath;
 	for (std::vector<std::string>::const_iterator it = req.uri().rawSegments().begin(); it != req.uri().rawSegments().end(); ++it) {
 		std::string decodedSegment;
 		URL::decode(decodedSegment, *it);
@@ -99,7 +101,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			if (::stat(cgiScriptPath.c_str(), &cgiScript_stat) == 0 && (cgiScript_stat.st_mode & S_IFREG)) {
 				this->type() = RESSOURCE_CGI;
 				this->cgiInterpreter() = cgi_it->second;
-				this->path() = cgiScriptPath;
+				this->root() = location.root();
+				this->location() = cgiScriptPath;
 				std::string pathInfo;
 				std::string scriptName;
 				it++;
@@ -123,18 +126,17 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 	std::string	request_path = "";
 	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
 		request_path += "/" + *it;
-	path += request_path;
-	if (req.method() == POST)
-	{
-		this->setErrorPage(location, HttpStatus::MethodNotAllowed);
-		return;
-	}
-	else if (req.method() == PUT)
+	if (path != "/")
+		path += request_path;
+	else
+		path = request_path;
+	if (req.method() == POST || req.method() == PUT)
 	{
 		if (!location.editable())
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
 		this->_type = RESSOURCE_UPLOAD;
-		this->_path = path;
+		this->_root = location.root();
+		this->_location = request_path;
 		this->_responseCode = HttpStatus::Created;
 		this->_mimeType = "text/html";
 	}
@@ -143,7 +145,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		if (!location.editable())
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
 		this->_type = RESSOURCE_DELETE;
-		this->_path = path;
+		this->_root = location.root();
+		this->_location = request_path;
 		this->_responseCode = HttpStatus::NoContent;
 		this->_mimeType = "text/html";
 	}
@@ -154,12 +157,13 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			if (path_stat.st_mode & S_IFDIR) {
 				if (!location.indexFiles().empty()) {
 					for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it) {
-						std::string indexPath = location.root() + "/" + *it;
+						std::string indexPath = "/" + *it;
 						struct stat index_stat;
 						if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG)) {
 							this->type() = RESSOURCE_STATIC_FILE;
 							this->responseCode() = HttpStatus::OK;
-							this->path() = indexPath;
+							this->_root = location.root();
+							this->_location = indexPath;
 							std::map<std::string, std::string>::const_iterator type_it = location.types().types().find(getFileExtension(indexPath));
 							if (type_it != location.types().types().end())
 								this->mimeType() = type_it->second;
@@ -172,7 +176,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 				if (location.autoindex()) {
 					this->type() = RESSOURCE_AUTO_INDEX;
 					this->responseCode() = HttpStatus::OK;
-					this->path() = path;
+					this->_root = location.root();
+					this->_location = request_path;
 					return;
 				} else {
 					this->setErrorPage(location, HttpStatus::Forbidden);
@@ -181,7 +186,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			} else if (path_stat.st_mode & S_IFREG) {
 				this->type() = RESSOURCE_STATIC_FILE;
 				this->responseCode() = HttpStatus::OK;
-				this->path() = path;
+				this->_root = location.root();
+				this->_location = request_path;
 				std::map<std::string, std::string>::const_iterator it = location.types().types().find(getFileExtension(path));
 				if (it != location.types().types().end())
 					this->mimeType() = it->second;
@@ -197,11 +203,16 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			return;
 		}
 	}
+	else
+	{
+		this->setErrorPage(location, HttpStatus::NotImplemented);
+	}
 }
 
 Ressource::Ressource(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server)
 	: _type(RESSOURCE_NONE),
-	  _path(""),
+	  _root(""),
+	  _location(""),
 	  _mimeType(""),
 	  _responseCode(HttpStatus::NoStatus),
 	  _cgiInterpreter(""),
@@ -255,12 +266,20 @@ RessourceType &Ressource::type() {
 	return (this->_type);
 }
 
-const std::string &Ressource::path() const {
-	return (this->_path);
+const std::string &Ressource::root() const {
+	return (this->_root);
 }
 
-std::string &Ressource::path() {
-	return (this->_path);
+std::string &Ressource::root() {
+	return (this->_root);
+}
+
+const std::string &Ressource::location() const {
+	return (this->_location);
+}
+
+std::string &Ressource::location() {
+	return (this->_location);
 }
 
 const std::string &Ressource::mimeType() const {

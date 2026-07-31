@@ -20,7 +20,8 @@ typedef enum {
 class Ressource {
   private:
 	RessourceType _type;
-	std::string _path;
+	std::string	_root;
+	std::string _location;
 	std::string _mimeType;
 	HttpStatus::Code _responseCode;
 	std::string _cgiInterpreter;
@@ -40,8 +41,10 @@ class Ressource {
 
 	const RessourceType &type() const;
 	RessourceType &type();
-	const std::string &path() const;
-	std::string &path();
+	const std::string &root() const;
+	std::string &root();
+	const std::string &location() const;
+	std::string &location();
 	const std::string &mimeType() const;
 	std::string &mimeType();
 	const HttpStatus::Code &responseCode() const;
