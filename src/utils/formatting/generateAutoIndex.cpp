@@ -1,7 +1,6 @@
 #include "Directory/Directory.hpp"
 #include "errors/WebservErrors.hpp"
 #include "utils/formatting.hpp"
-#include "utils/parsing.hpp"
 #include <cstdlib>
 #include <ctime>
 #include <dirent.h>
@@ -22,9 +21,8 @@ void printFileLine(std::ostream &os, const std::string &file, const std::string 
 	std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", tm);
 
 	os << "<tr>\
-<td>\
-<a href=\"./" << file << "\">" << file << "</a>\
-</td>\
+<td></td>\
+<td><a href=\"./" << file << "\">" << file << "</a></td>\
 <td>" << buf << "</td>\
 <td align=\"right\">" << formatSize(st.st_size) << "</td>\
 </tr>";
@@ -40,6 +38,7 @@ void printDirectoryLine(std::ostream &os, const std::string &directory, const st
 	std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", tm);
 
 	os << "<tr>\
+<td>📁</td>\
 <td><a href=\"" << directory << "/\">" << directory << "</a></td>\
 <td>" << buf << "</td>\
 <td align=\"right\">-</td>\
@@ -63,6 +62,7 @@ void printAutoIndex(std::ostream &os, const std::string &directoryPath) {
 	os << "<table>\
 <thead>\
 <tr>\
+<th align=\"center\">Type</th>\
 <th align=\"left\">Name</th>\
 <th align=\"left\">Last Modified</th>\
 <th align=\"right\">Size</th>\
