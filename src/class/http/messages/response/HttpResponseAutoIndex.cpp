@@ -1,7 +1,7 @@
 #include "./HttpResponse.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/Body/BodyStringStream.hpp"
-#include "defaultErrorPage.hpp"
+#include "generateAutoIndex.hpp"
 
 void HttpResponse::autoIndex(const std::string &directoryPath, HttpStatus::Code status) {
 	(void)directoryPath;
@@ -9,7 +9,7 @@ void HttpResponse::autoIndex(const std::string &directoryPath, HttpStatus::Code 
 	BodyStringStream *ssBody = new BodyStringStream();
 	this->replaceBody(ssBody);
 
-	printDefaultErrorPage(*ssBody, status);
+	printAutoIndex(*ssBody, directoryPath);
 
 	this->_bodyType = BT_CONTENT_LENGTH;
 	this->_status = status;

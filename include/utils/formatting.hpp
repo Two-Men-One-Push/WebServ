@@ -13,4 +13,7 @@ struct FormattedAddress {
 
 void formatAddress(const struct sockaddr_storage &address, FormattedAddress &out);
 
+void printEscapedHtml(std::ostream &os, const std::string &htmlText);
+std::string formatSize(std::size_t n);
+
 #endif

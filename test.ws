@@ -7,20 +7,15 @@ http {
 		listen 8083;
 		listen 8084;
 		server_name localhost;
-		root /home/ebini/Documents/cc/webserv/www;
-
-		index index.html;
+		root ./www;
 		autoindex on;
-		cgi py /opt/pyenv/shims/python3;
+
+		cgi py /usr/bin/python3;
 		location test {
-			redirect 301 /index.html;
-		}
-		location chess {
-			redirect 301 /cgi/test.py;
 		}
 		location A {
-			cgi html chromeA;
+			root ./.;
+			autoindex on;
 		}
 	}
-
 }
