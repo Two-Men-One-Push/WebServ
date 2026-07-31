@@ -6,6 +6,7 @@
 #include "http/HttpStatus.hpp"
 #include "http/messages/Body/IBody.hpp"
 #include "http/types.hpp"
+#include "model/Location/Location.hpp"
 #include <cstddef>
 #include <istream>
 #include <ostream>
@@ -15,7 +16,7 @@
 #define WRITE_SIZE 4096
 #define READ_SIZE 4096
 
-#define TMP_HTTP_BUFFER_SIZE 8192 /* !:! tmp en attendant la config */
+#define HTTP_BUFFER_SIZE 8192
 
 struct BodyChunkInfo {
 	enum {
@@ -37,7 +38,7 @@ class HttpMessage {
 	// RECEIVE
 
 	bool recvMessageHeaders(std::istream &input);
-	bool recvBody(std::istream &input);
+	bool recvBody(std::istream &input, const Location &nearestLocation);
 
 	void writeBody(const char *buffer, size_t size);
 	bool collectRawBody(std::istream &input);
@@ -169,7 +170,7 @@ class HttpMessage {
 
 	bool hasBody() const;
 
-	bool recvFrom(std::istream &input);
+	bool recvFrom(std::istream &input, const Location &nearestConfig);
 	void inState(InState state);
 	bool isWaitingRouting() const;
 	void completeRouting();

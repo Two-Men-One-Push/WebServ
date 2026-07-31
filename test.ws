@@ -9,6 +9,7 @@ http {
 		server_name localhost;
 		root /home/ebini/Documents/cc/webserv/www;
 
+		client_max_body_size 10;
 		index index.html;
 		autoindex on;
 		cgi py /opt/pyenv/shims/python3;

@@ -2,22 +2,21 @@
 #include "http/HttpStatus.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/types.hpp"
+#include "model/Location/Location.hpp"
 #include "utils/parsing.hpp"
 #include <algorithm>
 #include <cctype>
-#include <cerrno>
 #include <cstddef>
 #include <cstdlib>
 #include <ios>
 #include <iosfwd>
 #include <iostream>
 #include <istream>
-#include <ostream>
 #include <sstream>
 #include <unistd.h>
 #include <utility>
 
-bool HttpMessage::recvFrom(std::istream &input) {
+bool HttpMessage::recvFrom(std::istream &input, const Location &nearestConfig) {
 	switch (this->_inState) {
 	case HttpMessage::RECV_MESSAGE_TYPES:
 		if (!this->recvTypeLine(input)) return false;
@@ -36,7 +35,7 @@ bool HttpMessage::recvFrom(std::istream &input) {
 	case HttpMessage::RECV_WAITING_ROUTING:
 		return false;
 	case HttpMessage::RECV_MESSAGE_BODY:
-		if (this->hasBody() && !this->recvBody(input)) return false;
+		if (this->hasBody() && !this->recvBody(input, nearestConfig)) return false;
 		this->_inState = HttpMessage::RECV_COMPLETED;
 		// std::cerr << *this << std::endl;
 		// fallthrough
@@ -121,7 +120,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	std::pair<std::string, std::string> &headerField = this->_bufferedHeaderField;
 	while (true) {
 		while (true) {
-			if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
+			if (buffer.size() == HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
 
 			int c = input.get();
 			if (c == std::stringstream::traits_type::eof()) {
@@ -161,11 +160,15 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	}
 }
 
-bool HttpMessage::recvBody(std::istream &input) {
-	if (this->_bodyType == BT_CHUNKED) return this->collectChunkedBody(input);
-	if (this->_bodyType == BT_CONTENT_LENGTH) return this->collectRawBody(input);
-	if (this->_bodyType == BT_EOF) return this->collectRawBodyToEOF(input);
-	throw HttpMessage::Exception().requestStatus(HttpStatus::NotImplemented);
+bool HttpMessage::recvBody(std::istream &input, const Location &nearestConfig) {
+	if (this->_contentLength > nearestConfig.clientMaxBodySize()) throw HttpMessage::Exception().requestStatus(HttpStatus::ContentTooLarge).responseStatus(HttpStatus::BadGateway);
+	bool result;
+	if (this->_bodyType == BT_CHUNKED) result = this->collectChunkedBody(input);
+	else if (this->_bodyType == BT_CONTENT_LENGTH) result = this->collectRawBody(input);
+	else if (this->_bodyType == BT_EOF) result = this->collectRawBodyToEOF(input);
+	else throw HttpMessage::Exception().requestStatus(HttpStatus::NotImplemented);
+	if (this->_contentLength > nearestConfig.clientMaxBodySize()) throw HttpMessage::Exception().requestStatus(HttpStatus::ContentTooLarge).responseStatus(HttpStatus::BadGateway);
+	return result;
 }
 
 void HttpMessage::writeBody(const char *buffer, size_t size) {
@@ -238,7 +241,7 @@ bool HttpMessage::collectChunkedBody(std::istream &input) {
 bool HttpMessage::getChunkSize(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
 	while (true) {
-		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
+		if (buffer.size() == HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
 
 		int c = input.get();
 		if (c == std::stringstream::traits_type::eof())
@@ -310,7 +313,7 @@ bool HttpMessage::getChunkedTrailer(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
 
 	while (true) {
-		if (buffer.size() == TMP_HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
+		if (buffer.size() == HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
 
 		int c = input.get();
 		if (c == std::stringstream::traits_type::eof())

@@ -17,9 +17,7 @@ HttpMessage::HttpMessage()
 	  _contentLength(0),
 	  _keepAlive(true),
 	  _transferEncoding(TE_UNDEFINED),
-	  _bodyType(BT_NONE) {
-	this->_inBuffer.reserve(TMP_HTTP_BUFFER_SIZE);
-}
+	  _bodyType(BT_NONE) {}
 
 HttpMessage::HttpMessage(const HttpMessage &other)
 	: _readSize(other._readSize),

@@ -17,8 +17,8 @@ static std::pair<std::string, HttpMethod> pairs[] = {
 };
 
 static int httpMethodCount = sizeof(pairs) / sizeof(pairs[0]);
-size_t HttpRequest::_maxUriSize = TMP_HTTP_BUFFER_SIZE;
-size_t HttpRequest::_maxVersionSize = TMP_HTTP_BUFFER_SIZE;
+size_t HttpRequest::_maxUriSize = HTTP_BUFFER_SIZE;
+size_t HttpRequest::_maxVersionSize = HTTP_BUFFER_SIZE;
 
 std::map<std::string, HttpMethod> HttpRequest::implementedHttpMethod(pairs, pairs + httpMethodCount);
 
