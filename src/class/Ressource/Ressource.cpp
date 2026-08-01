@@ -289,6 +289,10 @@ std::string &Ressource::path() {
 	return (this->_path);
 }
 
+std::string Ressource::fullPath() const {
+	return this->_root + this->_path;
+}
+
 const std::string &Ressource::mimeType() const {
 	return (this->_mimeType);
 }

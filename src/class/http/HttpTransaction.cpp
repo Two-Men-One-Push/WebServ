@@ -1,5 +1,6 @@
 #include "./HttpTransaction.hpp"
 #include "CGI/CGIInterface.hpp"
+#include "Debug/Debug.hpp"
 #include "Ressource/Ressource.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/errors/HttpErrors.hpp"
@@ -61,9 +62,10 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 }
 
 void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &server) {
+	Debug::printRessource(std::cerr, ressource);
 	switch (ressource.type()) {
 	case RESSOURCE_STATIC_FILE:
-		this->_response.file(ressource.path(), ressource.responseCode(), ressource.mimeType());
+		this->_response.file(ressource.fullPath(), ressource.responseCode(), ressource.mimeType());
 		break;
 	case RESSOURCE_REDIRECT:
 		this->_response.redirect(ressource.path(), ressource.responseCode());
@@ -77,7 +79,7 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 		}
 		break;
 	case RESSOURCE_AUTO_INDEX:
-		this->_response.autoIndex(ressource.path(), ressource.responseCode());
+		this->_response.autoIndex(ressource.root(), ressource.path(), ressource.responseCode());
 		break;
 	case RESSOURCE_ERROR:
 		if (ressource.path().empty()) {

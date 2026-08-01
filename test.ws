@@ -6,13 +6,14 @@ http {
 		listen localhost:6969;
 		listen 8083;
 		listen 8084;
+
 		server_name localhost;
 		root ./www;
-		autoindex on;
+
+		index /index.html;
 
 		cgi py /usr/bin/python3;
-		location test {
-		}
+
 		location A {
 			editable on;
 		}

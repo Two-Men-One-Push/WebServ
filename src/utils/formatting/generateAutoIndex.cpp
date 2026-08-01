@@ -22,7 +22,11 @@ void printFileLine(std::ostream &os, const std::string &file, const std::string 
 
 	os << "<tr>\
 <td></td>\
-<td><a href=\"./" << file << "\">" << file << "</a></td>\
+<td><a href=\"./";
+	printEscapedHtml(os, file);
+	os << "\">";
+	printEscapedHtml(os, file);
+	os << "</a></td>\
 <td>" << buf << "</td>\
 <td align=\"right\">" << formatSize(st.st_size) << "</td>\
 </tr>";
@@ -30,35 +34,46 @@ void printFileLine(std::ostream &os, const std::string &file, const std::string 
 
 void printDirectoryLine(std::ostream &os, const std::string &directory, const std::string &parentDirectory) {
 	struct stat st;
-	char buf[32];
+	char timeBuf[32];
 
 	if (::stat((parentDirectory + '/' + directory).c_str(), &st)) throw WebservErrors::SysError("stat", errno);
 
 	std::tm* tm = std::localtime(&st.st_mtime);
-	std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", tm);
+	std::strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M", tm);
 
 	os << "<tr>\
 <td>📁</td>\
-<td><a href=\"" << directory << "/\">" << directory << "</a></td>\
-<td>" << buf << "</td>\
+<td><a href=\"";
+	printEscapedHtml(os, directory);
+	os << "/\">";
+	printEscapedHtml(os, directory);
+	os << "</a></td>\
+<td>" << timeBuf << "</td>\
 <td align=\"right\">-</td>\
 </tr>";
 }
 
-void printAutoIndex(std::ostream &os, const std::string &directoryPath) {
-	Directory dir(directoryPath.c_str());
+void printAutoIndex(std::ostream &os, const std::string &root, const std::string &path) {
+	const std::string fullPath(root + path);
+	const std::string displayPath(path.empty() ? "/" : path);
+
+	Directory dir(fullPath);
 
 	os << "<!DOCTYPE html>\
 <html lang=\"en\">\
 <head>\
 <meta charset=\"UTF-8\">\
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
-<title>Index of " << directoryPath << "</title>\
+<title>Index of ";
+	printEscapedHtml(os, displayPath);
+	os << "</title>\
 </head>\
 <body>\
-<h1>" << directoryPath << "</h1>\
+<h1>";
+	printEscapedHtml(os, displayPath);
+	os << "</h1>\
 <hr/>";
-	if (true) os << "<p><a href=\"..\">⬅ Parent Directory</p>";
+	if (!path.empty()) os << "<p><a href=\"..\">⬅ Parent Directory</p>";
 	os << "<table>\
 <thead>\
 <tr>\
@@ -74,8 +89,8 @@ void printAutoIndex(std::ostream &os, const std::string &directoryPath) {
 
 		if (entryName == "." || entryName == ".." || (entry->d_type != DT_DIR && entry->d_type != DT_REG)) continue;
 
-		if (entry->d_type == DT_REG) printFileLine(os, entryName, directoryPath);
-		if (entry->d_type == DT_DIR) printDirectoryLine(os, entryName, directoryPath);
+		if (entry->d_type == DT_REG) printFileLine(os, entryName, fullPath);
+		if (entry->d_type == DT_DIR) printDirectoryLine(os, entryName, fullPath);
 	}
 
 	os << "</tbody>\
