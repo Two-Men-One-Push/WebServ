@@ -57,7 +57,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 	_cgiInterpreter(""),
 	_scriptName(""),
 	_pathInfo(""),
-	_allowedMethod() {
+	_allowedMethod(),
+	_location()	{
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
