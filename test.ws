@@ -1,6 +1,6 @@
 http {
 	include mime.types;
-	error_page 404 =404 /home/ebini/Documents/cc/webserv/www/404.html;
+	error_page 404 =404 /404.html;
 
 	server {
 		listen localhost:6969;
@@ -14,8 +14,7 @@ http {
 		location test {
 		}
 		location A {
-			root ./.;
-			autoindex on;
+			editable on;
 		}
 	}
 }

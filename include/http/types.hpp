@@ -32,6 +32,7 @@ enum TransferEncoding {
 
 std::string httpVersionString(HttpVersion version);
 std::string httpMethodString(HttpMethod method);
+HttpMethod parseHttpMethod(std::string method);
 std::string transferEncodingString(TransferEncoding tranfertEncoding);
 
 #endif

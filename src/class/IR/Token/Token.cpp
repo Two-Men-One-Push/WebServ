@@ -48,7 +48,6 @@ std::string	Token::typeString() const
 		case LBRACE:    return "LBRACE";
 		case RBRACE:    return "RBRACE";
 		case SEMICOLON: return "SEMICOLON";
-		case NEWLINE:   return "NEWLINE";
 		case _EOF:      return "EOF";
 		default:        return "UNKNOWN";
 	}

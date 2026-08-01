@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "http/types.hpp"
 
 bool	parseInt(const std::string &str, int &out)
 {
@@ -120,4 +121,24 @@ std::vector<std::string>	splitPath(const std::string &str)
 		start = end + 1;
 	}
 	return result;
+}
+
+HttpMethod	parseHttpMethod(std::string method)
+{
+	if (method == "GET")
+		return GET;
+	else if (method == "HEAD")
+		return HEAD;
+	else if (method == "POST")
+		return POST;
+	else if (method == "PUT")
+		return PUT;
+	else if (method == "DELETE")
+		return DELETE;
+	else if (method == "TRACE")
+		return TRACE;
+	else if (method == "CONNECT")
+		return CONNECT;
+	else
+		return UNKNOWN;
 }
