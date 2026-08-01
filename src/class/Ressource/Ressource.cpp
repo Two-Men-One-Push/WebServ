@@ -130,7 +130,7 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		path += request_path;
 	else
 		path = request_path;
-	if (req.method() == POST || req.method() == PUT)
+	if (req.method() == POST)
 	{
 		if (!location.editable())
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
