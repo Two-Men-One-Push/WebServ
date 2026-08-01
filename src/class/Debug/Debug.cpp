@@ -1,6 +1,7 @@
 #include "Debug.hpp"
 #include "http/types.hpp"
 #include <list>
+#include <ostream>
 
 void	Debug::printSegment(std::ostream &os, const Segment &segment)
 {
@@ -270,7 +271,7 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 {
 	os << "Ressource:" << std::endl;
 	os << "	Type: " << ressource.typeStr() << std::endl;
-	os << "	Path: " << ressource.root() + ressource.location() << std::endl;
+	os << "	Path: " << ressource.root() + ressource.path() << std::endl;
 	os << "	MIME Type: " << ressource.mimeType() << std::endl;
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
 	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;
@@ -279,4 +280,6 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 	for (std::vector<HttpMethod>::const_iterator it = ressource.allowedMethods().begin(); it != ressource.allowedMethods().end(); ++it)
 		os << httpMethodString(*it) << ", ";
 	os << std::endl;
+	os << " Location: " << std::endl;
+	Debug::printLocation(os, ressource.location(), 1);
 }
