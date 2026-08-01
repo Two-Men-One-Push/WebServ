@@ -49,7 +49,6 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 					word += segment;
 					if (!word.empty())
 						token_stream.addToken(Token(word));
-					token_stream.addToken(Token(Token::NEWLINE, filename, line_number, column_number));
 					state = COMMENT;
 				}
 				else if (c == '{')
@@ -78,7 +77,6 @@ TokenStream	Lexer::tokenize(const std::string &filename)
 					word += segment;
 					if (!word.empty())
 						token_stream.addToken(Token(word));
-					token_stream.addToken(Token(Token::NEWLINE, filename, line_number, column_number));
 				}
 				else if (isspace(static_cast<unsigned char>(c)))
 				{

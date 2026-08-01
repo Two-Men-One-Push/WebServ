@@ -40,9 +40,6 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 			case Token::SEMICOLON:
 				++it;
 				return directive;
-			case Token::NEWLINE:
-				++it;
-				break;
 			case Token::LBRACE:
 				parseBlock(it, end, directive);
 				return directive;
@@ -55,8 +52,6 @@ Directive	Parser::parseDirective(TokenStream::const_iterator &it, TokenStream::c
 
 void	Parser::parseBlock(TokenStream::const_iterator &it, TokenStream::const_iterator &end, Directive &directive)
 {
-	while (it->type() != Token::_EOF && it->type() == Token::NEWLINE)
-		++it;
 	if (it->type() == Token::LBRACE)
 	{
 		directive.setHasBody(true);
@@ -84,9 +79,6 @@ void	Parser::parseListDirective(TokenStream::const_iterator &it, TokenStream::co
 		{
 			case Token::WORD:
 				directives.push_back(parseDirective(it, end));
-				break;
-			case Token::NEWLINE:
-				++it;
 				break;
 			default:
 				return;
