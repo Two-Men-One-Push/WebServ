@@ -1,4 +1,5 @@
 #include "analysis/Semantic/Semantic.hpp"
+#include "http/types.hpp"
 #include "utils/parsing.hpp"
 #include "IR/Word/Word.hpp"
 #include <algorithm>
@@ -12,14 +13,6 @@ Semantic::Semantic()
 
 Semantic::~Semantic()
 {
-}
-
-static bool	validMethod(const std::string &method)
-{
-	if (method == "GET" || method == "POST" || method == "DELETE")
-		return true;
-	else
-		return false;
 }
 
 bool	Semantic::checkShape(const Directive &d, ArgShape args, BodyShape body, DiagnosticContext &diag)
@@ -176,29 +169,6 @@ void	Semantic::parseListen(std::list<Directive>::const_iterator it, std::vector<
 	}
 }
 
-void	Semantic::parseServerNames(std::list<Directive>::const_iterator it, std::vector<std::string> &server_names, Http &http, DiagnosticContext &diag)
-{
-	if (checkShape(*it, ARGS_AT_LEAST_ONE, BODY_FORBIDDEN, diag))
-	{
-		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
-		{
-			const std::string serverName = arg->content();
-			bool duplicate = false;
-			for (std::vector<Server>::const_iterator serv = http.servers().begin(); serv != http.servers().end(); ++serv)
-			{
-				if (std::find(serv->serverNames().begin(), serv->serverNames().end(), serverName) != serv->serverNames().end())
-				{
-					diag.report("duplicate server name '" + serverName + "'", *arg);
-					duplicate = true;
-					break;
-				}
-			}
-			if (!duplicate)
-				server_names.push_back(serverName);
-		}
-	}
-}
-
 void	Semantic::parseRoot(std::list<Directive>::const_iterator it, std::string &root, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
@@ -222,21 +192,21 @@ void	Semantic::parseIndex(std::list<Directive>::const_iterator it, std::vector<s
 	}
 }
 
-void	Semantic::parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<std::string> &allowed_methods, DiagnosticContext &diag)
+void	Semantic::parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<HttpMethod> &allowed_methods, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_AT_LEAST_ONE, BODY_FORBIDDEN, diag))
 	{
 		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
 		{
-			const std::string method = arg->rawContent();
-			if (!validMethod(method))
+			const HttpMethod method = parseHttpMethod(arg->rawContent());
+			if (method == UNKNOWN)
 			{
-				diag.report("invalid HTTP method '" + method + "'", *arg);
+				diag.report("invalid HTTP method '" + arg->rawContent() + "'", *arg);
 				continue;
 			}
 			if (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end())
 			{
-				diag.report("duplicate allowed method '" + method + "'", *arg);
+				diag.report("duplicate allowed method '" + arg->rawContent() + "'", *arg);
 				continue;
 			}
 			allowed_methods.push_back(method);
@@ -258,31 +228,26 @@ void	Semantic::parseAutoindex(std::list<Directive>::const_iterator it, bool &aut
 	}
 }
 
-void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pair<HttpStatus::Code, std::string> &redirection, DiagnosticContext &diag)
+void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::string &redirection, DiagnosticContext &diag)
 {
-	if (checkShape(*it, ARGS_EXACT_TWO, BODY_FORBIDDEN, diag))
+	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
 	{
-		int code;
-		if (!parseInt(it->args().front().rawContent(), code))
-			diag.report("invalid response code '" + it->args().front().rawContent() + "'", it->args().front());
-		else
-		{
-			try
-			{
-				redirection = std::make_pair(HttpStatus::fromInt(code), it->args().back().content());
-			}
-			catch (const std::invalid_argument &)
-			{
-				diag.report("invalid response code '" + it->args().front().rawContent() + "'", it->args().front());
-			}
-		}
+		redirection = it->args().back().content();
 	}
 }
 
-void	Semantic::parseUploadPath(std::list<Directive>::const_iterator it, std::string &upload_path, DiagnosticContext &diag)
+void	Semantic::parseEditable(std::list<Directive>::const_iterator it, bool &editable, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
-		upload_path = it->args().front().content();
+	{
+		const std::string value = it->args().front().rawContent();
+		if (value == "on")
+			editable = true;
+		else if (value == "off")
+			editable = false;
+		else
+			diag.report("invalid value '" + value + "' for 'editable' directive", it->args().front());
+	}
 }
 
 void	Semantic::parseTypes(std::list<Directive>::const_iterator it, MimeTypes &types, DiagnosticContext &diag)
@@ -393,14 +358,13 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	Server	server(http);
 	std::set<std::string>	locationPathTable;
 	bool	hasListen = false;
-	bool	hasServerName = false;
 	bool	hasRoot = false;
 	bool	hasIndex = false;
 	bool	hashClientMaxBodySize = false;
 	bool	hasAllowMethods = false;
 	bool	hasAutoindex = false;
 	bool	hasRedirection = false;
-	bool	hasUploadPath = false;
+	bool	hasEditable = false;
 
 	locationPathTable.insert("/");
 	server.locations().push_back(server);
@@ -411,13 +375,6 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		{
 			hasListen = true;
 			parseListen(it, server.listen(), diag);
-		}
-		else if (name == "server_name")
-		{
-			if (hasServerName)
-				diag.report("duplicate 'server_name' directive", *it);
-			hasServerName = true;
-			parseServerNames(it, server.serverNames(), http, diag);
 		}
 		else if (name == "root")
 		{
@@ -465,12 +422,12 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		}
 		else if (name == "cgi")
 			parseCGI(it, server.cgi(), diag);
-		else if (name == "upload_path")
+		else if (name == "editable")
 		{
-			if (hasUploadPath)
-				diag.report("duplicate 'upload_path' directive", *it);
-			hasUploadPath = true;
-			parseUploadPath(it, server.uploadPath(), diag);
+			if (hasEditable)
+				diag.report("duplicate 'editable' directive", *it);
+			hasEditable = true;
+			parseEditable(it, server.editable(), diag);
 		}
 		else if (name == "types")
 			parseTypes(it, server.types(), diag);
@@ -496,7 +453,7 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 	bool		hasAllowMethods = false;
 	bool		hasAutoindex = false;
 	bool		hasRedirection = false;
-	bool		hasUploadPath = false;
+	bool		hasEditable = false;
 
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
@@ -547,12 +504,12 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 		}
 		else if (name == "cgi")
 			parseCGI(it, location.cgi(), diag);
-		else if (name == "upload_path")
+		else if (name == "editable")
 		{
-			if (hasUploadPath)
-				diag.report("duplicate 'upload_path' directive", *it);
-			hasUploadPath = true;
-			parseUploadPath(it, location.uploadPath(), diag);
+			if (hasEditable)
+				diag.report("duplicate 'editable' directive", *it);
+			hasEditable = true;
+			parseEditable(it, location.editable(), diag);
 		}
 		else if (name == "types")
 			parseTypes(it, location.types(), diag);

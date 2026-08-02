@@ -13,7 +13,6 @@ class	Token: public ErrorInfo
 			LBRACE,
 			RBRACE,
 			SEMICOLON,
-			NEWLINE,
 			_EOF,
 		};
 	private:

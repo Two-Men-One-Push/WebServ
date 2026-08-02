@@ -93,7 +93,8 @@ void CGIInterface::startCgi(const HttpTransaction &httpTransaction, const Ressou
 		_exit(1);
 	}
 
-	char *const argv[] = {const_cast<char *>(ressource.cgiInterpreter().c_str()), const_cast<char *>(ressource.path().c_str()), NULL};
+	const std::string &scriptPath = ressource.fullPath();
+	char *const argv[] = {const_cast<char *>(ressource.cgiInterpreter().c_str()), const_cast<char *>(scriptPath.c_str()), NULL};
 
 	std::vector<std::string> env;
 	this->setupEnv(env, httpTransaction, ressource);

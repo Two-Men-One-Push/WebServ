@@ -9,9 +9,9 @@ _error_pages(),
 _client_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE),
 _allowed_methods(),
 _autoindex(false),
-_redirection(HttpStatus::NoStatus, ""),
+_redirection(""),
 _cgi(),
-_upload_path(""),
+_editable(false),
 _types()
 {}
 
@@ -23,9 +23,9 @@ _error_pages(parent.errorPages()),
 _client_max_body_size(parent.clientMaxBodySize()),
 _allowed_methods(),
 _autoindex(parent.autoindex()),
-_redirection(HttpStatus::NoStatus, ""),
+_redirection(""),
 _cgi(),
-_upload_path(),
+_editable(false),
 _types(parent.types())
 {}
 
@@ -43,7 +43,7 @@ _allowed_methods(copy._allowed_methods),
 _autoindex(copy._autoindex),
 _redirection(copy._redirection),
 _cgi(copy._cgi),
-_upload_path(copy._upload_path),
+_editable(copy._editable),
 _types(copy._types)
 {
 }
@@ -61,7 +61,7 @@ Location	&Location::operator=(const Location &other)
 		this->_autoindex = other._autoindex;
 		this->_redirection = other._redirection;
 		this->_cgi = other._cgi;
-		this->_upload_path = other._upload_path;
+		this->_editable = other._editable;
 		this->_types = other._types;
 	}
 	return (*this);
@@ -117,12 +117,12 @@ size_t	&Location::clientMaxBodySize()
 	return (this->_client_max_body_size);
 }
 
-const std::vector<std::string>	&Location::allowedMethods() const
+const std::vector<HttpMethod>	&Location::allowedMethods() const
 {
 	return (this->_allowed_methods);
 }
 
-std::vector<std::string>	&Location::allowedMethods()
+std::vector<HttpMethod>	&Location::allowedMethods()
 {
 	return (this->_allowed_methods);
 }
@@ -137,12 +137,12 @@ bool	&Location::autoindex()
 	return (this->_autoindex);
 }
 
-const std::pair<HttpStatus::Code, std::string>	&Location::redirection() const
+const std::string	&Location::redirection() const
 {
 	return (this->_redirection);
 }
 
-std::pair<HttpStatus::Code, std::string>	&Location::redirection()
+std::string	&Location::redirection()
 {
 	return (this->_redirection);
 }
@@ -157,14 +157,14 @@ std::map<std::string, std::string>	&Location::cgi()
 	return (this->_cgi);
 }
 
-const std::string	&Location::uploadPath() const
+const bool	&Location::editable() const
 {
-	return (this->_upload_path);
+	return (this->_editable);
 }
 
-std::string	&Location::uploadPath()
+bool	&Location::editable()
 {
-	return (this->_upload_path);
+	return (this->_editable);
 }
 
 const MimeTypes	&Location::types() const

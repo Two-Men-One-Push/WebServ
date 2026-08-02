@@ -23,6 +23,7 @@ class URL
 		std::map<std::string, std::string>	_query;
 		std::string							_fragmentString;
 		std::string							_fragment;
+		bool								_folder;
 	public:
 		URL();
 		URL(const std::string &uri);
@@ -60,4 +61,6 @@ class URL
 		std::string									&fragmentString();
 		const std::string							&fragment() const;
 		std::string									&fragment();
+		const bool									&folder() const;
+		bool										&folder();
 };

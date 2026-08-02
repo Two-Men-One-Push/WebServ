@@ -4,6 +4,7 @@
 #include "http/messages/request/HttpRequest.hpp"
 #include "model/Server/Server.hpp"
 #include <string>
+#include <vector>
 
 typedef enum {
 	RESSOURCE_NONE,
@@ -12,11 +13,14 @@ typedef enum {
 	RESSOURCE_REDIRECT,
 	RESSOURCE_ERROR,
 	RESSOURCE_AUTO_INDEX,
-} RessourceType;
+	RESSOURCE_UPLOAD,
+	RESSOURCE_DELETE,
+}	RessourceType;
 
 class Ressource {
   private:
 	RessourceType _type;
+	std::string	_root;
 	std::string _path;
 	std::string _mimeType;
 	HttpStatus::Code _responseCode;
@@ -24,6 +28,8 @@ class Ressource {
 	std::string _scriptName;
 	std::string _pathInfo;
 	std::string _fragmentString;
+	std::vector<HttpMethod>	_allowedMethod;
+	Location	_location;
 
 	void setErrorPage(const Location &location, HttpStatus::Code errorCode);
 
@@ -36,8 +42,11 @@ class Ressource {
 
 	const RessourceType &type() const;
 	RessourceType &type();
+	const std::string &root() const;
+	std::string &root();
 	const std::string &path() const;
 	std::string &path();
+	std::string fullPath() const;
 	const std::string &mimeType() const;
 	std::string &mimeType();
 	const HttpStatus::Code &responseCode() const;
@@ -48,4 +57,8 @@ class Ressource {
 	std::string &scriptName();
 	const std::string &pathInfo() const;
 	std::string &pathInfo();
+	const std::vector<HttpMethod> &allowedMethods() const;
+	std::vector<HttpMethod> &allowedMethods();
+	const Location &location() const;
+	Location &location();
 };
