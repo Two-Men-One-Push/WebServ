@@ -5,6 +5,7 @@
 #include "model/Server/Server.hpp"
 #include "utils/parsing.hpp"
 #include <fcntl.h>
+#include <iostream>
 #include <sys/stat.h>
 
 size_t matchLength(const URL &url, const std::string &locationPath) {
@@ -84,10 +85,10 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			return;
 		}
 	}
-	if (location.redirection().first != HttpStatus::NoStatus) {
+	if (!location.redirection().empty()) {
 		this->_type = RESSOURCE_REDIRECT;
-		this->_responseCode = location.redirection().first;
-		this->_path = location.redirection().second;
+		this->_responseCode = HttpStatus::MovedPermanently;
+		this->_path = location.redirection();
 		return;
 	}
 	std::string cgiScriptPath;
@@ -99,8 +100,8 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			continue;
 		std::map<std::string, std::string>::const_iterator cgi_it = location.cgi().find(getFileExtension(cgiScriptPath));
 		if (cgi_it != location.cgi().end()) {
-			struct stat cgiScript_stat;
-			if (::stat(cgiScriptPath.c_str(), &cgiScript_stat) == 0 && (cgiScript_stat.st_mode & S_IFREG)) {
+			struct stat cgiScriptStat;
+			if (::stat((location.root() + cgiScriptPath).c_str(), &cgiScriptStat) == 0 && (cgiScriptStat.st_mode & S_IFREG)) {
 				this->_type = RESSOURCE_CGI;
 				this->_cgiInterpreter = cgi_it->second;
 				this->_root = location.root();
@@ -159,13 +160,14 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			if (path_stat.st_mode & S_IFDIR) {
 				if (!location.indexFiles().empty()) {
 					for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it) {
-						std::string indexPath = "/" + *it;
+						std::string indexPath = path + "/" + *it;
+						std::cerr << "Index File Path : " << indexPath << std::endl;
 						struct stat index_stat;
 						if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG)) {
 							this->type() = RESSOURCE_STATIC_FILE;
 							this->responseCode() = HttpStatus::OK;
 							this->_root = location.root();
-							this->_path = indexPath;
+							this->_path = request_path + "/" + *it;
 							std::map<std::string, std::string>::const_iterator type_it = location.types().types().find(getFileExtension(indexPath));
 							if (type_it != location.types().types().end())
 								this->mimeType() = type_it->second;
@@ -176,11 +178,22 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 					}
 				}
 				if (location.autoindex()) {
-					this->type() = RESSOURCE_AUTO_INDEX;
-					this->responseCode() = HttpStatus::OK;
-					this->_root = location.root();
-					this->_path = request_path;
-					return;
+					if (!req.uri().folder())
+					{
+						this->_type = RESSOURCE_REDIRECT;
+						this->_responseCode = HttpStatus::MovedPermanently;
+						this->_path = "http://" + req.host().first + ":" + req.host().second  + request_path + "/";\
+						if (!req.uri().queryString().empty()) this->_path += '?' + req.uri().queryString();
+						return;
+					}
+					else
+					{
+						this->type() = RESSOURCE_AUTO_INDEX;
+						this->responseCode() = HttpStatus::OK;
+						this->_root = location.root();
+						this->_path = request_path;
+						return;
+					}
 				} else {
 					this->setErrorPage(location, HttpStatus::Forbidden);
 					return;

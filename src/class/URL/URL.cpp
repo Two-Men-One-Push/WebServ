@@ -1,6 +1,7 @@
 #include "URL.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
+#include <iostream>
 #include <string>
 
 URL::URL():
@@ -16,7 +17,8 @@ _segments(),
 _queryString(""),
 _query(),
 _fragmentString(""),
-_fragment("")
+_fragment(""),
+_folder(false)
 {
 }
 
@@ -33,7 +35,8 @@ _segments(),
 _queryString(""),
 _query(),
 _fragmentString(""),
-_fragment("")
+_fragment(""),
+_folder(false)
 {
 	if (url == "*")
 	{
@@ -97,6 +100,13 @@ _fragment("")
 				start = end + 1;
 			}
 		}
+		if (origin.empty())
+		{
+			this->_folder = true;
+			return ;
+		}
+		if (origin[origin.length() - 1] == '/')
+			this->_folder = true;
 		std::string	decoded_origin;
 		if (decode(decoded_origin, origin))
 		{
@@ -279,7 +289,12 @@ _fragment("")
 			}
 		}
 		if (origin.empty())
+		{
+			this->_folder = true;
 			return ;
+		}
+		if (origin[origin.length() - 1] == '/')
+			this->_folder = true;
 		std::string	decoded_origin;
 		if (decode(decoded_origin, origin))
 		{
@@ -349,7 +364,8 @@ _normalizedSegments(copy._normalizedSegments),
 _queryString(copy._queryString),
 _query(copy._query),
 _fragmentString(copy._fragmentString),
-_fragment(copy._fragment)
+_fragment(copy._fragment),
+_folder(copy._folder)
 {}
 
 URL	&URL::operator=(const URL &other)
@@ -370,6 +386,7 @@ URL	&URL::operator=(const URL &other)
 		this->_query = other._query;
 		this->_fragmentString = other._fragmentString;
 		this->_fragment = other._fragment;
+		this->_folder = other._folder;
 	}
 	return (*this);
 }
@@ -558,4 +575,13 @@ const std::string	&URL::fragment() const
 std::string	&URL::fragment()
 {
 	return (this->_fragment);
+}
+const bool	&URL::folder() const
+{
+	return (this->_folder);
+}
+
+bool	&URL::folder()
+{
+	return (this->_folder);
 }

@@ -9,7 +9,7 @@ _error_pages(),
 _client_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE),
 _allowed_methods(),
 _autoindex(false),
-_redirection(HttpStatus::NoStatus, ""),
+_redirection(""),
 _cgi(),
 _editable(false),
 _types()
@@ -23,7 +23,7 @@ _error_pages(parent.errorPages()),
 _client_max_body_size(parent.clientMaxBodySize()),
 _allowed_methods(),
 _autoindex(parent.autoindex()),
-_redirection(HttpStatus::NoStatus, ""),
+_redirection(""),
 _cgi(),
 _editable(false),
 _types(parent.types())
@@ -137,12 +137,12 @@ bool	&Location::autoindex()
 	return (this->_autoindex);
 }
 
-const std::pair<HttpStatus::Code, std::string>	&Location::redirection() const
+const std::string	&Location::redirection() const
 {
 	return (this->_redirection);
 }
 
-std::pair<HttpStatus::Code, std::string>	&Location::redirection()
+std::string	&Location::redirection()
 {
 	return (this->_redirection);
 }

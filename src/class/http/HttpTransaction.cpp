@@ -85,7 +85,7 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 		if (ressource.path().empty()) {
 			this->_response.generate(ressource.responseCode());
 		} else {
-			this->_response.file(ressource.path(), ressource.responseCode(), ressource.mimeType());
+			this->_response.file(ressource.fullPath(), ressource.responseCode(), ressource.mimeType());
 		}
 		break;
 	default:
