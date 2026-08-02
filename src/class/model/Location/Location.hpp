@@ -19,7 +19,7 @@ class	Location
 		size_t																	_client_max_body_size;
 		std::vector<HttpMethod>													_allowed_methods;
 		bool																	_autoindex;
-		std::pair<HttpStatus::Code, std::string>								_redirection;
+		std::string																_redirection;
 		std::map<std::string, std::string>										_cgi;
 		bool																	_editable;
 		MimeTypes																_types;
@@ -44,8 +44,8 @@ class	Location
 		std::vector<HttpMethod>														&allowedMethods();
 		const bool																	&autoindex() const;
 		bool																		&autoindex();
-		const std::pair<HttpStatus::Code, std::string>								&redirection() const;
-		std::pair<HttpStatus::Code, std::string>									&redirection();
+		const std::string															&redirection() const;
+		std::string																	&redirection();
 		const std::map<std::string, std::string>									&cgi() const;
 		std::map<std::string, std::string>											&cgi();
 		const bool																	&editable() const;

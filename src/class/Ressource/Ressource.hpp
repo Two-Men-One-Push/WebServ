@@ -46,6 +46,7 @@ class Ressource {
 	std::string &root();
 	const std::string &path() const;
 	std::string &path();
+	std::string fullPath() const;
 	const std::string &mimeType() const;
 	std::string &mimeType();
 	const HttpStatus::Code &responseCode() const;

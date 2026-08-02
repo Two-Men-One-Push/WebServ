@@ -169,29 +169,6 @@ void	Semantic::parseListen(std::list<Directive>::const_iterator it, std::vector<
 	}
 }
 
-void	Semantic::parseServerNames(std::list<Directive>::const_iterator it, std::vector<std::string> &server_names, Http &http, DiagnosticContext &diag)
-{
-	if (checkShape(*it, ARGS_AT_LEAST_ONE, BODY_FORBIDDEN, diag))
-	{
-		for (std::vector<Word>::const_iterator arg = it->args().begin(); arg != it->args().end(); ++arg)
-		{
-			const std::string serverName = arg->content();
-			bool duplicate = false;
-			for (std::vector<Server>::const_iterator serv = http.servers().begin(); serv != http.servers().end(); ++serv)
-			{
-				if (std::find(serv->serverNames().begin(), serv->serverNames().end(), serverName) != serv->serverNames().end())
-				{
-					diag.report("duplicate server name '" + serverName + "'", *arg);
-					duplicate = true;
-					break;
-				}
-			}
-			if (!duplicate)
-				server_names.push_back(serverName);
-		}
-	}
-}
-
 void	Semantic::parseRoot(std::list<Directive>::const_iterator it, std::string &root, DiagnosticContext &diag)
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
@@ -251,24 +228,11 @@ void	Semantic::parseAutoindex(std::list<Directive>::const_iterator it, bool &aut
 	}
 }
 
-void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::pair<HttpStatus::Code, std::string> &redirection, DiagnosticContext &diag)
+void	Semantic::parseRedirection(std::list<Directive>::const_iterator it, std::string &redirection, DiagnosticContext &diag)
 {
-	if (checkShape(*it, ARGS_EXACT_TWO, BODY_FORBIDDEN, diag))
+	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
 	{
-		int code;
-		if (!parseInt(it->args().front().rawContent(), code))
-			diag.report("invalid response code '" + it->args().front().rawContent() + "'", it->args().front());
-		else
-		{
-			try
-			{
-				redirection = std::make_pair(HttpStatus::fromInt(code), it->args().back().content());
-			}
-			catch (const std::invalid_argument &)
-			{
-				diag.report("invalid response code '" + it->args().front().rawContent() + "'", it->args().front());
-			}
-		}
+		redirection = it->args().back().content();
 	}
 }
 
@@ -394,7 +358,6 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	Server	server(http);
 	std::set<std::string>	locationPathTable;
 	bool	hasListen = false;
-	bool	hasServerName = false;
 	bool	hasRoot = false;
 	bool	hasIndex = false;
 	bool	hashClientMaxBodySize = false;
@@ -412,13 +375,6 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		{
 			hasListen = true;
 			parseListen(it, server.listen(), diag);
-		}
-		else if (name == "server_name")
-		{
-			if (hasServerName)
-				diag.report("duplicate 'server_name' directive", *it);
-			hasServerName = true;
-			parseServerNames(it, server.serverNames(), http, diag);
 		}
 		else if (name == "root")
 		{

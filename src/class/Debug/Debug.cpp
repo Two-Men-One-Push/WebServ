@@ -103,28 +103,18 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 	}
 	os << std::endl;
 	os << std::string(indent + 1, '\t') << "Autoindex: " << (location.autoindex() ? "on" : "off") << std::endl;
-	os << std::string(indent + 1, '\t') << "Redirection: ";
-	if (location.redirection().first != 0)
-	{
-		if (location.redirection().first >= 300 || location.redirection().first <= 399)
-			os << "code: " << location.redirection().first << " url: " << location.redirection().second;
-		else
-			os << "code: " << location.redirection().first << " message: " << location.redirection().second;
-	}
-	else
-		os << "none";
-	os << std::endl;
+	os << std::string(indent + 1, '\t') << "Redirection: " << location.redirection() << std::endl;
 	os << std::string(indent + 1, '\t') << "CGI: " << std::endl;
 	for (std::map<std::string, std::string>::const_iterator cgi_it = location.cgi().begin(); cgi_it != location.cgi().end(); ++cgi_it)
 	{
 		os << std::string(indent + 2, '\t') << "extension: " << cgi_it->first << " interpreter: " << cgi_it->second << std::endl;
 	}
 	os << std::string(indent + 1, '\t') << "Editable: " << location.editable() << std::endl;
-	os << std::string(indent + 1, '\t') << "Types:" << std::endl;
-	for (std::map<std::string, std::string>::const_iterator type_it = location.types().types().begin(); type_it != location.types().types().end(); ++type_it)
-	{
-		os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
-	}
+	os << std::string(indent + 1, '\t') << "Types: ..." << std::endl;
+	// for (std::map<std::string, std::string>::const_iterator type_it = location.types().types().begin(); type_it != location.types().types().end(); ++type_it)
+	// {
+	// 	os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
+	// }
 }
 
 void	Debug::printConfig(std::ostream &os, const Config &config)
@@ -159,14 +149,6 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 			os << listen_it->first << ":" << listen_it->second;
 		}
 		os << std::endl;
-		os << "				Server Names: ";
-		for (std::vector<std::string>::const_iterator name_it = it->serverNames().begin(); name_it != it->serverNames().end(); ++name_it)
-		{
-			if (name_it != it->serverNames().begin())
-				os << ", ";
-			os << *name_it;
-		}
-		os << std::endl;
 		os << "				Root: " << it->root() << std::endl;
 		os << "				Index Files: ";
 		for (std::vector<std::string>::const_iterator index_it = it->indexFiles().begin(); index_it != it->indexFiles().end(); ++index_it)
@@ -191,17 +173,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << std::endl;
 		os << "				Autoindex: " << (it->autoindex() ? "on" : "off") << std::endl;
-		os << "				Redirection:" << std::endl;
-		if (it->redirection().first != 0)
-		{
-			if (it->redirection().first >= 300 || it->redirection().first <= 399)
-				os << "	code: " << it->redirection().first << " url: " << it->redirection().second;
-			else
-				os << "	code: " << it->redirection().first << " message: " << it->redirection().second;
-		}
-		else
-			os << "none";
-		os << std::endl;
+		os << "				Redirection:" << it->redirection() << std::endl;
 		os << "				CGI:" << std::endl;
 		for (std::map<std::string, std::string>::const_iterator cgi_it = it->cgi().begin(); cgi_it != it->cgi().end(); ++cgi_it)
 		{
@@ -271,7 +243,8 @@ void	Debug::printRessource(std::ostream &os, const Ressource &ressource)
 {
 	os << "Ressource:" << std::endl;
 	os << "	Type: " << ressource.typeStr() << std::endl;
-	os << "	Path: " << ressource.root() + ressource.path() << std::endl;
+	os << "	Root: " << ressource.root() << std::endl;
+	os << "	Path: " << ressource.path() << std::endl;
 	os << "	MIME Type: " << ressource.mimeType() << std::endl;
 	os << "	Response Code: " << ressource.responseCode() << std::endl;
 	os << "	CGI Interpreter: " << ressource.cgiInterpreter() << std::endl;

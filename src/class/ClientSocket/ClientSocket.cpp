@@ -4,7 +4,6 @@
 #include "WebServer/WebServer.hpp"
 #include "http/HttpTransaction.hpp"
 #include <cerrno>
-#include <cstring>
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
