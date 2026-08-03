@@ -6,7 +6,6 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
-#include <iostream>
 #include <sstream>
 
 bool HttpMessage::sendTo(const Fd &output) {

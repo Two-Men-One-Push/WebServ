@@ -161,7 +161,6 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 				if (!location.indexFiles().empty()) {
 					for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it) {
 						std::string indexPath = path + "/" + *it;
-						std::cerr << "Index File Path : " << indexPath << std::endl;
 						struct stat index_stat;
 						if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG)) {
 							this->type() = RESSOURCE_STATIC_FILE;

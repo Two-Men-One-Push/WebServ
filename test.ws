@@ -3,7 +3,7 @@ http {
 	error_page 404 =404 /404.html;
 
 	server {
-		listen localhost:8006;
+		listen localhost:6969;
 
 		root ./www;
 
@@ -12,8 +12,6 @@ http {
 		autoindex on;
 
 		cgi py /usr/bin/python3;
-
-		redirect http://localhost:8007;
 
 		location cgi {
 			error_page 404 =404 /index.html;

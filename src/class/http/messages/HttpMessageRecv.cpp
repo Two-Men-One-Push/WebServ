@@ -17,30 +17,35 @@
 #include <utility>
 
 bool HttpMessage::recvFrom(std::istream &input, const Location &nearestConfig) {
-	switch (this->_inState) {
-	case HttpMessage::RECV_MESSAGE_TYPES:
-		if (!this->recvTypeLine(input)) return false;
-		this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
-		// fallthrough
-	case HttpMessage::RECV_MESSAGE_HEADERS:
-		if (!this->recvMessageHeaders(input)) return false;
-		this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
-		// fallthrough
-	case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
-		this->loadCommonHeaders();
-		this->loadTypeHeaders();
-		this->checkBodyType();
-		this->_inState = HttpMessage::RECV_WAITING_ROUTING;
-		return false;
-	case HttpMessage::RECV_WAITING_ROUTING:
-		return false;
-	case HttpMessage::RECV_MESSAGE_BODY:
-		if (this->hasBody() && !this->recvBody(input, nearestConfig)) return false;
-		this->_inState = HttpMessage::RECV_COMPLETED;
-		// std::cerr << *this << std::endl;
-		// fallthrough
-	case HttpMessage::RECV_COMPLETED:
-		return true;
+	try {
+		switch (this->_inState) {
+		case HttpMessage::RECV_MESSAGE_TYPES:
+			if (!this->recvTypeLine(input)) return false;
+			this->_inState = HttpMessage::RECV_MESSAGE_HEADERS;
+			// fallthrough
+		case HttpMessage::RECV_MESSAGE_HEADERS:
+			if (!this->recvMessageHeaders(input)) return false;
+			this->_inState = HttpMessage::RECV_LOAD_MESSAGE_HEADERS;
+			// fallthrough
+		case HttpMessage::RECV_LOAD_MESSAGE_HEADERS:
+			this->loadCommonHeaders();
+			this->loadTypeHeaders();
+			this->checkBodyType();
+			this->_inState = HttpMessage::RECV_WAITING_ROUTING;
+			return false;
+		case HttpMessage::RECV_WAITING_ROUTING:
+			return false;
+		case HttpMessage::RECV_MESSAGE_BODY:
+			if (this->hasBody() && !this->recvBody(input, nearestConfig)) return false;
+			this->_inState = HttpMessage::RECV_COMPLETED;
+			// std::cerr << *this << std::endl;
+			// fallthrough
+		case HttpMessage::RECV_COMPLETED:
+			return true;
+		}
+	} catch (...) {
+		this->_inState = RECV_COMPLETED;
+		throw;
 	}
 	return this->_inState == HttpMessage::RECV_COMPLETED;
 }

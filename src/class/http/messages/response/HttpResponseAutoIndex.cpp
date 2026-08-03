@@ -15,7 +15,6 @@ void HttpResponse::autoIndex(const std::string &root, const std::string &path, H
 		printAutoIndex(*ssBody, root, path);
 	} catch (const WebservErrors::SysError &e) {
 		int err = e.err();
-		std::cerr << err << std::endl;
 		if (err == ENOENT || err == ENOTDIR) throw HttpErrors::NotFoundException();
 		if (err == EACCES || err == EPERM) throw HttpErrors::ForbiddenException();
 		if (err == ENAMETOOLONG) throw HttpErrors::URITooLongException();

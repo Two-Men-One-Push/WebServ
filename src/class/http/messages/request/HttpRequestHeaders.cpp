@@ -4,7 +4,7 @@
 
 void HttpRequest::loadHost() {
 	HeaderMap &headers = this->_headers;
-	if (!headers.has("Host")) throw HttpErrors::BadRequestException();
+	if (!headers.has("Host")) throw HttpErrors::BadRequestException("CACA");
 	const std::string &host = headers.at("Host");
 	if (host.empty()) throw HttpErrors::BadRequestException();
 

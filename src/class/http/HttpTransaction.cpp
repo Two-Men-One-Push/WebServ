@@ -20,7 +20,9 @@ HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockad
 	  _serverAddress(serverAddress),
 	  _clientAddress(clientAddress),
 	  _request(),
-	  _response() {}
+	  _response() {
+	std::cerr << "HttpTransaction created" << std::endl;
+}
 
 HttpTransaction::HttpTransaction(const HttpTransaction &other)
 	: _serverConfig(other._serverConfig),
@@ -30,7 +32,9 @@ HttpTransaction::HttpTransaction(const HttpTransaction &other)
 	  _request(other._request),
 	  _response(other._response) {}
 
-HttpTransaction::~HttpTransaction() {}
+HttpTransaction::~HttpTransaction() {
+	std::cerr << "HttpTransaction deleted" << std::endl;
+}
 
 bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 	try {

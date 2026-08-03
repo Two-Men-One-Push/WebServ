@@ -24,6 +24,7 @@ class HttpRequest : public HttpMessage {
 		REQUEST_METHOD,
 		REQUEST_URI,
 		REQUEST_VERSION,
+		REQUEST_LINE_DONE,
 	};
 
 	FirstLineParsingState _firstLineState;
