@@ -65,7 +65,7 @@ bool HttpRequest::parseRequestMethod(std::istream &input) {
 			break;
 		if (c == std::stringstream::traits_type::eof())
 			return false;
-		if (!istokenc(c) || c == '\r' || c == '\n') throw HttpErrors::BadRequestException();
+		if (!istokenc(c) && c != '\r' && c != '\n') throw HttpErrors::BadRequestException();
 		buffer += static_cast<char>(c);
 		if (buffer == "\r\n") buffer.clear();
 	}
