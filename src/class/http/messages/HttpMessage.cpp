@@ -89,8 +89,8 @@ std::ostream &HttpMessage::print(std::ostream &os) const {
 
 	this->printTypeInfo(os);
 
-	if (headers.has("Content-Length"))
-		os << "content_length = " << this->_contentLength << '\n';
+	os << "content_length = " << this->_contentLength << '\n';
+	os << "tranfer_encoding = " << transferEncodingString(this->tranferEncording()) << '\n';
 
 	for (HeaderMap::const_iterator it = headers.begin(); it != headers.end(); ++it) {
 		os << it->first << ": " << it->second << "\r\n";

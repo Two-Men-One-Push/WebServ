@@ -38,7 +38,7 @@ bool HttpMessage::recvFrom(std::istream &input, const Location &nearestConfig) {
 		case HttpMessage::RECV_MESSAGE_BODY:
 			if (this->hasBody() && !this->recvBody(input, nearestConfig)) return false;
 			this->_inState = HttpMessage::RECV_COMPLETED;
-			// std::cerr << *this << std::endl;
+			std::cerr << *this << std::endl;
 			// fallthrough
 		case HttpMessage::RECV_COMPLETED:
 			return true;
@@ -297,6 +297,7 @@ bool HttpMessage::getChunkContent(std::istream &input) {
 
 	if (this->_chunkInfo.readSize < this->_chunkInfo.size) return false;
 	this->_chunkInfo.state = BodyChunkInfo::CHUNK_CRLF;
+	this->_contentLength += this->_chunkInfo.size;
 	return true;
 }
 
