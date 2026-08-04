@@ -1,3 +1,4 @@
+#include "Logger/Logger.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/messages/Body/IBody.hpp"
 #include "http/messages/HttpMessage.hpp"
@@ -72,9 +73,9 @@ bool HttpMessage::sendBody(const Fd &output) {
 			return false;
 		throw WebservErrors::SysError("write", errno);
 	}
-	// std::cerr << "\e[0;32m";
-	// std::cerr.write(buffer.data(), sent);
-	// std::cerr << "\e[0m\n";
+	Logger::debug() << "\e[0;32m";
+	Logger::debug().write(buffer.data(), sent);
+	Logger::debug() << "\e[0m\n";
 	this->_sentSize += sent;
 	buffer.erase(0, sent);
 

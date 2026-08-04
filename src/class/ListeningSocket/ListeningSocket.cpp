@@ -1,5 +1,6 @@
 #include "./ListeningSocket.hpp"
 #include "ClientSocket/ClientSocket.hpp"
+#include "Logger/Logger.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
 #include "model/Server/Server.hpp"
@@ -49,7 +50,7 @@ void ListeningSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 	if (events & EPOLLIN) {
 		this->onEpollIn(webServer);
 	} else if (events & EPOLLHUP) {
-		std::cerr << "Unhandled event : EPOLLHUP : WTF" << std::endl;
+		Logger::warn() << "Unhandled event : EPOLLHUP : WTF" << std::endl;
 	} else if (events & EPOLLERR) {
 	}
 }

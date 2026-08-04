@@ -1,6 +1,7 @@
 #include "./ClientSocket.hpp"
 #include "ASocket/ASocket.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
+#include "Logger/Logger.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/HttpTransaction.hpp"
 #include <cerrno>
@@ -21,7 +22,7 @@ ClientSocket::ClientSocket(const ListeningSocket &listeningSocket)
 	  _inClosed(false),
 	  _outBuffer(),
 	  _transactions() {
-	std::cerr << "Client connection opened" << std::endl;
+	Logger::debug() << "Client connection opened" << std::endl;
 }
 
 ClientSocket::~ClientSocket() {
@@ -29,7 +30,7 @@ ClientSocket::~ClientSocket() {
 		delete this->_transactions.front();
 		this->_transactions.pop();
 	}
-	std::cerr << "Client connection closed" << std::endl;
+	Logger::debug() << "Client connection closed" << std::endl;
 }
 
 const struct sockaddr_storage &ClientSocket::address() const {
@@ -66,7 +67,7 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 			if (this->_inClosed && !this->canHandleEpollOut()) webServer.requestDelete(this);
 		}
 	} else {
-		std::cerr << "Unhandled event : " << events << std::endl;
+		Logger::warn() << "Unhandled event : " << events << std::endl;
 	}
 }
 
@@ -88,9 +89,9 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		return;
 	};
 
-	// std::cerr << "\e[0;31m";
-	// std::cerr.write(buffer, readLen);
-	// std::cerr << "\e[0m\n";
+	// Logger::debug() << "\e[0;31m";
+	// Logger::debug().write(buffer, readLen);
+	// Logger::debug() << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {

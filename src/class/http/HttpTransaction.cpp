@@ -1,5 +1,6 @@
 #include "./HttpTransaction.hpp"
 #include "CGI/CGIInterface.hpp"
+#include "Logger/Logger.hpp"
 #include "Ressource/Ressource.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/errors/HttpErrors.hpp"
@@ -21,7 +22,7 @@ HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockad
 	  _clientAddress(clientAddress),
 	  _request(),
 	  _response() {
-	std::cerr << "HttpTransaction created" << std::endl;
+	Logger::debug() << "HttpTransaction created" << std::endl;
 }
 
 HttpTransaction::HttpTransaction(const HttpTransaction &other)
@@ -33,7 +34,7 @@ HttpTransaction::HttpTransaction(const HttpTransaction &other)
 	  _response(other._response) {}
 
 HttpTransaction::~HttpTransaction() {
-	std::cerr << "HttpTransaction deleted" << std::endl;
+	Logger::debug() << "HttpTransaction deleted" << std::endl;
 }
 
 bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
@@ -73,7 +74,7 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 		try {
 			this->_response.cgi(*new CGIInterface(ressource, *this, server));
 		} catch (const std::exception &e) {
-			std::cerr << e.what() << std::endl;
+			Logger::warn() << e.what() << std::endl;
 			throw HttpErrors::InternalServerErrorException();
 		}
 		break;
@@ -164,10 +165,10 @@ void HttpTransaction::error(const HttpError &httpError) {
 		this->handleErrorRessource(errorRessource, httpError);
 		this->_resolvedConfig = &errorRessource.location();
 	} catch (const HttpError &e) {
-		std::cerr << "Bad error handling: " << e.what() << std::endl;
+		Logger::error() << "Bad error handling: " << e.what() << std::endl;
 		this->_response.generate(httpError.status());
 	} catch (const std::exception &e) {
-		std::cerr << "Very bad error handling: " << e.what() << std::endl;
+		Logger::error() << "Very bad error handling: " << e.what() << std::endl;
 		this->_response.generate(httpError.status());
 	}
 

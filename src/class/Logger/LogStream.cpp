@@ -7,7 +7,7 @@ Logger::LogStream::LogStream(const LogStream &other)
 	: _lvl(other._lvl), _active(other._active), _oss() {}
 
 Logger::LogStream::~LogStream() {
-	if (_active) std::cerr << this->timestamp() << ": "<< this->colorLevelStr(this->_lvl) << ": " << _oss.str() << std::endl;
+	if (_active) std::cerr << this->timestamp() << ": "<< this->colorLevelStr(this->_lvl) << ": " << _oss.str();
 }
 
 std::string Logger::LogStream::colorLevelStr(Logger::LogLevel lvl) {

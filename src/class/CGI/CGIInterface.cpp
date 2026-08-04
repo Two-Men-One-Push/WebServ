@@ -175,9 +175,9 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			throw WebservErrors::SysError("read", errno);
 		}
 
-		// std::cerr << "\e[0;31m";
-		// std::cerr.write(buffer, readLen);
-		// std::cerr << "\e[0m\n";
+		// Logger::debug() << "\e[0;31m";
+		// Logger::debug().write(buffer, readLen);
+		// Logger::debug() << "\e[0m\n";
 		input.write(buffer, readLen);
 
 		if (this->_httpTransaction.recvResponse(input)) {

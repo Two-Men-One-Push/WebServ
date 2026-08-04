@@ -42,6 +42,12 @@ class Logger {
 				manip(_oss);
 			return *this;
 		}
+
+		LogStream &write(const char *s, std::streamsize n) {
+			if (_active)
+				_oss.write(s, n);
+			return *this;
+		}
 	};
 
   private:
