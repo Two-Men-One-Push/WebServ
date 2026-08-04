@@ -147,7 +147,6 @@ void HttpResponse::closeInput() {
 			this->_bodyType = BT_CONTENT_LENGTH;
 		}
 	} else {
-		std::cerr << this->_inState << std::endl;
 		throw HttpErrors::InternalServerErrorException();
 	}
 }
