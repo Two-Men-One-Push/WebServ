@@ -5,6 +5,7 @@
 #include "http/errors/HttpErrors.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
+#include "model/Location/Location.hpp"
 #include "model/Server/Server.hpp"
 #include "utils/formatting.hpp"
 #include <istream>
@@ -15,6 +16,7 @@ class WebServer;
 class HttpTransaction {
   private:
 	const Server &_serverConfig;
+	const Location *_resolvedConfig;
 	const struct sockaddr_storage &_serverAddress;
 	const struct sockaddr_storage &_clientAddress;
 
@@ -44,6 +46,7 @@ class HttpTransaction {
 	void closeResponseInput();
 
 	void error(const HttpError &e);
+	const Location &nearestConfig() const;
 
 	const struct sockaddr_storage &serverAddress() const;
 	void formatServerAddress(FormattedAddress &target) const;

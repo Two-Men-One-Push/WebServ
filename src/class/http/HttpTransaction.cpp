@@ -16,39 +16,40 @@
 
 HttpTransaction::HttpTransaction(const Server &serverConfig, const struct sockaddr_storage &serverAddress, const struct sockaddr_storage &clientAddress)
 	: _serverConfig(serverConfig),
+	  _resolvedConfig(NULL),
 	  _serverAddress(serverAddress),
 	  _clientAddress(clientAddress),
 	  _request(),
-	  _response() {}
+	  _response() {
+	std::cerr << "HttpTransaction created" << std::endl;
+}
 
 HttpTransaction::HttpTransaction(const HttpTransaction &other)
 	: _serverConfig(other._serverConfig),
+	  _resolvedConfig(other._resolvedConfig),
 	  _serverAddress(other._serverAddress),
 	  _clientAddress(other._clientAddress),
 	  _request(other._request),
 	  _response(other._response) {}
 
-HttpTransaction::~HttpTransaction() {}
+HttpTransaction::~HttpTransaction() {
+	std::cerr << "HttpTransaction deleted" << std::endl;
+}
 
 bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 	try {
-		bool result = this->_request.recvFrom(input);
+		bool result = this->_request.recvFrom(input, this->nearestConfig());
 
 		if (this->_request.isWaitingRouting()) {
 			const Ressource ressource(this->_request, this->_serverConfig);
 			try {
 				this->handleRessource(ressource, server);
+				this->_resolvedConfig = &ressource.location();
 			} catch (const HttpError &e) {
-				Ressource errorRessource(this->_request, e.status(), this->_serverConfig);
-
-				try {
-					this->handleErrorRessource(errorRessource, e);
-				} catch (const HttpError &e) {
-					this->_response.generate(ressource.responseCode());
-				}
+				this->error(e);
 			}
 			this->_request.completeRouting();
-			result = this->_request.recvFrom(input);
+			result = this->_request.recvFrom(input, this->nearestConfig());
 		}
 		return result;
 	} catch (const HttpError &e) {
@@ -95,23 +96,19 @@ void HttpTransaction::handleErrorRessource(const Ressource &errorRessource, cons
 	if (errorRessource.path().empty()) {
 		this->_response.generate(errorRessource.responseCode(), ressourceError.message());
 	} else {
-		try {
-			this->_response.file(errorRessource.path(), errorRessource.responseCode(), errorRessource.mimeType());
-		} catch (const HttpError &e) {
-			this->_response.generate(e.status(), e.message());
-		}
+		this->_response.file(errorRessource.fullPath(), errorRessource.responseCode(), errorRessource.mimeType());
 	}
 }
 
 bool HttpTransaction::recvResponse(std::istream &input) {
 	try {
-		bool result = this->_response.recvFrom(input);
+		bool result = this->_response.recvFrom(input, this->nearestConfig());
 		if (result) {
 			return true;
 		} else {
 			if (this->_response.isWaitingRouting()) {
 				this->_response.completeRouting();
-				this->_response.recvFrom(input);
+				this->_response.recvFrom(input, this->nearestConfig());
 			}
 			return false;
 		}
@@ -160,10 +157,25 @@ void HttpTransaction::closeResponseInput() {
 	}
 }
 
-void HttpTransaction::error(const HttpError &e) {
-	const Ressource errorRessource(this->_request, e.status(), this->_serverConfig);
-	this->handleErrorRessource(errorRessource, e);
-	this->_response.keepAlive(false);
+void HttpTransaction::error(const HttpError &httpError) {
+	const Ressource errorRessource(this->_request, httpError.status(), this->_serverConfig);
+
+	try {
+		this->handleErrorRessource(errorRessource, httpError);
+		this->_resolvedConfig = &errorRessource.location();
+	} catch (const HttpError &e) {
+		std::cerr << "Bad error handling: " << e.what() << std::endl;
+		this->_response.generate(httpError.status());
+	} catch (const std::exception &e) {
+		std::cerr << "Very bad error handling: " << e.what() << std::endl;
+		this->_response.generate(httpError.status());
+	}
+
+	this->kill();
+}
+
+const Location &HttpTransaction::nearestConfig() const {
+	return this->_resolvedConfig ? *this->_resolvedConfig : this->_serverConfig;
 }
 
 const struct sockaddr_storage &HttpTransaction::serverAddress() const {

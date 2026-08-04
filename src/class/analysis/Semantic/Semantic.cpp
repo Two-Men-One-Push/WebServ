@@ -326,12 +326,12 @@ Http	Semantic::analyseHttp(const Directive &directive, DiagnosticContext &diag)
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
-		if (name == "client_max_body_size")
+		if (name == "max_body_size")
 		{
 			if (hasClientMaxBodySize)
-				diag.report("duplicate 'client_max_body_size' directive", *it);
+				diag.report("duplicate 'max_body_size' directive", *it);
 			hasClientMaxBodySize = true;
-			parseClientMaxBodySize(it, http.clientMaxBodySize(), diag);
+			parseClientMaxBodySize(it, http.maxBodySize(), diag);
 		}
 		else if (name == "error_page")
 			parseErrorPages(it, http.errorPages(), diag);
@@ -392,12 +392,12 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		}
 		else if (name == "error_page")
 			parseErrorPages(it, server.errorPages(), diag);
-		else if (name == "client_max_body_size")
+		else if (name == "max_body_size")
 		{
 			if (hashClientMaxBodySize)
-				diag.report("duplicate 'client_max_body_size' directive", *it);
+				diag.report("duplicate 'max_body_size' directive", *it);
 			hashClientMaxBodySize = true;
-			parseClientMaxBodySize(it, server.clientMaxBodySize(), diag);
+			parseClientMaxBodySize(it, server.maxBodySize(), diag);
 		}
 		else if (name == "allow_methods")
 		{
@@ -474,12 +474,12 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 		}
 		else if (name == "error_page")
 			parseErrorPages(it, location.errorPages(), diag);
-		else if (name == "client_max_body_size")
+		else if (name == "max_body_size")
 		{
 			if (hasClientMaxBodySize)
-				diag.report("duplicate 'client_max_body_size' directive", *it);
+				diag.report("duplicate 'max_body_size' directive", *it);
 			hasClientMaxBodySize = true;
-			parseClientMaxBodySize(it, location.clientMaxBodySize(), diag);
+			parseClientMaxBodySize(it, location.maxBodySize(), diag);
 		}
 		else if (name == "allow_methods")
 		{

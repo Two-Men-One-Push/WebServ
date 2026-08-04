@@ -140,12 +140,13 @@ void HttpResponse::checkBodyType() {
 }
 
 void HttpResponse::closeInput() {
+	if (this->_inState == RECV_COMPLETED) return;
 	if (this->_inState == RECV_MESSAGE_BODY) {
 		this->_inState = RECV_COMPLETED;
 		if (this->_cgiInterface != NULL) {
 			this->_bodyType = BT_CONTENT_LENGTH;
 		}
 	} else {
-		throw HttpErrors::InternalServerErrorException("This");
+		throw HttpErrors::InternalServerErrorException();
 	}
 }
