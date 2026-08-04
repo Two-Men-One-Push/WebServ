@@ -44,17 +44,9 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 			const Ressource ressource(this->_request, this->_serverConfig);
 			try {
 				this->handleRessource(ressource, server);
+				this->_resolvedConfig = &ressource.location();
 			} catch (const HttpError &e) {
-				Ressource errorRessource(this->_request, e.status(), this->_serverConfig);
-
-				try {
-					this->handleErrorRessource(errorRessource, e);
-				} catch (const HttpError &e) {
-					this->_response.generate(ressource.responseCode());
-				} catch (const std::exception &e) {
-					this->_response.generate(ressource.responseCode());
-					throw;
-				}
+				this->error(e);
 			}
 			this->_request.completeRouting();
 			result = this->_request.recvFrom(input, this->nearestConfig());
@@ -104,7 +96,7 @@ void HttpTransaction::handleErrorRessource(const Ressource &errorRessource, cons
 	if (errorRessource.path().empty()) {
 		this->_response.generate(errorRessource.responseCode(), ressourceError.message());
 	} else {
-		this->_response.file(errorRessource.path(), errorRessource.responseCode(), errorRessource.mimeType());
+		this->_response.file(errorRessource.fullPath(), errorRessource.responseCode(), errorRessource.mimeType());
 	}
 }
 
@@ -165,10 +157,21 @@ void HttpTransaction::closeResponseInput() {
 	}
 }
 
-void HttpTransaction::error(const HttpError &e) {
-	const Ressource errorRessource(this->_request, e.status(), this->_serverConfig);
-	this->handleErrorRessource(errorRessource, e);
-	this->_response.keepAlive(false);
+void HttpTransaction::error(const HttpError &httpError) {
+	const Ressource errorRessource(this->_request, httpError.status(), this->_serverConfig);
+
+	try {
+		this->handleErrorRessource(errorRessource, httpError);
+		this->_resolvedConfig = &errorRessource.location();
+	} catch (const HttpError &e) {
+		std::cerr << "Bad error handling: " << e.what() << std::endl;
+		this->_response.generate(httpError.status());
+	} catch (const std::exception &e) {
+		std::cerr << "Very bad error handling: " << e.what() << std::endl;
+		this->_response.generate(httpError.status());
+	}
+
+	this->kill();
 }
 
 const Location &HttpTransaction::nearestConfig() const {

@@ -166,13 +166,13 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 }
 
 bool HttpMessage::recvBody(std::istream &input, const Location &nearestConfig) {
-	if (this->_contentLength > nearestConfig.clientMaxBodySize()) throw HttpMessage::Exception().requestStatus(HttpStatus::ContentTooLarge).responseStatus(HttpStatus::BadGateway);
+	if (this->_contentLength > nearestConfig.maxBodySize()) throw HttpMessage::Exception().requestStatus(HttpStatus::ContentTooLarge).responseStatus(HttpStatus::BadGateway);
 	bool result;
 	if (this->_bodyType == BT_CHUNKED) result = this->collectChunkedBody(input);
 	else if (this->_bodyType == BT_CONTENT_LENGTH) result = this->collectRawBody(input);
 	else if (this->_bodyType == BT_EOF) result = this->collectRawBodyToEOF(input);
 	else throw HttpMessage::Exception().requestStatus(HttpStatus::NotImplemented);
-	if (this->_contentLength > nearestConfig.clientMaxBodySize()) throw HttpMessage::Exception().requestStatus(HttpStatus::ContentTooLarge).responseStatus(HttpStatus::BadGateway);
+	if (this->_contentLength > nearestConfig.maxBodySize()) throw HttpMessage::Exception().requestStatus(HttpStatus::ContentTooLarge).responseStatus(HttpStatus::BadGateway);
 	return result;
 }
 

@@ -5,7 +5,6 @@
 #include "analysis/Semantic/Semantic.hpp"
 #include "model/DiagnosticContext/DiagnosticContext.hpp"
 #include <csignal>
-#include "Debug/Debug.hpp"
 #include <iostream>
 
 int main(int argc, char **argv)

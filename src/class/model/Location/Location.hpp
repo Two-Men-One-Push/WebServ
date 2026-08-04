@@ -16,7 +16,7 @@ class	Location
 		std::string																_root;
 		std::vector<std::string>												_index_files;
 		std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	_error_pages;
-		size_t																	_client_max_body_size;
+		size_t																	_max_body_size;
 		std::vector<HttpMethod>													_allowed_methods;
 		bool																	_autoindex;
 		std::string																_redirection;
@@ -38,8 +38,8 @@ class	Location
 		std::vector<std::string>													&indexFiles();
 		const std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	&errorPages() const;
 		std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >		&errorPages();
-		const size_t																&clientMaxBodySize() const;
-		size_t																		&clientMaxBodySize();
+		const size_t																&maxBodySize() const;
+		size_t																		&maxBodySize();
 		const std::vector<HttpMethod>												&allowedMethods() const;
 		std::vector<HttpMethod>														&allowedMethods();
 		const bool																	&autoindex() const;

@@ -5,7 +5,6 @@
 #include "model/Server/Server.hpp"
 #include "utils/parsing.hpp"
 #include <fcntl.h>
-#include <iostream>
 #include <sys/stat.h>
 
 size_t matchLength(const URL &url, const std::string &locationPath) {
@@ -59,7 +58,7 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 	_scriptName(""),
 	_pathInfo(""),
 	_allowedMethod(),
-	_location()	{
+	_location(&server)	{
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
@@ -70,7 +69,7 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		}
 	}
 	const Location &location = *bestMatch;
-	this->_location = location;
+	this->_location = &location;
 	this->_allowedMethod = location.allowedMethods();
 	if (!location.allowedMethods().empty()) {
 		bool methodeAllowed = false;
@@ -234,7 +233,7 @@ Ressource::Ressource(const HttpRequest &req, HttpStatus::Code errorCode, const S
 	  _pathInfo(""),
 	  _fragmentString(""),
 	  _allowedMethod(),
-	  _location()	{
+	  _location(&server)	{
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
@@ -245,7 +244,7 @@ Ressource::Ressource(const HttpRequest &req, HttpStatus::Code errorCode, const S
 		}
 	}
 	const Location &location = *bestMatch;
-	this->_location = location;
+	this->_location = &location;
 	this->_allowedMethod = location.allowedMethods();
 	this->setErrorPage(location, errorCode);
 }
@@ -354,9 +353,5 @@ std::vector<HttpMethod> &Ressource::allowedMethods() {
 }
 
 const Location &Ressource::location() const {
-	return (this->_location);
-}
-
-Location &Ressource::location() {
-	return (this->_location);
+	return *this->_location;
 }

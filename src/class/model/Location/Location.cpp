@@ -6,7 +6,7 @@ _path(""),
 _root(""),
 _index_files(),
 _error_pages(),
-_client_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE),
+_max_body_size(DEFAULT_CLIENT_MAX_BODY_SIZE),
 _allowed_methods(),
 _autoindex(false),
 _redirection(""),
@@ -20,7 +20,7 @@ _path(path),
 _root(parent.root()),
 _index_files(),
 _error_pages(parent.errorPages()),
-_client_max_body_size(parent.clientMaxBodySize()),
+_max_body_size(parent.maxBodySize()),
 _allowed_methods(),
 _autoindex(parent.autoindex()),
 _redirection(""),
@@ -38,7 +38,7 @@ _path(copy._path),
 _root(copy._root),
 _index_files(copy._index_files),
 _error_pages(copy._error_pages),
-_client_max_body_size(copy._client_max_body_size),
+_max_body_size(copy._max_body_size),
 _allowed_methods(copy._allowed_methods),
 _autoindex(copy._autoindex),
 _redirection(copy._redirection),
@@ -56,7 +56,7 @@ Location	&Location::operator=(const Location &other)
 		this->_root = other._root;
 		this->_index_files = other._index_files;
 		this->_error_pages = other._error_pages;
-		this->_client_max_body_size = other._client_max_body_size;
+		this->_max_body_size = other._max_body_size;
 		this->_allowed_methods = other._allowed_methods;
 		this->_autoindex = other._autoindex;
 		this->_redirection = other._redirection;
@@ -107,14 +107,14 @@ std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	&Location:
 	return (this->_error_pages);
 }
 
-const size_t	&Location::clientMaxBodySize() const
+const size_t	&Location::maxBodySize() const
 {
-	return (this->_client_max_body_size);
+	return (this->_max_body_size);
 }
 
-size_t	&Location::clientMaxBodySize()
+size_t	&Location::maxBodySize()
 {
-	return (this->_client_max_body_size);
+	return (this->_max_body_size);
 }
 
 const std::vector<HttpMethod>	&Location::allowedMethods() const
