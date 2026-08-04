@@ -93,7 +93,7 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 	{
 		os << std::string(indent + 2, '\t') << "error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
 	}
-	os << std::string(indent + 1, '\t') << "Client Max Body Size: " << location.clientMaxBodySize() << std::endl;
+	os << std::string(indent + 1, '\t') << "Client Max Body Size: " << location.maxBodySize() << std::endl;
 	os << std::string(indent + 1, '\t') << "Allowed Methods: ";
 	for (std::vector<HttpMethod>::const_iterator method_it = location.allowedMethods().begin(); method_it != location.allowedMethods().end(); ++method_it)
 	{
@@ -121,7 +121,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 {
 	os << "Config:" << std::endl;
 	os << "	Http:" << std::endl;
-	os << "		Client Max Body Size: " << config.http().clientMaxBodySize() << std::endl;
+	os << "		Client Max Body Size: " << config.http().maxBodySize() << std::endl;
 	os << "		Error Pages:" << std::endl;
 	for (std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = config.http().errorPages().begin(); it != config.http().errorPages().end(); ++it)
 	{
@@ -163,7 +163,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		{
 			os << "					error code: " << error_it->first << " response code: " << error_it->second.first << " page: " << error_it->second.second << std::endl;
 		}
-		os << "				Client Max Body Size: " << it->clientMaxBodySize() << std::endl;
+		os << "				Client Max Body Size: " << it->maxBodySize() << std::endl;
 		os << "				Allowed Methods: ";
 		for (std::vector<HttpMethod>::const_iterator method_it = it->allowedMethods().begin(); method_it != it->allowedMethods().end(); ++method_it)
 		{

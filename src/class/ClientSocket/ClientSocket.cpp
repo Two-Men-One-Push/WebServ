@@ -20,13 +20,16 @@ ClientSocket::ClientSocket(const ListeningSocket &listeningSocket)
 	  _serverAddress(listeningSocket.address()),
 	  _inClosed(false),
 	  _outBuffer(),
-	  _transactions() {}
+	  _transactions() {
+	std::cerr << "Client connection opened" << std::endl;
+}
 
 ClientSocket::~ClientSocket() {
 	while (!this->_transactions.empty()) {
 		delete this->_transactions.front();
 		this->_transactions.pop();
 	}
+	std::cerr << "Client connection closed" << std::endl;
 }
 
 const struct sockaddr_storage &ClientSocket::address() const {
@@ -36,27 +39,31 @@ const struct sockaddr_storage &ClientSocket::address() const {
 uint32_t ClientSocket::getHandledEvents() const {
 	uint32_t result = 0;
 	if (!this->_inClosed)
-		result |= EPOLLIN;
+		result |= EPOLLIN | EPOLLRDHUP;
 	if (this->canHandleEpollOut())
 		result |= EPOLLOUT;
 	return result;
 }
 
 bool ClientSocket::canHandleEpollOut() const {
-	return !this->_transactions.empty() && this->_transactions.front()->response().inCompleted();
+	return !this->_transactions.empty() && this->_transactions.front()->request().inCompleted() && this->_transactions.front()->response().inCompleted();
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
-	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR)) {
+	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR | EPOLLRDHUP)) {
 		if (events & EPOLLHUP || events & EPOLLERR) {
 			webServer.requestDelete(this);
 		} else {
+			if (events & EPOLLRDHUP) {
+				this->_inClosed = true;
+			}
 			if (events & EPOLLIN) {
 				this->onEpollIn(webServer);
 			}
 			if (events & EPOLLOUT) {
 				this->onEpollOut(webServer);
 			}
+			if (this->_inClosed && !this->canHandleEpollOut()) webServer.requestDelete(this);
 		}
 	} else {
 		std::cerr << "Unhandled event : " << events << std::endl;
@@ -72,8 +79,11 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	errno = 0;
 	ssize_t readLen = this->read(buffer, BUFFER_SIZE);
 
-	if (!readLen) this->_inClosed = true;
-	if (readLen < 0) {
+	if (!readLen) {
+		this->_inClosed = true;
+		if (this->_transactions.empty()) return;
+		this->_transactions.back()->closeRequestInput();
+	} else if (readLen < 0) {
 		server.requestDelete(this);
 		return;
 	};
@@ -97,9 +107,6 @@ void ClientSocket::onEpollIn(WebServer &server) {
 				this->_inClosed = true;
 				break;
 			}
-		} else if (this->_inClosed) {
-			// If the request parsing isn't completed but the input is closed (may lead to errors or not, it will depend of when the connection closed)
-			this->_transactions.back()->closeRequestInput();
 		}
 	}
 

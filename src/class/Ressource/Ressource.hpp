@@ -29,7 +29,7 @@ class Ressource {
 	std::string _pathInfo;
 	std::string _fragmentString;
 	std::vector<HttpMethod>	_allowedMethod;
-	Location	_location;
+	const Location *_location;
 
 	void setErrorPage(const Location &location, HttpStatus::Code errorCode);
 
@@ -60,5 +60,4 @@ class Ressource {
 	const std::vector<HttpMethod> &allowedMethods() const;
 	std::vector<HttpMethod> &allowedMethods();
 	const Location &location() const;
-	Location &location();
 };
