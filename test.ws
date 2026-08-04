@@ -1,20 +1,22 @@
 http {
 	include mime.types;
 	error_page 404 =404 /404.html;
+	error_page 502 =502 /errorPages/502.html;
 
 	server {
 		listen localhost:6969;
 
 		root ./www;
 
-		client_max_body_size 10;
+		max_body_size 10;
 		index index.html;
 		autoindex on;
 
 		cgi py /usr/bin/python3;
 
 		location cgi {
-			error_page 404 =404 /index.html;
+			max_body_size 10;
+			error_page 502 =502 /errorPages/502cgi.html;
 			cgi py /usr/bin/python3;
 			editable on;
 		}
