@@ -41,7 +41,7 @@ class TmpFile : public File {
 	TmpFile(const std::string &path, int flags, mode_t mode = 0);
 	~TmpFile();
 
-	void commit();
+	bool commit();
 
 	const std::string &target() const { return _target; }
 

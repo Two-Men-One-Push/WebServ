@@ -3,7 +3,6 @@
 
 #include "CGI/CGIInterface.hpp"
 #include "http/HttpStatus.hpp"
-#include "http/errors/HttpErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include <istream>
 #include <string>
@@ -55,8 +54,6 @@ class HttpResponse : public HttpMessage {
 	HttpResponse(const HttpResponse &other);
 	~HttpResponse();
 
-	void replaceBody(IBody *newBody);
-
 	HttpStatus::Code status() const;
 
 	void status(int status);
@@ -73,6 +70,8 @@ class HttpResponse : public HttpMessage {
 	void redirect(const std::string &redirectUrl, HttpStatus::Code status);
 	void autoIndex(const std::string &root, const std::string &path, HttpStatus::Code status);
 	void cgi(CGIInterface &cgi);
+	void uploaded(const std::string &uploadPath = "");
+	void deleteFile(const std::string &path);
 
 	bool formatCompleted();
 

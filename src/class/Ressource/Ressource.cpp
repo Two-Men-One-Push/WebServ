@@ -1,4 +1,5 @@
 #include "Ressource/Ressource.hpp"
+#include "Logger/Logger.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
@@ -6,6 +7,7 @@
 #include "utils/parsing.hpp"
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 size_t matchLength(const URL &url, const std::string &locationPath) {
 	size_t match_length = 0;
@@ -48,17 +50,20 @@ void Ressource::setErrorPage(const Location &location, HttpStatus::Code errorCod
 	}
 }
 
-Ressource::Ressource(const HttpRequest &req, const Server &server)
+Ressource::Ressource()
 	: _type(RESSOURCE_NONE),
-	_root(""),
-	_path(""),
-	_mimeType(""),
-	_responseCode(HttpStatus::NoStatus),
-	_cgiInterpreter(""),
-	_scriptName(""),
-	_pathInfo(""),
-	_allowedMethod(),
-	_location(&server)	{
+	  _root(""),
+	  _path(""),
+	  _mimeType(""),
+	  _responseCode(HttpStatus::NoStatus),
+	  _cgiInterpreter(""),
+	  _scriptName(""),
+	  _pathInfo(""),
+	  _allowedMethod(),
+	  _location(NULL) {}
+
+void Ressource::resolve(const HttpRequest &req, const Server &server) {
+	this->_location = &server;
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
@@ -125,15 +130,14 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		}
 	}
 	std::string path = location.root();
-	std::string	request_path = "";
+	std::string request_path = "";
 	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
 		request_path += "/" + *it;
 	if (path != "/")
 		path += request_path;
 	else
 		path = request_path;
-	if (req.method() == POST)
-	{
+	if (req.method() == POST) {
 		if (!location.editable())
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
 		this->_type = RESSOURCE_UPLOAD;
@@ -141,9 +145,7 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		this->_path = request_path;
 		this->_responseCode = HttpStatus::Created;
 		this->_mimeType = "text/html";
-	}
-	else if (location.editable() && req.method() == DELETE)
-	{
+	} else if (req.method() == DELETE) {
 		if (!location.editable())
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
 		this->_type = RESSOURCE_DELETE;
@@ -151,9 +153,7 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 		this->_path = request_path;
 		this->_responseCode = HttpStatus::NoContent;
 		this->_mimeType = "text/html";
-	}
-	else if (req.method() == GET || req.method() == HEAD)
-	{
+	} else if (req.method() == GET || req.method() == HEAD) {
 		struct stat path_stat;
 		if (stat(path.c_str(), &path_stat) == 0) {
 			if (path_stat.st_mode & S_IFDIR) {
@@ -176,16 +176,13 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 					}
 				}
 				if (location.autoindex()) {
-					if (!req.uri().folder())
-					{
+					if (!req.uri().folder()) {
 						this->_type = RESSOURCE_REDIRECT;
 						this->_responseCode = HttpStatus::MovedPermanently;
-						this->_path = "http://" + req.host().first + ":" + req.host().second  + request_path + "/";\
+						this->_path = "http://" + req.host().first + ":" + req.host().second + request_path + "/";
 						if (!req.uri().queryString().empty()) this->_path += '?' + req.uri().queryString();
 						return;
-					}
-					else
-					{
+					} else {
 						this->type() = RESSOURCE_AUTO_INDEX;
 						this->responseCode() = HttpStatus::OK;
 						this->_root = location.root();
@@ -215,25 +212,13 @@ Ressource::Ressource(const HttpRequest &req, const Server &server)
 			this->setErrorPage(location, HttpStatus::NotFound);
 			return;
 		}
-	}
-	else
-	{
+	} else {
 		this->setErrorPage(location, HttpStatus::NotImplemented);
 	}
 }
 
-Ressource::Ressource(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server)
-	: _type(RESSOURCE_NONE),
-	  _root(""),
-	  _path(""),
-	  _mimeType(""),
-	  _responseCode(HttpStatus::NoStatus),
-	  _cgiInterpreter(""),
-	  _scriptName(""),
-	  _pathInfo(""),
-	  _fragmentString(""),
-	  _allowedMethod(),
-	  _location(&server)	{
+void Ressource::resolveError(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server) {
+	this->_location = &server;
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
 	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+File::File(int fd) : Fd(fd) {}
 File::File(const std::string &path, int flags, mode_t mode) : Fd(File::openFd(path, flags, mode)) {}
 
 File::~File() {}

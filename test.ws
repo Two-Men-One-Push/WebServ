@@ -8,8 +8,6 @@ http {
 
 		root ./www;
 
-		max_body_size 10;
-		index index.html;
 		autoindex on;
 
 		cgi py /usr/bin/python3;
@@ -32,7 +30,6 @@ http {
 		root ./www;
 
 		autoindex on;
-		index index.html;
 
 		cgi py /usr/bin/python3;
 

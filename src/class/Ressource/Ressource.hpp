@@ -34,9 +34,11 @@ class Ressource {
 	void setErrorPage(const Location &location, HttpStatus::Code errorCode);
 
   public:
-	Ressource(const HttpRequest &req, const Server &server);
-	Ressource(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server);
+	Ressource();
 	~Ressource();
+
+	void resolve(const HttpRequest &req, const Server &server);
+	void resolveError(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server);
 
 	const std::string typeStr() const;
 

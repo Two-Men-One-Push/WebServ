@@ -56,6 +56,8 @@ class HttpRequest : public HttpMessage {
 	~HttpRequest();
 
 	void closeInput();
+	void upload(const std::string &path);
+	bool commitBody();
 
 	HttpMethod method() const;
 	void method(const HttpMethod &newMethod);

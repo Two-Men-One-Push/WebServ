@@ -58,7 +58,7 @@ bool HttpRequest::parseRequestMethod(std::istream &input) {
 	std::string part;
 
 	while (true) {
-		if (buffer.size() == this->_maxMethodSize) throw HttpErrors::NotImplementedException();
+		if (buffer.size() == this->_maxMethodSize + 1) throw HttpErrors::NotImplementedException();
 
 		int c = input.get();
 		if (c == ' ')

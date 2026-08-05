@@ -36,11 +36,6 @@ HttpResponse::~HttpResponse() {
 	delete this->_cgiInterface;
 }
 
-void HttpResponse::replaceBody(IBody *newBody) {
-	if (this->_body) delete this->_body;
-	this->_body = newBody;
-}
-
 HttpStatus::Code HttpResponse::status() const {
 	return this->_status;
 }

@@ -87,7 +87,7 @@ void printAutoIndex(std::ostream &os, const std::string &root, const std::string
 	for (dirent *entry = dir.read(); entry != NULL; entry = dir.read()) {
 		const std::string entryName(entry->d_name);
 
-		if (entryName == "." || entryName == ".." || (entry->d_type != DT_DIR && entry->d_type != DT_REG)) continue;
+		if (entryName[0] == '.' || (entry->d_type != DT_DIR && entry->d_type != DT_REG)) continue;
 
 		if (entry->d_type == DT_REG) printFileLine(os, entryName, fullPath);
 		if (entry->d_type == DT_DIR) printDirectoryLine(os, entryName, fullPath);

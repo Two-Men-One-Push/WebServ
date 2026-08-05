@@ -6,7 +6,7 @@
 
 class WebServer;
 
-class Fd {
+	class Fd {
   protected:
 	const int _fd;
 	Fd(int fd);

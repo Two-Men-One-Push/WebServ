@@ -10,11 +10,11 @@
 void HttpResponse::file(const std::string &path, HttpStatus::Code status, const std::string &mimeType) {
 	struct stat stat_buf;
 
-	int result = ::stat(path.c_str(), &stat_buf);
-	if (result < 0) {
+	if (::stat(path.c_str(), &stat_buf) < 0) {
 		if (errno == ENOENT || errno == ENOTDIR) throw HttpErrors::NotFoundException();
-		if (errno == EACCES) throw HttpErrors::ForbiddenException();
+		if (errno == EACCES || errno == EPERM || errno == EISDIR) throw HttpErrors::ForbiddenException();
 		if (errno == ENAMETOOLONG) throw HttpErrors::URITooLongException();
+		if (errno == EBUSY) throw HttpErrors::ConflictException();
 		throw HttpErrors::InternalServerErrorException();
 	}
 
@@ -24,8 +24,9 @@ void HttpResponse::file(const std::string &path, HttpStatus::Code status, const 
 		file = new BodyFile(path, O_RDONLY);
 	} catch (const WebservErrors::SysError &e) {
 		if (e.err() == ENOENT || e.err() == ENOTDIR) throw HttpErrors::NotFoundException();
-		if (e.err() == EACCES) throw HttpErrors::ForbiddenException();
+		if (e.err() == EACCES || e.err() == EPERM || e.err() == EISDIR) throw HttpErrors::ForbiddenException();
 		if (e.err() == ENAMETOOLONG) throw HttpErrors::URITooLongException();
+		if (e.err() == EBUSY) throw HttpErrors::ConflictException();
 		throw HttpErrors::InternalServerErrorException();
 	}
 	this->replaceBody(file);

@@ -3,8 +3,11 @@
 #include "Logger/Logger.hpp"
 #include "errors/WebservErrors.hpp"
 #include <cstdio>
+#include <set>
 #include <string>
 #include <sys/types.h>
+
+std::set<std::string> TmpFile::_activeFiles;
 
 TmpFile::TmpFile(const std::string &path, int flags, mode_t mode)
 	: File(TmpFile::openTmpFileFd(path, flags, mode)), _target(path), _tmpPath(TmpFile::format(path)), _commited(false) {}
@@ -23,16 +26,18 @@ int TmpFile::openTmpFileFd(const std::string &path, int flags, mode_t mode) {
 	return fd;
 }
 
-void TmpFile::commit() {
+bool TmpFile::commit() {
 	if (this->_commited) {
 		Logger::warn() << "Multiple commission on same TmpFile instance" << std::endl;
-		return;
+		return false;
 	}
+	bool existed = (access(_target.c_str(), F_OK) == 0);
 	if (std::rename(_tmpPath.c_str(), _target.c_str()) < 0) {
 		throw WebservErrors::SysError("rename", errno, this->_target);
 	}
 	TmpFile::_activeFiles.erase(this->_target);
 	this->_commited = true;
+	return existed;
 }
 
 std::string TmpFile::format(const std::string &path) {

@@ -37,20 +37,6 @@ HttpMessage::HttpMessage(const HttpMessage &other)
 	  _transferEncoding(other._transferEncoding),
 	  _bodyType(other._bodyType) {}
 
-// HttpMessage &HttpMessage::operator=(const HttpMessage &other) {
-// 	if (this != &other) {
-// 		this->_state = other._state;
-// 		this->_version = other._version;
-// 		this->_headers = other._headers;
-// 		this->_body = other._body;
-// 		this->_buffer = other._buffer;
-// 		this->_contentLength = other._contentLength;
-// 		this->_transferEncoding = other._transferEncoding;
-// 		this->_readContentLength = other._readContentLength;
-// 	}
-// 	return *this;
-// }
-
 HttpMessage::~HttpMessage() {
 	delete this->_body;
 }
@@ -75,6 +61,10 @@ HeaderMap &HttpMessage::headers() {
 	return this->_headers;
 }
 
+void HttpMessage::replaceBody(IBody *newBody) {
+	if (this->_body) delete this->_body;
+	this->_body = newBody;
+}
 
 void HttpMessage::end() {
 	this->_inState = HttpMessage::RECV_COMPLETED;
