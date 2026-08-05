@@ -4,6 +4,7 @@
 #include "EpollInstance/EpollInstance.hpp"
 #include "Fd/Fd.hpp"
 #include "ListeningSocket/ListeningSocket.hpp"
+#include "Logger/Logger.hpp"
 #include "errors/WebservErrors.hpp"
 #include "model/Config/Config.hpp"
 #include "model/Server/Server.hpp"
@@ -87,7 +88,7 @@ void WebServer::startListeningSockets(const Config &config) {
 
 			freeaddrinfo(res);
 
-			std::cout << "Listening http://" << lit->first << ":" << lit->second << ' ' << std::endl;
+			Logger::info() << "Listening http://" << lit->first << ":" << lit->second << ' ' << std::endl;
 		}
 	}
 }
