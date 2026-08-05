@@ -1,5 +1,4 @@
 #include "./HttpResponse.hpp"
-#include "Logger/Logger.hpp"
 #include "errors/WebservErrors.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/errors/HttpStandardErrors.hpp"

@@ -13,12 +13,6 @@ class LoggableError : public std::exception {
 
 	// virtual void print(std::ostream &) const = 0;
 };
-
-// Logger &operator<<(std::ostream &logger, const LoggableError &e) {
-// 	e.print(logger);
-// 	return logger;
-// }
-
 class SysError : public LoggableError {
   private:
 	int _err;

@@ -1,6 +1,6 @@
 #include "./Logger.hpp"
 
-Logger::LogLevel Logger::_level = Logger::LOG_INFO;
+Logger::LogLevel Logger::_level = Logger::LOG_DEBUG;
 
 std::string Logger::levelStr(LogLevel lvl) {
 	switch (lvl) {

@@ -89,9 +89,7 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		return;
 	};
 
-	// Logger::debug() << "\e[0;31m";
-	// Logger::debug().write(buffer, readLen);
-	// Logger::debug() << "\e[0m\n";
+	(Logger::debug() << "\e[0;31m").write(buffer, readLen) << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
 
 	if (this->_transactions.empty()) {

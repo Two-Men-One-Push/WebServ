@@ -73,9 +73,7 @@ bool HttpMessage::sendBody(const Fd &output) {
 			return false;
 		throw WebservErrors::SysError("write", errno);
 	}
-	Logger::debug() << "\e[0;32m";
-	Logger::debug().write(buffer.data(), sent);
-	Logger::debug() << "\e[0m\n";
+	(Logger::debug() << "\e[0;32m").write(buffer.data(), sent) << "\e[0m\n";
 	this->_sentSize += sent;
 	buffer.erase(0, sent);
 
