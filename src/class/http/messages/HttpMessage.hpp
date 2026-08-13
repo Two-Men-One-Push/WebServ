@@ -66,6 +66,7 @@ class HttpMessage {
 	enum OutState {
 		SEND_PREPARE_HEAD,
 		SEND_HEAD,
+		SEND_WAIT_BODY_CHECK,
 		SEND_BODY,
 		SEND_COMPLETED,
 	};
@@ -104,12 +105,14 @@ class HttpMessage {
 	bool _keepAlive;
 	TransferEncoding _transferEncoding;
 
-	enum {
+	enum BodyType {
 		BT_NONE,
 		BT_CONTENT_LENGTH,
 		BT_CHUNKED,
-		BT_EOF,
-	} _bodyType;
+		BT_EOF
+	};
+
+	BodyType _bodyType;
 
 	virtual bool recvTypeLine(std::istream &input) = 0;
 	void loadCommonHeaders();
@@ -169,6 +172,8 @@ class HttpMessage {
 	void setHeader(const std::string &fieldName, const std::string &fieldValue);
 
 	bool hasBody() const;
+	BodyType bodyType() const;
+	void bodyType(BodyType type);
 	void replaceBody(IBody *newBody);
 
 	bool recvFrom(std::istream &input, const Location &nearestConfig);
@@ -179,7 +184,9 @@ class HttpMessage {
 
 	bool sendTo(const Fd &output);
 	bool sendBody(const Fd &output);
-	void outState(InState state);
+	void outState(OutState state);
+	bool isWaitingBodyCheck() const;
+	void completeBodyCheck();
 	bool outCompleted() const;
 
 	void end();
