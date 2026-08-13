@@ -8,6 +8,7 @@
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <sstream>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
@@ -28,7 +29,9 @@ ListeningSocket::ListeningSocket(const sockaddr &address, socklen_t addressLen, 
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	if (bind(_fd, &address, addressLen) < 0) {
-		throw WebservErrors::SysError("bind", errno);
+		std::stringstream ss;
+		ss << "port " << ntohs(reinterpret_cast<const sockaddr_in *>(&address)->sin_port);
+		throw WebservErrors::SysError("bind", errno, ss.str());
 	}
 
 	if (listen(_fd, SOMAXCONN) < 0) {

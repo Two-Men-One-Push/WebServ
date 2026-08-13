@@ -146,16 +146,20 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 		return;
 	}
 	if (req.method() == POST) {
-		if (!location.editable())
+		if (!location.editable()) {
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+			return;
+		}
 		this->_type = RESSOURCE_UPLOAD;
 		this->_root = location.root();
 		this->_path = request_path;
 		this->_responseCode = HttpStatus::Created;
 		this->_mimeType = "text/html";
 	} else if (req.method() == DELETE) {
-		if (!location.editable())
+		if (!location.editable()) {
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+			return;
+		}
 		this->_type = RESSOURCE_DELETE;
 		this->_root = location.root();
 		this->_path = request_path;
