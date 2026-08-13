@@ -1,5 +1,5 @@
 #include "Ressource/Ressource.hpp"
-#include "Logger/Logger.hpp"
+#include "File/TmpFile.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
@@ -102,6 +102,10 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 		cgiScriptPath += "/" + decodedSegment;
 		if (decodedSegment == ".." || decodedSegment == ".")
 			continue;
+		if (TmpFile::matchFormat(cgiScriptPath)) {
+			this->setErrorPage(location, HttpStatus::Forbidden);
+			return;
+		}
 		std::map<std::string, std::string>::const_iterator cgi_it = location.cgi().find(getFileExtension(cgiScriptPath));
 		if (cgi_it != location.cgi().end()) {
 			struct stat cgiScriptStat;
@@ -137,6 +141,10 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 		path += request_path;
 	else
 		path = request_path;
+	if (TmpFile::matchFormat(request_path)) {
+		this->setErrorPage(location, HttpStatus::Forbidden);
+		return;
+	}
 	if (req.method() == POST) {
 		if (!location.editable())
 			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
