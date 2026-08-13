@@ -26,7 +26,7 @@ void HttpResponse::prepareHeaders() {
 		ss << this->_contentLength;
 		headers["Content-Length"] = ss.str();
 	}
-	if (this->hasBody()) {
+	if (this->hasBody() && !this->_mimeType.empty()) {
 		headers["Content-Type"] = this->_mimeType;
 	}
 	if (!this->_location.empty()) {

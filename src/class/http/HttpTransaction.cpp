@@ -3,6 +3,7 @@
 #include "Logger/Logger.hpp"
 #include "Ressource/Ressource.hpp"
 #include "WebServer/WebServer.hpp"
+#include "errors/WebservErrors.hpp"
 #include "http/errors/HttpErrors.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
@@ -42,15 +43,21 @@ bool HttpTransaction::recvRequest(std::istream &input, WebServer &server) {
 		bool result = this->_request.recvFrom(input, this->nearestConfig());
 
 		if (this->_request.isWaitingRouting()) {
-			const Ressource ressource(this->_request, this->_serverConfig);
+			this->_ressource.resolve(this->_request, this->_serverConfig);
 			try {
-				this->handleRessource(ressource, server);
-				this->_resolvedConfig = &ressource.location();
+				this->handleRessource(this->_ressource, server);
+				this->_resolvedConfig = &this->_ressource.location();
 			} catch (const HttpError &e) {
 				this->error(e);
 			}
 			this->_request.completeRouting();
 			result = this->_request.recvFrom(input, this->nearestConfig());
+		}
+		if (result) {
+			if (result && this->_ressource.type() == RESSOURCE_UPLOAD) {
+				if (this->_request.commitBody()) this->_response.uploaded();
+				else this->_response.uploaded(this->_ressource.path());
+			}
 		}
 		return result;
 	} catch (const HttpError &e) {
@@ -81,6 +88,12 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 	case RESSOURCE_AUTO_INDEX:
 		this->_response.autoIndex(ressource.root(), ressource.path(), ressource.responseCode());
 		break;
+	case RESSOURCE_UPLOAD:
+		this->_request.upload(ressource.fullPath());
+		break;
+	case RESSOURCE_DELETE:
+		this->_response.deleteFile(ressource.fullPath());
+		break;
 	case RESSOURCE_ERROR:
 		if (ressource.path().empty()) {
 			this->_response.generate(ressource.responseCode());
@@ -89,7 +102,7 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 		}
 		break;
 	default:
-		_exit(1);
+		throw WebservErrors::Runtime("Unhandled Ressource type");
 	}
 }
 
@@ -104,15 +117,11 @@ void HttpTransaction::handleErrorRessource(const Ressource &errorRessource, cons
 bool HttpTransaction::recvResponse(std::istream &input) {
 	try {
 		bool result = this->_response.recvFrom(input, this->nearestConfig());
-		if (result) {
-			return true;
-		} else {
-			if (this->_response.isWaitingRouting()) {
-				this->_response.completeRouting();
-				this->_response.recvFrom(input, this->nearestConfig());
-			}
-			return false;
+		if (!result && this->_response.isWaitingRouting()) {
+			this->_response.completeRouting();
+			result = this->_response.recvFrom(input, this->nearestConfig());
 		}
+		return result;
 	} catch (const HttpError &e) {
 		this->error(e);
 		return true;
@@ -159,11 +168,11 @@ void HttpTransaction::closeResponseInput() {
 }
 
 void HttpTransaction::error(const HttpError &httpError) {
-	const Ressource errorRessource(this->_request, httpError.status(), this->_serverConfig);
+	this->_ressource.resolveError(this->_request, httpError.status(), this->_serverConfig);
 
 	try {
-		this->handleErrorRessource(errorRessource, httpError);
-		this->_resolvedConfig = &errorRessource.location();
+		this->handleErrorRessource(this->_ressource, httpError);
+		this->_resolvedConfig = &this->_ressource.location();
 	} catch (const HttpError &e) {
 		Logger::error() << "Bad error handling: " << e.what() << std::endl;
 		this->_response.generate(httpError.status());

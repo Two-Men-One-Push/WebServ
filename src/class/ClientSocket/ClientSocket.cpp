@@ -5,6 +5,7 @@
 #include "WebServer/WebServer.hpp"
 #include "http/HttpTransaction.hpp"
 #include <cerrno>
+#include <exception>
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
@@ -51,23 +52,28 @@ bool ClientSocket::canHandleEpollOut() const {
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
-	if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR | EPOLLRDHUP)) {
-		if (events & EPOLLHUP || events & EPOLLERR) {
-			webServer.requestDelete(this);
+	try {
+		if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR | EPOLLRDHUP)) {
+			if (events & EPOLLHUP || events & EPOLLERR) {
+				webServer.requestDelete(this);
+			} else {
+				if (events & EPOLLRDHUP) {
+					this->_inClosed = true;
+				}
+				if (events & EPOLLIN) {
+					this->onEpollIn(webServer);
+				}
+				if (events & EPOLLOUT) {
+					this->onEpollOut(webServer);
+				}
+				if (this->_inClosed && !this->canHandleEpollOut()) webServer.requestDelete(this);
+			}
 		} else {
-			if (events & EPOLLRDHUP) {
-				this->_inClosed = true;
-			}
-			if (events & EPOLLIN) {
-				this->onEpollIn(webServer);
-			}
-			if (events & EPOLLOUT) {
-				this->onEpollOut(webServer);
-			}
-			if (this->_inClosed && !this->canHandleEpollOut()) webServer.requestDelete(this);
+			Logger::warn() << "Unhandled event : " << events << std::endl;
 		}
-	} else {
-		Logger::warn() << "Unhandled event : " << events << std::endl;
+	} catch (const std::exception &e) {
+		Logger::error() << e.what() << std::endl;
+		webServer.requestDelete(this);
 	}
 }
 

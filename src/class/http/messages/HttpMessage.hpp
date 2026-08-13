@@ -169,6 +169,7 @@ class HttpMessage {
 	void setHeader(const std::string &fieldName, const std::string &fieldValue);
 
 	bool hasBody() const;
+	void replaceBody(IBody *newBody);
 
 	bool recvFrom(std::istream &input, const Location &nearestConfig);
 	void inState(InState state);

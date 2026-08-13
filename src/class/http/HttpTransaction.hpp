@@ -23,6 +23,8 @@ class HttpTransaction {
 	HttpRequest _request;
 	HttpResponse _response;
 
+	Ressource _ressource;
+
 	void handleRessource(const Ressource &ressource, WebServer &server);
 	void handleErrorRessource(const Ressource &ressource, const HttpError &e);
 
