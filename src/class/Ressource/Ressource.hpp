@@ -32,6 +32,7 @@ class Ressource {
 	const Location *_location;
 
 	void setErrorPage(const Location &location, HttpStatus::Code errorCode);
+	void reset();
 
   public:
 	Ressource();

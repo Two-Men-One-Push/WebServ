@@ -1,6 +1,7 @@
 #ifndef PARSINGHPP
 #define PARSINGHPP
 
+#include <ctime>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,7 @@ unsigned long parseULong(const std::string &input);
 unsigned long parseHex(const std::string &input);
 
 bool	parseInt(const std::string &str, int &out);
+bool	parseTime(const std::string &str, std::time_t &out);
 bool	parseSize(const std::string &str, size_t &out);
 
 std::string	trim_path(const std::string &path);

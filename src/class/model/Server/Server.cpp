@@ -1,11 +1,14 @@
 #include "model/Server/Server.hpp"
 #include "model/Http/Http.hpp"
 
+#
+
 Server::Server(Http &http):
 Location(http, "/"),
 _listen(),
 _server_names(),
-_locations()
+_locations(),
+_timeout(DEFAULT_TIMEOUT)
 {}
 
 Server::~Server()
@@ -15,7 +18,8 @@ Server::Server(const Server &copy):
 Location(copy),
 _listen(copy._listen),
 _server_names(copy._server_names),
-_locations(copy._locations)
+_locations(copy._locations),
+_timeout(copy._timeout)
 {}
 
 Server	&Server::operator=(const Server &other)
@@ -25,6 +29,8 @@ Server	&Server::operator=(const Server &other)
 		this->_listen = other._listen;
 		this->_server_names = other._server_names;
 		this->_locations = other._locations;
+		this->_timeout = other._timeout;
+		Location::operator=(other);
 	}
 	return (*this);
 }
@@ -57,4 +63,14 @@ const std::vector<Location>	&Server::locations() const
 std::vector<Location>	&Server::locations()
 {
 	return (this->_locations);
+}
+
+const std::time_t	&Server::timeout() const
+{
+	return (this->_timeout);
+}
+
+std::time_t	&Server::timeout()
+{
+	return (this->_timeout);
 }

@@ -1,8 +1,11 @@
 #pragma once
 
 #include "model/Location/Location.hpp"
+#include <ctime>
 #include <vector>
 #include <string>
+
+#define DEFAULT_TIMEOUT 8
 
 class	Http;
 
@@ -12,6 +15,7 @@ class	Server: public Location
 		std::vector<std::pair<std::string, int> >	_listen;
 		std::vector<std::string>					_server_names;
 		std::vector<Location>						_locations;
+		std::time_t									_timeout;
 	public:
 		Server(Http &http);
 		~Server();
@@ -24,4 +28,6 @@ class	Server: public Location
 		std::vector<std::string>							&serverNames();
 		const std::vector<Location>							&locations() const;
 		std::vector<Location>								&locations();
+		const std::time_t									&timeout() const;
+		std::time_t											&timeout();
 };

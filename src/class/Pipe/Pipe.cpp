@@ -18,6 +18,14 @@ Pipe::~Pipe() {
 	}
 }
 
+bool Pipe::hasIn() const {
+	return this->_in != NULL;
+}
+
+bool Pipe::hasOut() const {
+	return this->_out != NULL;
+}
+
 void Pipe::releaseIn() {
 	delete this->_in;
 	this->_in = NULL;
@@ -39,14 +47,12 @@ Pipe::Out &Pipe::out() {
 Pipe Pipe::createPipe(Pipe::IPipeWriter &writerTarget, Pipe::IPipeReader &readerTarget) {
 	int pipeFds[2];
 
-
 	if (pipe(pipeFds) < 0) throw WebservErrors::SysError("pipe", errno);
 	return Pipe(pipeFds[0], pipeFds[1], writerTarget, readerTarget);
 }
 
 Pipe Pipe::createCGIPipe(CGIInterface &cgi) {
 	int pipeFds[2];
-
 
 	if (pipe(pipeFds) < 0) throw WebservErrors::SysError("pipe", errno);
 	return Pipe(pipeFds[0], pipeFds[1], cgi, cgi);

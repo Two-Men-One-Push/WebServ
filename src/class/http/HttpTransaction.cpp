@@ -4,6 +4,7 @@
 #include "Ressource/Ressource.hpp"
 #include "WebServer/WebServer.hpp"
 #include "errors/WebservErrors.hpp"
+#include "http/HttpStatus.hpp"
 #include "http/errors/HttpErrors.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/messages/HttpMessage.hpp"
@@ -80,7 +81,9 @@ void HttpTransaction::handleRessource(const Ressource &ressource, WebServer &ser
 		break;
 	case RESSOURCE_CGI:
 		try {
-			this->_response.cgi(*new CGIInterface(ressource, *this, server));
+			CGIInterface *cgiInterface = new CGIInterface(ressource, *this, server);
+			server.addCGIInterface(cgiInterface);
+			this->_response.cgi(*cgiInterface);
 		} catch (const std::exception &e) {
 			Logger::warn() << e.what() << std::endl;
 			throw HttpErrors::InternalServerErrorException();
@@ -195,6 +198,8 @@ void HttpTransaction::error(const HttpError &httpError) {
 	}
 
 	this->kill();
+	// if (!(httpError.status() == HttpStatus::GatewayTimeout)) {
+	// }
 }
 
 const Location &HttpTransaction::nearestConfig() const {
@@ -220,6 +225,10 @@ void HttpTransaction::formatClientAddress(FormattedAddress &target) const {
 bool HttpTransaction::keepAlive() const {
 	return this->_request.keepAlive() && this->_response.keepAlive();
 }
+
+// void HttpTransaction::timeout() {
+// 	this->_request.
+// }
 
 void HttpTransaction::kill() {
 	this->_response.keepAlive(false);

@@ -35,6 +35,7 @@ class Semantic
 		static void			parseHttp(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag);
 		static void			parseServer(std::list<Directive>::const_iterator it, Http &http, DiagnosticContext &diag);
 		static void			parseLocation(std::list<Directive>::const_iterator it, std::vector<Location> &locations, Location &parent, std::set<std::string> &locationPathTable, DiagnosticContext &diag);
+		static void			parseTimeout(std::list<Directive>::const_iterator it, std::time_t &timeout, DiagnosticContext &diag);
 		static Http			analyseHttp(const Directive &directive, DiagnosticContext &diag);
 		static Server		analyseServer(const Directive &directive, Http &http, DiagnosticContext &diag);
 		static Location		analyseLocation(const Directive &directive, std::vector<Location> &locations, Location &parent, const std::string &path, std::set<std::string> &locationPathTable, DiagnosticContext &diag);

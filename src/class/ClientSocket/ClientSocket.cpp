@@ -4,7 +4,9 @@
 #include "Logger/Logger.hpp"
 #include "WebServer/WebServer.hpp"
 #include "http/HttpTransaction.hpp"
+#include "http/errors/HttpStandardErrors.hpp"
 #include <cerrno>
+#include <ctime>
 #include <exception>
 #include <iostream>
 #include <netinet/in.h>
@@ -21,6 +23,7 @@ ClientSocket::ClientSocket(const ListeningSocket &listeningSocket)
 	  _serverConfig(listeningSocket.serverConfig()),
 	  _serverAddress(listeningSocket.address()),
 	  _inClosed(false),
+	  _lastActivity(std::time(NULL)),
 	  _outBuffer(),
 	  _transactions() {
 	Logger::debug() << "Client connection opened" << std::endl;
@@ -48,17 +51,21 @@ uint32_t ClientSocket::getHandledEvents() const {
 }
 
 bool ClientSocket::canHandleEpollOut() const {
-	return !this->_transactions.empty() && this->_transactions.front()->request().inCompleted() && this->_transactions.front()->response().inCompleted();
+	return !this->_transactions.empty() && this->_transactions.front()->response().inCompleted();
+	// return !this->_transactions.empty() && this->_transactions.front()->request().inCompleted() && this->_transactions.front()->response().inCompleted();
 }
 
 void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 	try {
 		if (events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR | EPOLLRDHUP)) {
 			if (events & EPOLLHUP || events & EPOLLERR) {
-				webServer.requestDelete(this);
+				webServer.requestDeleteClient(this);
 			} else {
 				if (events & EPOLLRDHUP) {
 					this->_inClosed = true;
+					if (!this->_transactions.empty()) {
+						this->_transactions.back()->closeRequestInput();
+					}
 				}
 				if (events & EPOLLIN) {
 					this->onEpollIn(webServer);
@@ -66,14 +73,13 @@ void ClientSocket::handleEvents(u_int32_t events, WebServer &webServer) {
 				if (events & EPOLLOUT) {
 					this->onEpollOut(webServer);
 				}
-				if (this->_inClosed && !this->canHandleEpollOut()) webServer.requestDelete(this);
 			}
 		} else {
 			Logger::warn() << "Unhandled event : " << events << std::endl;
 		}
 	} catch (const std::exception &e) {
 		Logger::error() << e.what() << std::endl;
-		webServer.requestDelete(this);
+		webServer.requestDeleteClient(this);
 	}
 }
 
@@ -91,9 +97,11 @@ void ClientSocket::onEpollIn(WebServer &server) {
 		if (this->_transactions.empty()) return;
 		this->_transactions.back()->closeRequestInput();
 	} else if (readLen < 0) {
-		server.requestDelete(this);
+		server.requestDeleteClient(this);
 		return;
 	};
+
+	this->_lastActivity = std::time(NULL);
 
 	(Logger::debug() << "\e[0;31m").write(buffer, readLen) << "\e[0m\n";
 	inBuffer.write(buffer, readLen);
@@ -122,23 +130,36 @@ void ClientSocket::onEpollIn(WebServer &server) {
 	}
 }
 
-void ClientSocket::onEpollOut(WebServer &webServer) {
+void ClientSocket::onEpollOut(WebServer &server) {
 	HttpTransaction *transaction = this->_transactions.front();
 	bool sendCompleted;
-	try {
-		sendCompleted = transaction->sendResponse(*this);
-	} catch (...) {
-		webServer.requestDelete(this);
-		return;
-	}
+	sendCompleted = transaction->sendResponse(*this);
+
 	if (sendCompleted) {
 		if (!transaction->keepAlive()) {
-			webServer.requestDelete(this);
+			server.requestDeleteClient(this);
 		}
 		delete transaction;
 		this->_transactions.pop();
 	}
 	if (!this->canHandleEpollOut()) {
-		webServer.epoll().mod(*this);
+		server.epoll().mod(*this);
+	}
+}
+
+void ClientSocket::checkTimeOut(WebServer &server) {
+	Logger::debug() << "Checking timeout" << std::endl;
+	time_t currTime = std::time(NULL);
+	if (currTime - this->_lastActivity > this->_serverConfig.timeout()) {
+		Logger::debug() << "Client timed out" << std::endl;
+		this->_inClosed = true;
+		if (this->_transactions.empty()) {
+			server.requestDeleteClient(this);
+		} else {
+			HttpTransaction &transaction = *this->_transactions.back();
+			transaction.error(HttpErrors::RequestTimeoutException());
+			transaction.kill();
+			transaction.clientAddress();
+		}
 	}
 }

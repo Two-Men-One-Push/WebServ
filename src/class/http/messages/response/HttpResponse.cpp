@@ -33,7 +33,9 @@ HttpResponse::HttpResponse(const HttpResponse &other)
 // }
 
 HttpResponse::~HttpResponse() {
-	delete this->_cgiInterface;
+	if (this->_cgiInterface) {
+		this->_cgiInterface->requestDelete();
+	}
 }
 
 HttpStatus::Code HttpResponse::status() const {
