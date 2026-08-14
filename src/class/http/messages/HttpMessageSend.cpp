@@ -17,9 +17,10 @@ bool HttpMessage::sendTo(const Fd &output) {
 		// fallthrough
 	case SEND_HEAD:
 		if (!this->sendHead(output)) return false;
-		this->_outState = SEND_BODY;
-		return false;
+		this->_outState = SEND_WAIT_BODY_CHECK;
 		// fallthrough
+	case SEND_WAIT_BODY_CHECK:
+		return false;
 	case SEND_BODY:
 		if (!this->hasBody()) {
 			this->_outState = SEND_COMPLETED;
@@ -98,6 +99,14 @@ void HttpMessage::formatHead() {
 		this->_outBuffer += "\r\n";
 	}
 	this->_outBuffer += "\r\n";
+}
+
+bool HttpMessage::isWaitingBodyCheck() const {
+	return this->_outState == SEND_WAIT_BODY_CHECK;
+}
+
+void HttpMessage::completeBodyCheck() {
+	this->_outState = SEND_BODY;
 }
 
 bool HttpMessage::outCompleted() const {

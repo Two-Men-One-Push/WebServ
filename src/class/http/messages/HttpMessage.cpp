@@ -61,9 +61,18 @@ HeaderMap &HttpMessage::headers() {
 	return this->_headers;
 }
 
+HttpMessage::BodyType HttpMessage::bodyType() const {
+	return this->_bodyType;
+}
+
+void HttpMessage::bodyType(HttpMessage::BodyType type) {
+	this->_bodyType = type;
+}
+
 void HttpMessage::replaceBody(IBody *newBody) {
 	if (this->_body) delete this->_body;
 	this->_body = newBody;
+	if (newBody == NULL) this->_bodyType = BT_NONE;
 }
 
 void HttpMessage::end() {

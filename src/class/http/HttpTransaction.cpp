@@ -9,6 +9,7 @@
 #include "http/messages/HttpMessage.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/messages/response/HttpResponse.hpp"
+#include "http/types.hpp"
 #include "model/Server/Server.hpp"
 #include "utils/formatting.hpp"
 #include <exception>
@@ -132,7 +133,12 @@ bool HttpTransaction::recvResponse(std::istream &input) {
 }
 
 bool HttpTransaction::sendRequest(const Fd &output) {
-	return this->_request.sendTo(output);
+	bool result = this->_request.sendTo(output);
+	if (!result && this->_request.isWaitingBodyCheck()) {
+		this->_request.completeBodyCheck();
+		return this->_request.sendTo(output);
+	}
+	return result;
 }
 
 bool HttpTransaction::sendRequestBody(const Fd &output) {
@@ -140,7 +146,15 @@ bool HttpTransaction::sendRequestBody(const Fd &output) {
 }
 
 bool HttpTransaction::sendResponse(const Fd &output) {
-	return this->_response.sendTo(output);
+	bool result = this->_response.sendTo(output);
+	if (!result && this->_response.isWaitingBodyCheck()) {
+		if (this->_request.method() == HEAD) {
+			this->_response.replaceBody(NULL);
+		}
+		this->_response.completeBodyCheck();
+		return this->_response.sendTo(output);
+	}
+	return result;
 }
 
 const HttpRequest &HttpTransaction::request() const {
