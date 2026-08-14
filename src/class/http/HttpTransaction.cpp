@@ -133,7 +133,12 @@ bool HttpTransaction::recvResponse(std::istream &input) {
 }
 
 bool HttpTransaction::sendRequest(const Fd &output) {
-	return this->_request.sendTo(output);
+	bool result = this->_request.sendTo(output);
+	if (!result && this->_request.isWaitingBodyCheck()) {
+		this->_request.completeBodyCheck();
+		return this->_request.sendTo(output);
+	}
+	return result;
 }
 
 bool HttpTransaction::sendRequestBody(const Fd &output) {
