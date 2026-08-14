@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 		}
 
 		if (!testOnly) WebServer server(config);
-	} catch (const std::exception &e) {
+} catch (const std::exception &e) {
 		Logger::error() << e.what() << std::endl;
 		return 1;
 	}

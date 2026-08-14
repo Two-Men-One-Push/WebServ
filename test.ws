@@ -5,38 +5,16 @@ http {
 
 	server {
 		listen localhost:6969;
-
-		root ./www;
-
-		autoindex on;
-
-		cgi py /usr/bin/python3;
-
-		location cgi {
-			max_body_size 10;
-			error_page 502 =502 /errorPages/502cgi.html;
-			cgi py /usr/bin/python3;
-			editable on;
-		}
-
-		location A {
-			editable on;
-		}
-	}
-
-	server {
 		listen 8007;
-
+		timeout 1000s;
 		root ./www;
 
 		autoindex on;
 
 		cgi py /usr/bin/python3;
 
-		redirect http://localhost:8006;
-
 		location cgi {
-			error_page 404 =404 /index.html;
+			error_page 502 =502 /errorPages/502cgi.html;
 			cgi py /usr/bin/python3;
 			editable on;
 		}

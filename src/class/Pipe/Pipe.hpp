@@ -64,6 +64,10 @@ class Pipe {
 
 	~Pipe();
 
+	bool hasIn() const;
+
+	bool hasOut() const;
+
 	/** The AFd you write in */
 	In &in();
 

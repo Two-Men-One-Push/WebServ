@@ -59,11 +59,12 @@ void EpollInstance::del(AEpollWatchable &watchable) const {
 }
 
 #define MAX_EVENTS 10
+#define EPOLL_TIMEOUT 500 // ms
 
 void EpollInstance::wait(std::vector<EpollEvent> &result) const {
 	epoll_event epollEventBuffer[MAX_EVENTS];
 
-	int eventCount = epoll_wait(_fd, epollEventBuffer, MAX_EVENTS, -1);
+	int eventCount = epoll_wait(_fd, epollEventBuffer, MAX_EVENTS, EPOLL_TIMEOUT);
 
 	if (eventCount < 0) throw WebservErrors::SysError("epoll_wait", errno);
 

@@ -48,6 +48,9 @@ class HttpTransaction {
 	void closeResponseInput();
 
 	void error(const HttpError &e);
+
+	const Server &serverConfig() const { return _serverConfig; }
+
 	const Location &nearestConfig() const;
 
 	const struct sockaddr_storage &serverAddress() const;
@@ -55,6 +58,7 @@ class HttpTransaction {
 	const struct sockaddr_storage &clientAddress() const;
 	void formatClientAddress(FormattedAddress &target) const;
 	bool keepAlive() const;
+	void timeout();
 	void kill();
 };
 

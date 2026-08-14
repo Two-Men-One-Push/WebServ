@@ -33,14 +33,23 @@ WebServer::WebServer(const Config &config) : _epoll() {
 		} catch (const WebservErrors::SysError &e) {
 			if (e.err() != EINTR && WebServer::signal != SIGINT) throw;
 		}
+
 		for (std::vector<EpollEvent>::iterator it = events.begin(); it != events.end(); ++it) {
 			it->fd->handleEvents(it->events, *this);
 		}
 
-		for (std::vector<ClientSocket *>::const_iterator it = this->_clientSockets.begin(); it != this->_clientSockets.end(); ++it) {
-			this->_epoll.mod(**it);
-		}
 		this->deleteClientSockets();
+		this->deleteCGIInterfaces();
+
+		for (std::vector<ClientSocket *>::iterator it = this->_clientSockets.begin(); it != this->_clientSockets.end(); ++it) {
+			ClientSocket *cs = *it;
+			this->_epoll.mod(*cs);
+			if (!cs->inClosed()) cs->checkTimeOut(*this);
+		}
+
+		for (std::vector<CGIInterface *>::iterator it = this->_cgiInterfaces.begin(); it != this->_cgiInterfaces.end(); ++it) {
+			(**it).checkTimeout();
+		}
 	}
 }
 
@@ -102,7 +111,7 @@ const EpollInstance &WebServer::epoll() const {
 	return this->_epoll;
 }
 
-void WebServer::requestDelete(ClientSocket *client) {
+void WebServer::requestDeleteClient(ClientSocket *client) {
 	std::vector<ClientSocket *> &deleteList = this->_clientSocketsToDelete;
 	if (std::find(deleteList.begin(), deleteList.end(), client) == deleteList.end()) {
 		deleteList.push_back(client);
@@ -121,4 +130,29 @@ void WebServer::deleteClientSockets() {
 		delete cs;
 	}
 	_clientSocketsToDelete.clear();
+}
+
+void WebServer::addCGIInterface(CGIInterface *interface) {
+	this->_cgiInterfaces.push_back(interface);
+}
+
+void WebServer::requestDeleteCGIInterface(CGIInterface *interface) {
+	std::vector<CGIInterface *> &deleteList = this->_cgiInterfacesToDelete;
+	if (std::find(deleteList.begin(), deleteList.end(), interface) == deleteList.end()) {
+		deleteList.push_back(interface);
+	}
+}
+
+void WebServer::deleteCGIInterfaces() {
+	for (std::vector<CGIInterface *>::iterator dit = this->_cgiInterfacesToDelete.begin(); dit != this->_cgiInterfacesToDelete.end(); ++dit) {
+		CGIInterface *ci = *dit;
+		for (std::vector<CGIInterface *>::iterator it = this->_cgiInterfaces.begin(); it != this->_cgiInterfaces.end(); ++it) {
+			if (*it == ci) {
+				_cgiInterfaces.erase(it);
+				break;
+			}
+		}
+		delete ci;
+	}
+	_cgiInterfacesToDelete.clear();
 }

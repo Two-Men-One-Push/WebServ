@@ -4,6 +4,7 @@
 #include "ASocket/ASocket.hpp"
 #include "http/HttpTransaction.hpp"
 #include "model/Server/Server.hpp"
+#include <ctime>
 #include <netinet/in.h>
 #include <queue>
 #include <sstream>
@@ -22,6 +23,8 @@ class ClientSocket : public ASocket {
 	const Server &_serverConfig;
 	const struct sockaddr_storage &_serverAddress;
 	bool _inClosed;
+
+	std::time_t _lastActivity;
 
 	void onWriteReady();
 	void onEpollIn(WebServer &webServer);
@@ -42,7 +45,9 @@ class ClientSocket : public ASocket {
 	u_int32_t getHandledEvents() const;
 	void handleEvents(u_int32_t events, WebServer &webServer);
 
-	bool closed() const { return _inClosed; }
+	void checkTimeOut(WebServer &server);
+
+	bool inClosed() const { return _inClosed; }
 
 	int fd() const { return _fd; }
 

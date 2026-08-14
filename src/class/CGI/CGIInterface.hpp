@@ -3,6 +3,7 @@
 
 #include "Pipe/Pipe.hpp"
 #include "Ressource/Ressource.hpp"
+#include <ctime>
 #include <string>
 #include <sys/types.h>
 
@@ -11,6 +12,7 @@ class WebServer;
 
 class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
   private:
+	WebServer &_server;
 	HttpTransaction &_httpTransaction;
 
 	/* The Pipe the parent process reads from */
@@ -22,6 +24,8 @@ class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
 	pid_t _cgiPid;
 
 	bool _processSucces;
+
+	std::time_t _lastActivity;
 
 	void startInterface(HttpTransaction &httpTransaction, WebServer &server);
 	void startCgi(const HttpTransaction &httpTransaction, const Ressource &ressource);
@@ -39,6 +43,8 @@ class CGIInterface : public Pipe::IPipeWriter, public Pipe::IPipeReader {
 	/** Do you think this is related to _inPipe or _outPipe ? guess */
 	void inPipeEvent(const Pipe::In &pipeIn, uint32_t events, WebServer &webServer);
 
+	void checkTimeout();
+	void requestDelete();
 	bool running() const;
 
 	Pipe &in();

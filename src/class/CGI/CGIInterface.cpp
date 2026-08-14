@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -26,10 +27,12 @@
 #include <vector>
 
 CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTransaction, WebServer &server)
-	: _httpTransaction(httpTransaction),
+	: _server(server),
+	  _httpTransaction(httpTransaction),
 	  _inPipe(Pipe::createCGIPipe(*this)),
 	  _outPipe(Pipe::createCGIPipe(*this)),
-	  _processSucces(false) {
+	  _processSucces(false),
+	  _lastActivity(std::time(NULL)) {
 	this->_cgiPid = fork();
 
 	if (this->_cgiPid == -1) throw WebservErrors::SysError("fork", errno);
@@ -39,6 +42,7 @@ CGIInterface::CGIInterface(const Ressource &ressource, HttpTransaction &httpTran
 	} else {
 		this->startCgi(httpTransaction, ressource);
 	}
+	Logger::debug() << "CGIInterface created for " << ressource.fullPath() << " using " << ressource.cgiInterpreter() << std::endl;
 }
 
 CGIInterface::~CGIInterface() {
@@ -176,9 +180,11 @@ void CGIInterface::outPipeEvent(const Pipe::Out &pipeOut, uint32_t events, WebSe
 			throw WebservErrors::SysError("read", errno);
 		}
 
+		this->_lastActivity = std::time(NULL);
+
 		(Logger::debug() << "\e[0;31m")
-			.write(buffer, readLen)
-		 << "\e[0m\n";
+				.write(buffer, readLen)
+			<< "\e[0m\n";
 		input.write(buffer, readLen);
 
 		if (this->_httpTransaction.recvResponse(input)) {
@@ -228,6 +234,18 @@ int CGIInterface::waitChild() {
 
 bool CGIInterface::running() const {
 	return this->_cgiPid > 0;
+}
+
+void CGIInterface::checkTimeout() {
+	std::time_t currTime = std::time(NULL);
+	if (currTime - this->_lastActivity > this->_httpTransaction.serverConfig().timeout()) {
+		this->_httpTransaction.error(HttpErrors::GatewayTimeoutException());
+	}
+}
+
+void CGIInterface::requestDelete() {
+	WebServer &server = this->_server;
+	server.requestDeleteCGIInterface(this);
 }
 
 Pipe &CGIInterface::in() {

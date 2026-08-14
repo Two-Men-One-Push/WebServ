@@ -1,6 +1,7 @@
 #ifndef WEBSERVER_HPP
 #define WEBSERVER_HPP
 
+#include "CGI/CGIInterface.hpp"
 #include "ClientSocket/ClientSocket.hpp"
 #include "EpollInstance/EpollInstance.hpp"
 #include "Fd/Fd.hpp"
@@ -15,10 +16,13 @@ class WebServer {
 
 	std::vector<ListeningSocket *> _listeningSockets;
 	std::vector<ClientSocket *> _clientSockets;
+	std::vector<CGIInterface *> _cgiInterfaces;
 	std::vector<ClientSocket *> _clientSocketsToDelete;
+	std::vector<CGIInterface *> _cgiInterfacesToDelete;
 
 	void startListeningSockets(const Config &config);
 	void deleteClientSockets();
+	void deleteCGIInterfaces();
 
 	static sig_atomic_t running;
 	static sig_atomic_t signal;
@@ -29,7 +33,9 @@ class WebServer {
 	~WebServer();
 
 	void addClient(ClientSocket *client);
-	void requestDelete(ClientSocket *client);
+	void requestDeleteClient(ClientSocket *client);
+	void addCGIInterface(CGIInterface *interface);
+	void requestDeleteCGIInterface(CGIInterface *interface);
 	const EpollInstance &epoll() const;
 };
 

@@ -62,7 +62,21 @@ Ressource::Ressource()
 	  _allowedMethod(),
 	  _location(NULL) {}
 
+void Ressource::reset() {
+	this->_type = RESSOURCE_NONE;
+	this->_root.clear();
+	this->_path.clear();
+	this->_mimeType.clear();
+	this->_responseCode = HttpStatus::NoStatus;
+	this->_cgiInterpreter.clear();
+	this->_scriptName.clear();
+	this->_pathInfo.clear();
+	this->_allowedMethod.clear();
+	this->_location = NULL;
+}
+
 void Ressource::resolve(const HttpRequest &req, const Server &server) {
+	this->reset();
 	this->_location = &server;
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
@@ -230,6 +244,7 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 }
 
 void Ressource::resolveError(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server) {
+	this->reset();
 	this->_location = &server;
 	size_t longestMatchLength = 0;
 	const Location *bestMatch = &server;
