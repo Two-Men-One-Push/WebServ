@@ -43,6 +43,11 @@
           "default": [],
           "description": "Arguments supplementaires passes AVANT le chemin du fichier."
         },
+        "wsLanguageServer.testArg": {
+          "type": "string",
+          "default": "-t",
+          "description": "Option de test passee au binaire pour ne faire que le parsing sans demarrer le serveur (ex: -t ou --test). Laissez vide pour desactiver."
+        },
         "wsLanguageServer.oneBasedLines": {
           "type": "boolean",
           "default": true,
