@@ -1,0 +1,11 @@
+CompileFlags:
+    Add:
+        - -Wall
+        - -Wextra
+        - -Werror
+        - -std=c++98
+        - -Iinclude
+        - -Isrc/class
+
+Completion:
+    HeaderInsertion: IWYU
