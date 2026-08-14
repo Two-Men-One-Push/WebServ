@@ -17,7 +17,10 @@ void HttpRequest::upload(const std::string &path) {
 	} catch (const TmpFile::ReservedNameException &) {
 		throw HttpErrors::ForbiddenException();
 	} catch (const WebservErrors::SysError &e) {
+		if (e.err() == ENOENT || e.err() == ENOTDIR) throw HttpErrors::NotFoundException();
+		if (e.err() == EACCES || e.err() == EPERM || e.err() == EISDIR) throw HttpErrors::ForbiddenException();
 		if (e.err() == ENAMETOOLONG) throw HttpErrors::URITooLongException();
+		if (e.err() == EBUSY) throw HttpErrors::ConflictException();
 		throw HttpErrors::InternalServerErrorException();
 	}
 }
@@ -31,6 +34,10 @@ bool HttpRequest::commitBody() {
 	try {
 		return tmpFile->commit();
 	} catch (const WebservErrors::SysError &e) {
+		if (e.err() == ENOENT || e.err() == ENOTDIR) throw HttpErrors::NotFoundException();
+		if (e.err() == EACCES || e.err() == EPERM || e.err() == EISDIR) throw HttpErrors::ForbiddenException();
+		if (e.err() == ENAMETOOLONG) throw HttpErrors::URITooLongException();
+		if (e.err() == EBUSY) throw HttpErrors::ConflictException();
 		throw HttpErrors::InternalServerErrorException();
 	}
 }
