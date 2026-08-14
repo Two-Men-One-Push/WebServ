@@ -31,6 +31,8 @@ std::string Logger::LogStream::colorLevelStr(Logger::LogLevel lvl) {
 		return "\e[1;34minfo\e[0m";
 	case Logger::LOG_DEBUG:
 		return "\e[1;35mdebug\e[0m";
+	default:
+		return "";
 	}
 }
 

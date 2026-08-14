@@ -9,6 +9,7 @@
 class Logger {
   public:
 	enum LogLevel {
+		LOG_SILENT,
 		LOG_ERROR,
 		LOG_WARN,
 		LOG_INFO,

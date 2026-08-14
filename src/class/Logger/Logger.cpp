@@ -1,6 +1,6 @@
 #include "./Logger.hpp"
 
-Logger::LogLevel Logger::_level = Logger::LOG_DEBUG;
+Logger::LogLevel Logger::_level = Logger::LOG_WARN;
 
 std::string Logger::levelStr(LogLevel lvl) {
 	switch (lvl) {
@@ -8,5 +8,6 @@ std::string Logger::levelStr(LogLevel lvl) {
 		case Logger::LOG_WARN: return "WARN";
 		case Logger::LOG_INFO: return "INFO";
 		case Logger::LOG_DEBUG: return "DEBUG";
+		default: return "";
 	}
 }

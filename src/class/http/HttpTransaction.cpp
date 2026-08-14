@@ -136,7 +136,6 @@ bool HttpTransaction::sendRequest(const Fd &output) {
 	bool result = this->_request.sendTo(output);
 	if (!result && this->_request.isWaitingBodyCheck()) {
 		this->_request.completeBodyCheck();
-		return this->_request.sendTo(output);
 	}
 	return result;
 }
