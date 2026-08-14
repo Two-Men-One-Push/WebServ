@@ -152,6 +152,7 @@ bool HttpTransaction::sendResponse(const Fd &output) {
 			this->_response.replaceBody(NULL);
 		}
 		this->_response.completeBodyCheck();
+		return this->_response.sendTo(output);
 	}
 	return result;
 }
