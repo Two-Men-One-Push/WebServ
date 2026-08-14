@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <ctime>
 #include "http/types.hpp"
 
 bool	parseInt(const std::string &str, int &out)
@@ -11,6 +12,36 @@ bool	parseInt(const std::string &str, int &out)
 	if (iss.fail() || !iss.eof())
 		return false;
 	out = value;
+	return true;
+}
+
+bool	parseTime(const std::string &str, std::time_t &out)
+{
+	size_t i = 0;
+	while (i < str.size() && std::isdigit(static_cast<unsigned char>(str[i])))
+	    i++;
+	std::string number = str.substr(0, i);
+	std::string suffix = str.substr(i);
+	for (size_t j = 0; j < suffix.size(); ++j)
+		suffix[j] = std::tolower(static_cast<unsigned char>(suffix[j]));
+	std::istringstream	iss(number);
+	size_t	value;
+	iss >> value;
+	if (iss.fail() || !iss.eof())
+		return false;
+	if (suffix.empty())
+		out = value;
+	else if (suffix == "s")
+		out = value;
+	else if (suffix == "m")
+		out = value * 60;
+	else if (suffix == "h")
+		out = value * 60 * 60;
+	else if (!suffix.empty())
+	{
+		out = value;
+		return false;
+	}
 	return true;
 }
 
