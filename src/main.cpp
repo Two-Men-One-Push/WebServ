@@ -40,18 +40,13 @@ int parseShortVerbose(const std::string &value) {
 
 void help(const std::string &binName) {
 	std::cout << "Usage: " << binName << " [OPTIONS] <config_file>\n\
+\n\
 Options:\n\
-  -t, --test\n\
-      Test the configuration and exit\n\
-\n\
-  -s, --silent\n\
-      Suppress non-error output\n\
-\n\
-  -v, --verbose\n\
-      Increase verbosity\n\
-\n\
-  --verbose <LEVEL>\n\
-      Set verbosity level: silent, error, warn, info, debug" << std::endl;
+  -h, --help               Display this message and exit\n\
+  -s, --silent             Suppress non-error output\n\
+  -t, --test               Test the configuration and exit\n\
+  -v                       Increase verbosity\n\
+      --verbose <LEVEL>    Set verbosity level: silent, error, warn, info, debug" << std::endl;
 
 	std::exit(0);
 }
@@ -69,7 +64,7 @@ int parseOption(int ac, char **av, std::string &configFile, bool &testOnly) {
 			Logger::level(Logger::LOG_SILENT);
 		} else if (arg.compare("--test") == 0 || arg.compare("-t") == 0) {
 			testOnly = true;
-		} else if (arg.compare("-h") == 0) {
+		} else if (arg.compare("--help") == 0 || arg.compare("-h") == 0) {
 			help(av[0]);
 		} else {
 			if (configFile.empty()) configFile = arg;
