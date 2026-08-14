@@ -295,6 +295,18 @@ void	Semantic::parseLocation(std::list<Directive>::const_iterator it, std::vecto
 	}
 }
 
+void	Semantic::parseTimeout(std::list<Directive>::const_iterator it, std::time_t &timeout, DiagnosticContext &diag)
+{
+	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
+	{
+		std::time_t value;
+		if (!parseTime(it->args().front().rawContent(), value))
+			diag.report("invalid timeout value '" + it->args().front().rawContent() + "'", *it);
+		else
+			timeout = value;
+	}
+}
+
 Config	Semantic::analyseAST(const AST &ast, DiagnosticContext &diag)
 {
 	Config	config;
@@ -365,6 +377,7 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	bool	hasAutoindex = false;
 	bool	hasRedirection = false;
 	bool	hasEditable = false;
+	bool	hasTimeout = false;
 
 	locationPathTable.insert("/");
 	server.locations().push_back(server);
@@ -433,6 +446,12 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 			parseTypes(it, server.types(), diag);
 		else if (name == "location")
 			parseLocation(it, server.locations(), server, locationPathTable, diag);
+		else if (name == "timeout") {
+			if (hasTimeout)
+				diag.report("duplicate 'timeout' directive", *it);
+			hasTimeout = true;
+			parseTimeout(it, server.timeout(), diag);
+		}
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}
