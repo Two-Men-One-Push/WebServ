@@ -9,10 +9,10 @@ import {
   InitializeResult,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { parseDiagnosticLine } from './parse';
 import { spawn } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -25,6 +25,7 @@ interface Settings {
   oneBasedColumns: boolean;
   runOn: 'change' | 'save';
   useTempFile: boolean;
+  testArg: string;
 }
 
 let settings: Settings = {
@@ -36,12 +37,19 @@ let settings: Settings = {
   // false par défaut : l'analyseur doit voir le vrai fichier pour
   // résoudre les chemins d'inclusion relatifs correctement.
   useTempFile: false,
+  // Le webserv supporte `-t` (ou `--test`) pour ne faire que le parsing
+  // de la configuration sans démarrer le serveur.
+  testArg: '-t',
 };
 
 // Pour chaque document ouvert : ensemble des URIs qui avaient des diagnostics
 // lors de la dernière passe (permet d'effacer les fichiers inclus qui n'ont
 // plus d'erreurs).
 const previousDiagnosticUris = new Map<string, Set<string>>();
+
+// Numéro de version de la dernière analyse par URI : une analyse plus récente
+// invalide celles qui étaient en cours.
+const validationTokens = new Map<string, number>();
 
 connection.onInitialize((_params: InitializeParams): InitializeResult => {
   return {
@@ -70,7 +78,7 @@ documents.onDidChangeContent((e) => {
   if (prev) clearTimeout(prev);
   timers.set(uri, setTimeout(() => {
     timers.delete(uri);
-    validate(e.document);
+    void validate(e.document);
   }, 300));
 });
 
@@ -82,13 +90,10 @@ documents.onDidClose((e) => {
   uris.add(uri);
   for (const u of uris) connection.sendDiagnostics({ uri: u, diagnostics: [] });
   previousDiagnosticUris.delete(uri);
+  validationTokens.delete(uri);
 });
 
 // ---- Analyse ----
-
-// Capture : <chemin>:<ligne>:<colonne><séparateur><message>
-// .*? non-gourmand → gère les chemins Windows (C:\...) et les noms sans séparateur
-const lineRegex = /^(.*?):(\d+):(\d+)(?:\s+|:\s*)(.+)$/;
 
 async function validate(doc: TextDocument): Promise<void> {
   if (!settings.executablePath) {
@@ -97,6 +102,9 @@ async function validate(doc: TextDocument): Promise<void> {
     );
     return;
   }
+
+  const token = (validationTokens.get(doc.uri) ?? 0) + 1;
+  validationTokens.set(doc.uri, token);
 
   // Répertoire du vrai fichier — sert à résoudre les chemins relatifs
   // de la sortie ET à définir le cwd du processus analyseur.
@@ -137,22 +145,20 @@ async function validate(doc: TextDocument): Promise<void> {
     fs.unlink(tempPath, () => { /* best-effort */ });
   }
 
+  // Une analyse plus récente a remplacé celle-ci : on jette les résultats.
+  if (validationTokens.get(doc.uri) !== token) return;
+
   // ---- Répartition des diagnostics par URI cible ----
   const diagnosticsMap = new Map<string, Diagnostic[]>();
 
   for (const rawLine of output.split(/\r?\n/)) {
-    const trimmed = rawLine.trim();
-    if (!trimmed) continue;
+    const parsed = parseDiagnosticLine(rawLine);
+    if (!parsed) continue;
 
-    const match = lineRegex.exec(trimmed);
-    if (!match) continue;
+    const targetUri = resolveUri(parsed.file, doc.uri, tempPath, docDir);
 
-    const [, filePart, lineStr, colStr, message] = match;
-
-    const targetUri = resolveUri(filePart, doc.uri, tempPath, docDir);
-
-    let lineNum = parseInt(lineStr, 10);
-    let colNum  = parseInt(colStr,  10);
+    let lineNum = parsed.line;
+    let colNum  = parsed.col;
     if (settings.oneBasedLines)   lineNum = Math.max(0, lineNum - 1);
     if (settings.oneBasedColumns) colNum  = Math.max(0, colNum  - 1);
 
@@ -160,9 +166,9 @@ async function validate(doc: TextDocument): Promise<void> {
 
     if (!diagnosticsMap.has(targetUri)) diagnosticsMap.set(targetUri, []);
     diagnosticsMap.get(targetUri)!.push({
-      severity: detectSeverity(message),
+      severity: detectSeverity(parsed.message),
       range,
-      message,
+      message: parsed.message,
       source: 'ws',
     });
   }
@@ -189,6 +195,22 @@ async function validate(doc: TextDocument): Promise<void> {
 }
 
 // ---- Helpers ----
+
+/**
+ * Construit les arguments de l'analyseur :
+ *   [args de l'utilisateur] [testArg] <fichier>
+ * L'option de test est ajoutée automatiquement pour que le webserv ne fasse
+ * que parser la configuration sans démarrer le serveur.
+ */
+function analyzerArgs(filePath: string): string[] {
+  const testArg = settings.testArg.trim();
+  const args = [...settings.args];
+  if (testArg && !args.includes(testArg)) {
+    args.push(testArg);
+  }
+  args.push(filePath);
+  return args;
+}
 
 /**
  * Convertit la partie "fichier" d'une ligne d'erreur en URI VSCode.
@@ -267,10 +289,14 @@ function buildRange(
  * Cela garantit que les chemins relatifs dans la sortie sont bien
  * relatifs au répertoire du fichier analysé (comportement identique
  * à un appel manuel depuis le terminal dans ce répertoire).
+ *
+ * Un garde-fou de 5 s tue le processus : si le binaire n'a pas reçu
+ * l'option de test, il ne faut pas bloquer l'extension sur un serveur
+ * qui tournerait indéfiniment.
  */
 function runAnalyzer(filePath: string, cwd: string): Promise<string> {
   return new Promise((resolve) => {
-    const args  = [...settings.args, filePath];
+    const args  = analyzerArgs(filePath);
     const child = spawn(settings.executablePath, args, {
       shell: false,
       cwd,          // ← clé du correctif : même répertoire que l'appel manuel
@@ -278,18 +304,38 @@ function runAnalyzer(filePath: string, cwd: string): Promise<string> {
 
     let stdout = '';
     let stderr = '';
+    let settled = false;
+    const settle = (value: string) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
 
     child.stdout.on('data', (d) => (stdout += d.toString()));
     child.stderr.on('data', (d) => (stderr += d.toString()));
 
+    const timer = setTimeout(() => {
+      connection.console.warn(
+        'ws-lsp : analyse interrompue après 5 s, processus tué. ' +
+        'Vérifiez que le binaire reçoit bien l\'option de test ("' +
+        settings.testArg + '").'
+      );
+      child.kill('SIGKILL');
+      settle(stdout + '\n' + stderr);
+    }, 5000);
+
     child.on('error', (err) => {
+      clearTimeout(timer);
       connection.console.error(
         `ws-lsp : impossible de lancer "${settings.executablePath}" : ${err.message}`
       );
-      resolve('');
+      settle('');
     });
 
-    child.on('close', () => resolve(stdout + '\n' + stderr));
+    child.on('close', () => {
+      clearTimeout(timer);
+      settle(stdout + '\n' + stderr);
+    });
   });
 }
 
