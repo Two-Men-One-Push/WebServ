@@ -47,6 +47,7 @@ bool HttpRequest::recvTypeLine(std::istream &input) {
 	case HttpRequest::REQUEST_VERSION:
 		if (!this->parseRequestVersion(input)) return false;
 		this->_firstLineState = HttpRequest::REQUEST_LINE_DONE;
+		// fallthrough
 	case HttpRequest::REQUEST_LINE_DONE:
 		return true;
 	}
