@@ -15,15 +15,9 @@ The server supports:
 - CGI execution
 - file upload and delete flows when a location is marked editable
 - HEAD requests, answered without a body
-- HEAD requests, answered without a body
 - per-server and per-location configuration overrides
 - configurable connection timeouts
-- configurable connection timeouts
 
-The repository also contains sample content for manual testing under `example/`:
-a configuration file (`test.ws`), a MIME type mapping file (`mime.types`),
-and a document root (`www/`). An optional VS Code extension providing language
-support for the configuration files lives under `ws-lsp/`.
 The repository also contains sample content for manual testing under `example/`:
 a configuration file (`test.ws`), a MIME type mapping file (`mime.types`),
 and a document root (`www/`). An optional VS Code extension providing language
@@ -50,8 +44,6 @@ make test_env
 
 `make clangd` generates a `compile_flags.txt` for clangd. `make test_env`
 creates a small sample directory tree used for manual tests.
-`make clangd` generates a `compile_flags.txt` for clangd. `make test_env`
-creates a small sample directory tree used for manual tests.
 
 ### Run
 Launch the server with a configuration file:
@@ -61,24 +53,6 @@ Launch the server with a configuration file:
 ```
 
 The project is designed for Linux because it relies on `epoll`.
-
-### Command-line options
-The server accepts several options before the configuration file:
-
-```text
-Usage: ./webserv [OPTIONS] <config_file>
-
-  -h, --help               Display this message and exit
-  -s, --silent             Suppress non-error output
-  -t, --test               Test the configuration and exit
-  -v                       Increase verbosity
-      --verbose <LEVEL>    Set verbosity level: silent, error, warn, info, debug
-```
-
-`-v` sets the level to `info`, and `-vv` (repeated `v` characters, e.g. `-vv`)
-sets it to `debug`. The default level is `warn`. `-t` parses and validates the
-configuration, then exits without starting the server, which is useful for
-checking a config file in CI or before a restart.
 
 ### Command-line options
 The server accepts several options before the configuration file:
@@ -130,6 +104,7 @@ The active directives are organized by scope:
 	- **server**
 		- `include`
 		- `listen`
+		- `timeout`
 		- `root`
 		- `index`
 		- `error_page`
@@ -140,7 +115,6 @@ The active directives are organized by scope:
 		- `cgi`
 		- `editable`
 		- `types`
-		- `timeout`
 		- **location**
 			- `include`
 			- `root`
@@ -217,8 +191,6 @@ type_rule              ::= <mime-type> <extension>+
 Directive notes:
 - `include` can appear in every scope and expands external configuration files before semantic analysis. Circular includes are detected and reported.
 - `listen` accepts either `<port>` or `<host>:<port>`. Several `listen` directives may be given per server.
-- `include` can appear in every scope and expands external configuration files before semantic analysis. Circular includes are detected and reported.
-- `listen` accepts either `<port>` or `<host>:<port>`. Several `listen` directives may be given per server.
 - `error_page` maps one or more status codes to an error page, optionally with a different response status.
 - `cgi` associates one or more file extensions with an interpreter path.
 - `editable` enables upload/delete handling for the current scope.
@@ -226,12 +198,7 @@ Directive notes:
 - `location` blocks may be nested, and nested locations inherit from their parent scope.
 - `max_body_size` accepts plain bytes or a size with a suffix: `k`/`ko`/`kb`, `m`/`mo`/`mb`, `g`/`go`/`gb` (powers of 1000), or `ki`/`kio`/`kib`, `mi`/`mio`/`mib`, `gi`/`gio`/`gib` (powers of 1024).
 - `timeout` is a server-scope directive. Values accept an optional suffix: `s` (seconds, default), `m` (minutes), `h` (hours). The default timeout is 8 seconds.
-- `max_body_size` accepts plain bytes or a size with a suffix: `k`/`ko`/`kb`, `m`/`mo`/`mb`, `g`/`go`/`gb` (powers of 1000), or `ki`/`kio`/`kib`, `mi`/`mio`/`mib`, `gi`/`gio`/`gib` (powers of 1024).
-- `timeout` is a server-scope directive. Values accept an optional suffix: `s` (seconds, default), `m` (minutes), `h` (hours). The default timeout is 8 seconds.
 
-The implemented HTTP methods are `GET`, `HEAD`, `POST`, and `DELETE`. `HEAD`
-responses carry the same headers as the corresponding `GET` but no body.
-Requests using other methods are answered with `501 Not Implemented`.
 The implemented HTTP methods are `GET`, `HEAD`, `POST`, and `DELETE`. `HEAD`
 responses carry the same headers as the corresponding `GET` but no body.
 Requests using other methods are answered with `501 Not Implemented`.
@@ -248,44 +215,7 @@ Requests using other methods are answered with `501 Not Implemented`.
 - Upload and delete handling for editable locations
 - HEAD requests handled without a body
 - Configurable connection timeouts
-- HEAD requests handled without a body
-- Configurable connection timeouts
 - Keep-alive aware request/response handling
-- Hierarchical logger with levels from `silent` to `debug`, and CLI verbosity flags
-- Configuration test mode (`-t`) that validates a config without starting the server
-
-## WS Language Server (ws-lsp)
-`ws-lsp/` contains a VS Code extension that provides diagnostics for `.ws`
-configuration files by running the `webserv` binary itself. It is a real
-language server (client in `ws-lsp/src/extension.ts`, server in
-`ws-lsp/src/server.ts`) and reports errors on the file being edited **as well
-as on included files**: the server emits the offending file's path in its
-diagnostic output, and the extension resolves it to the right document.
-
-The analyzer is invoked as `executablePath [-t] [extra args] <file>`. The
-`-t` option (`wsLanguageServer.testArg`) is added automatically so the config
-is only parsed and validated without starting the server; a 5-second watchdog
-kills the process if it ever hangs.
-
-Build and install:
-```bash
-cd ws-lsp
-npm install
-npm run compile
-```
-
-Then run the extension in VS Code (`F5` in the extension workspace) or package
-it with `vsce package`. Once installed, point the `wsLanguageServer.executablePath`
-setting at your `webserv` binary (for example `./webserv`), because it does not
-ship with one. Its stderr/stdout is parsed for `path:line:column: error: message`
-lines, with or without the timestamp/level prefix added by the Logger.
-
-Useful settings:
-- `wsLanguageServer.executablePath` — path to the `webserv` binary (required)
-- `wsLanguageServer.testArg` — test-only flag added automatically (`-t` by default, empty to disable)
-- `wsLanguageServer.runOn` — analyze on every `change` (debounced) or on `save`
-- `wsLanguageServer.useTempFile` — analyze the unsaved buffer via a temporary file (placed next to the real file, so relative `include`s still resolve)
-- `wsLanguageServer.oneBasedLines` / `oneBasedColumns` — index base of the analyzer output
 - Hierarchical logger with levels from `silent` to `debug`, and CLI verbosity flags
 - Configuration test mode (`-t`) that validates a config without starting the server
 
@@ -325,7 +255,6 @@ Useful settings:
 ## Repository Layout
 - `src/` contains the implementation
 - `include/` contains shared headers and defaults
-- `example/` contains the sample files: `test.ws` (configuration), `mime.types` (MIME mappings), and `www/` (document root)
 - `example/` contains the sample files: `test.ws` (configuration), `mime.types` (MIME mappings), and `www/` (document root)
 - `ws-lsp/` contains the optional VS Code language-support extension
 
