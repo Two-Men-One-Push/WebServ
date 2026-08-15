@@ -148,7 +148,6 @@ void ClientSocket::onEpollOut(WebServer &server) {
 }
 
 void ClientSocket::checkTimeOut(WebServer &server) {
-	Logger::debug() << "Checking timeout" << std::endl;
 	time_t currTime = std::time(NULL);
 	if (currTime - this->_lastActivity > this->_serverConfig.timeout()) {
 		Logger::debug() << "Client timed out" << std::endl;
@@ -157,9 +156,9 @@ void ClientSocket::checkTimeOut(WebServer &server) {
 			server.requestDeleteClient(this);
 		} else {
 			HttpTransaction &transaction = *this->_transactions.back();
-			transaction.error(HttpErrors::RequestTimeoutException());
-			transaction.kill();
-			transaction.clientAddress();
+			if (!transaction.response().inCompleted()) {
+				transaction.error(HttpErrors::RequestTimeoutException());
+			}
 		}
 	}
 }

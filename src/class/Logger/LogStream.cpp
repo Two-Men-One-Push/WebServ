@@ -9,15 +9,30 @@ Logger::LogStream::LogStream(const LogStream &other)
 	: _lvl(other._lvl), _active(other._active), _oss() {}
 
 Logger::LogStream::~LogStream() {
-	if (!_active) return;
-	std::string timestamp = this->timestamp();
-	std::string level = this->colorLevelStr(this->_lvl);
-	std::cerr << timestamp << ": " + level + ": ";
-	std::string buff = this->_oss.str();
-	std::string prefix = std::string(timestamp.size() + 2, ' ') + level + ": ";
-	for (std::string::const_iterator it = buff.begin(); it != buff.end(); ++it){
-		std::cerr << *it;
-		if (*it == '\n' && (it + 1) != buff.end()) std::cerr << prefix;
+	if (_lvl == LOG_DEBUG) {
+#ifdef NDEBUG
+		if (!_active) return;
+		std::string timestamp = this->timestamp();
+		std::string level = this->colorLevelStr(this->_lvl);
+		std::cerr << timestamp << ": " + level + ": ";
+		std::string buff = this->_oss.str();
+		std::string prefix = std::string(timestamp.size() + 2, ' ') + level + ": ";
+		for (std::string::const_iterator it = buff.begin(); it != buff.end(); ++it) {
+			std::cerr << *it;
+			if (*it == '\n' && (it + 1) != buff.end()) std::cerr << prefix;
+		}
+#endif
+	} else {
+		if (!_active) return;
+		std::string timestamp = this->timestamp();
+		std::string level = this->colorLevelStr(this->_lvl);
+		std::cerr << timestamp << ": " + level + ": ";
+		std::string buff = this->_oss.str();
+		std::string prefix = std::string(timestamp.size() + 2, ' ') + level + ": ";
+		for (std::string::const_iterator it = buff.begin(); it != buff.end(); ++it) {
+			std::cerr << *it;
+			if (*it == '\n' && (it + 1) != buff.end()) std::cerr << prefix;
+		}
 	}
 }
 

@@ -12,6 +12,7 @@ EXTCPP		?=	c++
 CPP			=	$(EXTCPP)
 
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98 -g3
+# -D NDEBUG
 #-g -fsanitize=address -fno-omit-frame-pointer
 
 NAME		=	webserv

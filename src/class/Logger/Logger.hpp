@@ -33,21 +33,45 @@ class Logger {
 
 		template <typename T>
 		LogStream &operator<<(const T &value) {
-			if (_active)
-				_oss << value;
-			return *this;
+			if (this->_lvl == LOG_DEBUG) {
+#ifdef NDEBUG
+				if (_active)
+					_oss << value;
+#endif
+				return *this;
+			} else {
+				if (_active)
+					_oss << value;
+				return *this;
+			}
 		}
 
 		LogStream &operator<<(std::ostream &(*manip)(std::ostream &)) {
-			if (_active)
-				manip(_oss);
-			return *this;
+			if (this->_lvl == LOG_DEBUG) {
+#ifdef NDEBUG
+				if (_active)
+					manip(_oss);
+#endif
+				return *this;
+			} else {
+				if (_active)
+					manip(_oss);
+				return *this;
+			}
 		}
 
 		LogStream &write(const char *s, std::streamsize n) {
-			if (_active)
-				_oss.write(s, n);
-			return *this;
+			if (this->_lvl == LOG_DEBUG) {
+#ifdef NDEBUG
+				if (_active)
+					_oss.write(s, n);
+#endif
+				return *this;
+			} else {
+				if (_active)
+					_oss.write(s, n);
+				return *this;
+			}
 		}
 	};
 

@@ -197,9 +197,9 @@ void HttpTransaction::error(const HttpError &httpError) {
 		this->_response.generate(httpError.status());
 	}
 
-	this->kill();
-	// if (!(httpError.status() == HttpStatus::GatewayTimeout)) {
-	// }
+	if (!(httpError.status() == HttpStatus::GatewayTimeout)) {
+		this->kill();
+	}
 }
 
 const Location &HttpTransaction::nearestConfig() const {
