@@ -6,7 +6,7 @@ http {
 	server {
 		listen localhost:6969;
 		listen 8007;
-		timeout 5s;
+		timeout 50s;
 		root ./example/www;
 
 		autoindex on;

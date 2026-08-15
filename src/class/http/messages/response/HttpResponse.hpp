@@ -6,6 +6,7 @@
 #include "http/messages/HttpMessage.hpp"
 #include <istream>
 #include <string>
+#include <vector>
 
 class ClientSocket;
 
@@ -17,6 +18,7 @@ class HttpResponse : public HttpMessage {
 	std::string _message;
 
 	std::string _location;
+	std::vector<std::string> _setCookies;
 
 	enum FirstLineParsingState {
 		RESPONSE_VERSION,
@@ -45,6 +47,7 @@ class HttpResponse : public HttpMessage {
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
 	bool recvTypeLine(std::istream &input);
+	void insertHeaderField(const std::pair<std::string, std::string> &);
 	void loadTypeHeaders();
 
 	void formatTypeLine();
@@ -76,6 +79,8 @@ class HttpResponse : public HttpMessage {
 	bool formatCompleted();
 
 	std::ostream &printTypeInfo(std::ostream &os) const;
+
+	static std::string getDateHeader();
 };
 
 #endif

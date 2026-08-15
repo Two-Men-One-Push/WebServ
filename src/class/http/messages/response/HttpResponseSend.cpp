@@ -18,7 +18,7 @@ void HttpResponse::prepareHeaders() {
 	HeaderMap &headers = this->_headers;
 	std::stringstream ss;
 
-	headers["Date"] = "IL FAUT METTRE LA DATE";
+	headers["Date"] = HttpResponse::getDateHeader();
 	if (this->_version == HTTP1_1) {
 		headers["Connection"] = this->_keepAlive ? "keep-alive" : "close";
 	}

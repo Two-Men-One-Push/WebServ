@@ -119,8 +119,27 @@ bool HttpResponse::parseResponseMessage(std::istream &input) {
 	return true;
 }
 
+void HttpResponse::insertHeaderField(const std::pair<std::string, std::string> &headerField) {
+	HeaderMap &headers = this->_headers;
+
+	if (headerField.first == "Set-Cookie") {
+		this->_setCookies.push_back(headerField.second);
+	} else if (headers.has(headerField.first)) {
+		if (headerField.first == "Location" || headerField.first == "Content-Type" || headerField.first == "Status") throw HttpErrors::BadGatewayException();
+		if (!headerField.second.empty()) {
+			headers[headerField.first] += ", ";
+			headers[headerField.first] += headerField.second;
+		} else if (headers[headerField.first].empty()) {
+			headers[headerField.first] = headerField.second;
+		}
+	} else {
+		headers.insert(headerField);
+	}
+}
+
 void HttpResponse::loadTypeHeaders() {
 	if (this->_cgiInterface != NULL) {
+		if (!this->_headers.has("Content-Type")) throw HttpErrors::BadGatewayException();
 		this->loadCGIStatus();
 	}
 }
