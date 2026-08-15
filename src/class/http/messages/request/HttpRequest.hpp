@@ -44,6 +44,7 @@ class HttpRequest : public HttpMessage {
   protected:
 	// Each one of the functions below return if they had enough content to finish their task
 	bool recvTypeLine(std::istream &input);
+	void insertHeaderField(const std::pair<std::string, std::string> &);
 	void loadTypeHeaders();
 	void checkBodyType();
 

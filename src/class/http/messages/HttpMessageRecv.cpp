@@ -1,5 +1,4 @@
 #include "./HttpMessage.hpp"
-#include "Logger/Logger.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/errors/HttpStandardErrors.hpp"
 #include "http/types.hpp"
@@ -122,8 +121,8 @@ bool HttpMessage::hasBody() const {
 
 bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
-
 	std::pair<std::string, std::string> &headerField = this->_bufferedHeaderField;
+
 	while (true) {
 		while (true) {
 			if (buffer.size() == HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
@@ -143,7 +142,9 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 		buffer.clear();
 		// if empty it's the end of headers
 		if (line.empty()) {
-			if (!headerField.first.empty()) this->_headers.insert(headerField);
+			if (!headerField.first.empty()) {
+				this->insertHeaderField(headerField);
+			}
 			return true;
 		}
 
@@ -153,7 +154,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 			headerField.second += trim(line);
 		} else {
 			if (!headerField.first.empty()) {
-				this->_headers.insert(headerField);
+				this->insertHeaderField(headerField);
 			}
 			size_t headerNamePos = line.find(':');
 			if (headerNamePos == line.npos) throw HttpMessage::Exception();

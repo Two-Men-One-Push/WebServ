@@ -132,6 +132,26 @@ bool HttpRequest::parseRequestVersion(std::istream &input) {
 	return true;
 }
 
+void HttpRequest::insertHeaderField(const std::pair<std::string, std::string> &headerField) {
+	HeaderMap &headers = this->_headers;
+
+	if (headers.has(headerField.first)) {
+		if (headerField.first == "Host" || headerField.first == "Content-Length") throw HttpErrors::BadRequestException();
+		if (!headerField.second.empty()) {
+			if (headerField.first == "Cookie") {
+				headers[headerField.first] += ";";
+			} else {
+				headers[headerField.first] += ", ";
+			}
+			headers[headerField.first] += headerField.second;
+		} else if (headers[headerField.first].empty()) {
+			headers[headerField.first] = headerField.second;
+		}
+	} else {
+		headers.insert(headerField);
+	}
+}
+
 void HttpRequest::loadTypeHeaders() {
 	this->loadHost();
 	return;

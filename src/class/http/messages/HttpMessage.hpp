@@ -12,8 +12,9 @@
 #include <ostream>
 #include <string>
 #include <sys/types.h>
+#include <utility>
 
-#define WRITE_SIZE 4096
+#define WRITE_SIZE 64000
 #define READ_SIZE 4096
 
 #define HTTP_BUFFER_SIZE 8192
@@ -117,6 +118,7 @@ class HttpMessage {
 	virtual bool recvTypeLine(std::istream &input) = 0;
 	void loadCommonHeaders();
 
+	virtual void insertHeaderField(const std::pair<std::string, std::string> &) = 0;
 	virtual void loadTypeHeaders() = 0;
 	virtual void checkBodyType();
 
