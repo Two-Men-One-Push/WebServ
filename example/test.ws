@@ -1,13 +1,13 @@
 http {
-	include mime.types;
+	include ./example/mime.types;
 	error_page 404 =404 /404.html;
 	error_page 502 =502 /errorPages/502.html;
 
 	server {
 		listen localhost:6969;
 		listen 8007;
-		timeout 1000s;
-		root ./www;
+		timeout 5s;
+		root ./example/www;
 
 		autoindex on;
 

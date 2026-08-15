@@ -13,7 +13,7 @@
 #include <string>
 #include <sys/types.h>
 
-#define WRITE_SIZE 4096
+#define WRITE_SIZE 64000
 #define READ_SIZE 4096
 
 #define HTTP_BUFFER_SIZE 8192
