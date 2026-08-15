@@ -15,7 +15,6 @@ class URL
 		std::string							_user;
 		std::string							_host;
 		int									_port;
-		std::string							_path;
 		std::vector<std::string>			_rawSegments;
 		std::vector<std::string>			_segments;
 		std::vector<std::string>			_normalizedSegments;

@@ -1,13 +1,18 @@
 #include "Ressource/Ressource.hpp"
 #include "File/TmpFile.hpp"
+#include "URL/URL.hpp"
 #include "http/HttpStatus.hpp"
 #include "http/messages/request/HttpRequest.hpp"
 #include "http/types.hpp"
 #include "model/Server/Server.hpp"
 #include "utils/parsing.hpp"
 #include <fcntl.h>
+#include <iostream>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <vector>
+#include "Debug/Debug.hpp"
 
 size_t matchLength(const URL &url, const std::string &locationPath) {
 	size_t match_length = 0;
@@ -27,6 +32,47 @@ size_t matchLength(const URL &url, const std::string &locationPath) {
 	return match_length;
 }
 
+URL	aliasUrl(const URL &url, const std::string &locationPath) {
+	URL	aliasedUrl = url;
+	std::vector<std::string> Segments;
+	std::vector<std::string>::const_iterator aliasedStart;
+	for (std::vector<std::string>::const_iterator it = url.rawSegments().begin(); it != url.rawSegments().end(); ++it) {
+		std::string tmp;
+		URL::decode(tmp, *it);
+		Segments.push_back(tmp);
+		if (!pathNormalize(tmp, mergePathSegments(Segments))) {
+			if (locationPath == tmp) {
+				aliasedStart = it;
+			}
+		}
+	}
+	aliasedUrl.rawSegments().clear();
+	aliasedUrl.segments().clear();
+	aliasedUrl.normalizedSegments().clear();
+	std::string	rawLocationPath;
+	for (std::vector<std::string>::const_iterator it = ++aliasedStart; it != url.rawSegments().end(); ++it) {
+		aliasedUrl.rawSegments().push_back(*it);
+		std::string	segment;
+		URL::decode(segment, *it);
+		aliasedUrl.segments().push_back(segment);
+		rawLocationPath += "/" + *it;
+	}
+	std::string normalized_path;
+	pathNormalize(normalized_path, rawLocationPath);
+	size_t	start = 0;
+	while (start < normalized_path.length())
+	{
+		size_t	end = normalized_path.find('/', start);
+		if (end == std::string::npos)
+			end = normalized_path.length();
+		std::string	segment = normalized_path.substr(start, end - start);
+		if (!segment.empty())
+			aliasedUrl.normalizedSegments().push_back(segment);
+		start = end + 1;
+	}
+	return aliasedUrl;
+}
+
 std::string getFileExtension(const std::string &path) {
 	std::string last_segment;
 	size_t last_segment_pos = path.find_last_of('/');
@@ -38,29 +84,55 @@ std::string getFileExtension(const std::string &path) {
 	return last_segment.substr(dot_pos + 1);
 }
 
-void Ressource::setErrorPage(const Location &location, HttpStatus::Code errorCode) {
+const Location &resolveLocation(const URL &url, const Server &server)
+{
+	size_t longestMatchLength = 0;
+	const Location *bestmatch;
+	bestmatch = &server;
+	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
+		size_t match_length = matchLength(url, it->path());
+		if (longestMatchLength < match_length) {
+			longestMatchLength = match_length;
+			bestmatch = &(*it);
+		}
+	}
+	return *bestmatch;
+}
+
+void Ressource::setErrorPage(const Location &location, HttpStatus::Code errorCode, const Server &server) {
 	this->_type = RESSOURCE_ERROR;
 	this->_responseCode = errorCode;
 	this->_mimeType = "text/html";
 	std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = location.errorPages().find(errorCode);
 	if (it != location.errorPages().end()) {
-		this->_root = location.root();
-		this->_path = it->second.second;
 		this->_responseCode = it->second.first;
+		const Location &errorLocation = resolveLocation(URL(it->second.second), server);
+		URL	url;
+		std::string	root;
+		if (!errorLocation.alias().empty()) {
+			root = errorLocation.alias();
+			url = aliasUrl(URL(it->second.second), errorLocation.path());
+		}
+		else {
+			root = errorLocation.root();
+			url = URL(it->second.second);
+		}
+		this->_root = root;
+		this->_path = mergePathSegments(url.normalizedSegments());
 	}
 }
 
-Ressource::Ressource()
-	: _type(RESSOURCE_NONE),
-	  _root(""),
-	  _path(""),
-	  _mimeType(""),
-	  _responseCode(HttpStatus::NoStatus),
-	  _cgiInterpreter(""),
-	  _scriptName(""),
-	  _pathInfo(""),
-	  _allowedMethod(),
-	  _location(NULL) {}
+Ressource::Ressource():
+	_type(RESSOURCE_NONE),
+	_root(""),
+	_path(""),
+	_mimeType(""),
+	_responseCode(HttpStatus::NoStatus),
+	_cgiInterpreter(""),
+	_scriptName(""),
+	_pathInfo(""),
+	_allowedMethod(),
+	_location(NULL) {}
 
 void Ressource::reset() {
 	this->_type = RESSOURCE_NONE;
@@ -77,17 +149,7 @@ void Ressource::reset() {
 
 void Ressource::resolve(const HttpRequest &req, const Server &server) {
 	this->reset();
-	this->_location = &server;
-	size_t longestMatchLength = 0;
-	const Location *bestMatch = &server;
-	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
-		size_t match_length = matchLength(req.uri(), it->path());
-		if (longestMatchLength < match_length) {
-			longestMatchLength = match_length;
-			bestMatch = &(*it);
-		}
-	}
-	const Location &location = *bestMatch;
+	const Location location = resolveLocation(req.uri(), server);
 	this->_location = &location;
 	this->_allowedMethod = location.allowedMethods();
 	if (!location.allowedMethods().empty()) {
@@ -99,7 +161,7 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 			}
 		}
 		if (!methodeAllowed) {
-			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+			this->setErrorPage(location, HttpStatus::MethodNotAllowed, server);
 			return;
 		}
 	}
@@ -109,35 +171,41 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 		this->_path = location.redirection();
 		return;
 	}
+	URL	url;
+	std::string	root;
+	if (!location.alias().empty()) {
+		root = location.alias();
+		url = aliasUrl(req.uri(), location.path());
+	}
+	else {
+		root = location.root();
+		url = req.uri();
+	}
 	std::string cgiScriptPath;
-	for (std::vector<std::string>::const_iterator it = req.uri().rawSegments().begin(); it != req.uri().rawSegments().end(); ++it) {
+	for (std::vector<std::string>::const_iterator it = url.rawSegments().begin(); it != url.rawSegments().end(); ++it) {
 		std::string decodedSegment;
 		URL::decode(decodedSegment, *it);
-		cgiScriptPath += "/" + decodedSegment;
 		if (decodedSegment == ".." || decodedSegment == ".")
 			continue;
-		if (TmpFile::matchFormat(cgiScriptPath)) {
-			this->setErrorPage(location, HttpStatus::Forbidden);
-			return;
-		}
+		cgiScriptPath += "/" + decodedSegment;
 		std::map<std::string, std::string>::const_iterator cgi_it = location.cgi().find(getFileExtension(cgiScriptPath));
 		if (cgi_it != location.cgi().end()) {
 			struct stat cgiScriptStat;
-			if (::stat((location.root() + cgiScriptPath).c_str(), &cgiScriptStat) == 0 && (cgiScriptStat.st_mode & S_IFREG)) {
+			if (::stat((root + cgiScriptPath).c_str(), &cgiScriptStat) == 0 && (cgiScriptStat.st_mode & S_IFREG)) {
 				this->_type = RESSOURCE_CGI;
 				this->_cgiInterpreter = cgi_it->second;
-				this->_root = location.root();
+				this->_root = root;
 				this->_path = cgiScriptPath;
 				std::string pathInfo;
 				std::string scriptName;
 				it++;
-				for (std::vector<std::string>::const_iterator script_it = req.uri().rawSegments().begin(); script_it != it; ++script_it) {
+				for (std::vector<std::string>::const_iterator script_it = url.rawSegments().begin(); script_it != it; ++script_it) {
 					scriptName += "/" + *script_it;
 				}
 				std::string decodedScriptName;
 				URL::decode(decodedScriptName, scriptName);
 				this->scriptName() = scriptName;
-				for (std::vector<std::string>::const_iterator pathinfo_it = it; pathinfo_it != req.uri().rawSegments().end(); ++pathinfo_it) {
+				for (std::vector<std::string>::const_iterator pathinfo_it = it; pathinfo_it != url.rawSegments().end(); ++pathinfo_it) {
 					pathInfo += "/" + *pathinfo_it;
 				}
 				std::string decodedPathInfo;
@@ -147,51 +215,45 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 			}
 		}
 	}
-	std::string path = location.root();
-	std::string request_path = "";
-	for (std::vector<std::string>::const_iterator it = req.uri().normalizedSegments().begin(); it != req.uri().normalizedSegments().end(); ++it)
-		request_path += "/" + *it;
-	if (path != "/")
-		path += request_path;
+	std::string path = mergePathSegments(url.normalizedSegments());
+	std::string fullpath = root;
+	if (root != "/")
+		fullpath += path;
 	else
-		path = request_path;
-	if (TmpFile::matchFormat(request_path)) {
-		this->setErrorPage(location, HttpStatus::Forbidden);
-		return;
-	}
+		fullpath = path;
 	if (req.method() == POST) {
 		if (!location.editable()) {
-			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+			this->setErrorPage(location, HttpStatus::MethodNotAllowed, server);
 			return;
 		}
 		this->_type = RESSOURCE_UPLOAD;
-		this->_root = location.root();
-		this->_path = request_path;
+		this->_root = root;
+		this->_path = path;
 		this->_responseCode = HttpStatus::Created;
 		this->_mimeType = "text/html";
 	} else if (req.method() == DELETE) {
 		if (!location.editable()) {
-			this->setErrorPage(location, HttpStatus::MethodNotAllowed);
+			this->setErrorPage(location, HttpStatus::MethodNotAllowed, server);
 			return;
 		}
 		this->_type = RESSOURCE_DELETE;
-		this->_root = location.root();
-		this->_path = request_path;
+		this->_root = root;
+		this->_path = path;
 		this->_responseCode = HttpStatus::NoContent;
 		this->_mimeType = "text/html";
 	} else if (req.method() == GET || req.method() == HEAD) {
 		struct stat path_stat;
-		if (stat(path.c_str(), &path_stat) == 0) {
+		if (stat(fullpath.c_str(), &path_stat) == 0) {
 			if (path_stat.st_mode & S_IFDIR) {
 				if (!location.indexFiles().empty()) {
 					for (std::vector<std::string>::const_iterator it = location.indexFiles().begin(); it != location.indexFiles().end(); ++it) {
-						std::string indexPath = path + "/" + *it;
+						std::string indexPath = root + "/" + *it;
 						struct stat index_stat;
 						if (stat(indexPath.c_str(), &index_stat) == 0 && (index_stat.st_mode & S_IFREG)) {
 							this->type() = RESSOURCE_STATIC_FILE;
 							this->responseCode() = HttpStatus::OK;
-							this->_root = location.root();
-							this->_path = request_path + "/" + *it;
+							this->_root = root;
+							this->_path = path + "/" + *it;
 							std::map<std::string, std::string>::const_iterator type_it = location.types().types().find(getFileExtension(indexPath));
 							if (type_it != location.types().types().end())
 								this->mimeType() = type_it->second;
@@ -202,28 +264,30 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 					}
 				}
 				if (location.autoindex()) {
-					if (!req.uri().folder()) {
+					if (!url.folder()) {
 						this->_type = RESSOURCE_REDIRECT;
 						this->_responseCode = HttpStatus::MovedPermanently;
-						this->_path = "http://" + req.host().first + ":" + req.host().second + request_path + "/";
-						if (!req.uri().queryString().empty()) this->_path += '?' + req.uri().queryString();
+						this->_path = "http://" + req.host().first + ":" + req.host().second + mergePathSegments(req.uri().rawSegments()) + "/";
+						if (!url.queryString().empty()) {
+							this->_path += '?' + url.queryString();
+						}
 						return;
 					} else {
 						this->type() = RESSOURCE_AUTO_INDEX;
 						this->responseCode() = HttpStatus::OK;
-						this->_root = location.root();
-						this->_path = request_path;
+						this->_root = root;
+						this->_path = path;
 						return;
 					}
 				} else {
-					this->setErrorPage(location, HttpStatus::Forbidden);
+					this->setErrorPage(location, HttpStatus::Forbidden, server);
 					return;
 				}
 			} else if (path_stat.st_mode & S_IFREG) {
 				this->type() = RESSOURCE_STATIC_FILE;
 				this->responseCode() = HttpStatus::OK;
-				this->_root = location.root();
-				this->_path = request_path;
+				this->_root = root;
+				this->_path = path;
 				std::map<std::string, std::string>::const_iterator it = location.types().types().find(getFileExtension(path));
 				if (it != location.types().types().end())
 					this->mimeType() = it->second;
@@ -231,34 +295,24 @@ void Ressource::resolve(const HttpRequest &req, const Server &server) {
 					this->mimeType() = "application/octet-stream";
 				return;
 			} else {
-				this->setErrorPage(location, HttpStatus::NotFound);
+				this->setErrorPage(location, HttpStatus::NotFound, server);
 				return;
 			}
 		} else {
-			this->setErrorPage(location, HttpStatus::NotFound);
+			this->setErrorPage(location, HttpStatus::NotFound, server);
 			return;
 		}
 	} else {
-		this->setErrorPage(location, HttpStatus::NotImplemented);
+		this->setErrorPage(location, HttpStatus::NotImplemented, server);
 	}
 }
 
 void Ressource::resolveError(const HttpRequest &req, HttpStatus::Code errorCode, const Server &server) {
 	this->reset();
-	this->_location = &server;
-	size_t longestMatchLength = 0;
-	const Location *bestMatch = &server;
-	for (std::vector<Location>::const_iterator it = server.locations().begin(); it != server.locations().end(); ++it) {
-		size_t match_length = matchLength(req.uri(), it->path());
-		if (longestMatchLength < match_length) {
-			longestMatchLength = match_length;
-			bestMatch = &(*it);
-		}
-	}
-	const Location &location = *bestMatch;
+	const Location &location = resolveLocation(req.uri(), server);
 	this->_location = &location;
 	this->_allowedMethod = location.allowedMethods();
-	this->setErrorPage(location, errorCode);
+	this->setErrorPage(location, errorCode, server);
 }
 
 Ressource::~Ressource() {

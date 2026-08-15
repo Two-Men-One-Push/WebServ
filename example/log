@@ -1,0 +1,1051 @@
+TokenStream:
+./test.ws:1:1	WORD
+./test.ws:1:1	Content:[http | http]
+./test.ws:1:1		Segment:[http | http]
+./test.ws:1:6	LBRACE
+./test.ws:2:2	WORD
+./test.ws:2:2	Content:[include | include]
+./test.ws:2:2		Segment:[include | include]
+./test.ws:2:10	WORD
+./test.ws:2:10	Content:[mime.types | mime.types]
+./test.ws:2:10		Segment:[mime.types | mime.types]
+./test.ws:2:20	SEMICOLON
+./test.ws:3:2	WORD
+./test.ws:3:2	Content:[error_page | error_page]
+./test.ws:3:2		Segment:[error_page | error_page]
+./test.ws:3:13	WORD
+./test.ws:3:13	Content:[404 | 404]
+./test.ws:3:13		Segment:[404 | 404]
+./test.ws:3:17	WORD
+./test.ws:3:17	Content:[=404 | =404]
+./test.ws:3:17		Segment:[=404 | =404]
+./test.ws:3:22	WORD
+./test.ws:3:22	Content:[/404.html | /404.html]
+./test.ws:3:22		Segment:[/404.html | /404.html]
+./test.ws:3:31	SEMICOLON
+./test.ws:4:2	WORD
+./test.ws:4:2	Content:[error_page | error_page]
+./test.ws:4:2		Segment:[error_page | error_page]
+./test.ws:4:13	WORD
+./test.ws:4:13	Content:[502 | 502]
+./test.ws:4:13		Segment:[502 | 502]
+./test.ws:4:17	WORD
+./test.ws:4:17	Content:[=502 | =502]
+./test.ws:4:17		Segment:[=502 | =502]
+./test.ws:4:22	WORD
+./test.ws:4:22	Content:[/errorPages/502.html | /errorPages/502.html]
+./test.ws:4:22		Segment:[/errorPages/502.html | /errorPages/502.html]
+./test.ws:4:42	SEMICOLON
+./test.ws:6:2	WORD
+./test.ws:6:2	Content:[server | server]
+./test.ws:6:2		Segment:[server | server]
+./test.ws:6:9	LBRACE
+./test.ws:7:3	WORD
+./test.ws:7:3	Content:[listen | listen]
+./test.ws:7:3		Segment:[listen | listen]
+./test.ws:7:10	WORD
+./test.ws:7:10	Content:[localhost:6969 | localhost:6969]
+./test.ws:7:10		Segment:[localhost:6969 | localhost:6969]
+./test.ws:7:24	SEMICOLON
+./test.ws:8:3	WORD
+./test.ws:8:3	Content:[listen | listen]
+./test.ws:8:3		Segment:[listen | listen]
+./test.ws:8:10	WORD
+./test.ws:8:10	Content:[8007 | 8007]
+./test.ws:8:10		Segment:[8007 | 8007]
+./test.ws:8:14	SEMICOLON
+./test.ws:9:3	WORD
+./test.ws:9:3	Content:[timeout | timeout]
+./test.ws:9:3		Segment:[timeout | timeout]
+./test.ws:9:11	WORD
+./test.ws:9:11	Content:[1000s | 1000s]
+./test.ws:9:11		Segment:[1000s | 1000s]
+./test.ws:9:16	SEMICOLON
+./test.ws:10:3	WORD
+./test.ws:10:3	Content:[root | root]
+./test.ws:10:3		Segment:[root | root]
+./test.ws:10:8	WORD
+./test.ws:10:8	Content:[./www | ./www]
+./test.ws:10:8		Segment:[./www | ./www]
+./test.ws:10:13	SEMICOLON
+./test.ws:12:3	WORD
+./test.ws:12:3	Content:[autoindex | autoindex]
+./test.ws:12:3		Segment:[autoindex | autoindex]
+./test.ws:12:13	WORD
+./test.ws:12:13	Content:[on | on]
+./test.ws:12:13		Segment:[on | on]
+./test.ws:12:15	SEMICOLON
+./test.ws:14:3	WORD
+./test.ws:14:3	Content:[cgi | cgi]
+./test.ws:14:3		Segment:[cgi | cgi]
+./test.ws:14:7	WORD
+./test.ws:14:7	Content:[py | py]
+./test.ws:14:7		Segment:[py | py]
+./test.ws:14:10	WORD
+./test.ws:14:10	Content:[/usr/bin/python3 | /usr/bin/python3]
+./test.ws:14:10		Segment:[/usr/bin/python3 | /usr/bin/python3]
+./test.ws:14:26	SEMICOLON
+./test.ws:16:3	WORD
+./test.ws:16:3	Content:[location | location]
+./test.ws:16:3		Segment:[location | location]
+./test.ws:16:12	WORD
+./test.ws:16:12	Content:[cgi | cgi]
+./test.ws:16:12		Segment:[cgi | cgi]
+./test.ws:16:16	LBRACE
+./test.ws:17:4	WORD
+./test.ws:17:4	Content:[error_page | error_page]
+./test.ws:17:4		Segment:[error_page | error_page]
+./test.ws:17:15	WORD
+./test.ws:17:15	Content:[502 | 502]
+./test.ws:17:15		Segment:[502 | 502]
+./test.ws:17:19	WORD
+./test.ws:17:19	Content:[=502 | =502]
+./test.ws:17:19		Segment:[=502 | =502]
+./test.ws:17:24	WORD
+./test.ws:17:24	Content:[/errorPages/502cgi.html | /errorPages/502cgi.html]
+./test.ws:17:24		Segment:[/errorPages/502cgi.html | /errorPages/502cgi.html]
+./test.ws:17:47	SEMICOLON
+./test.ws:18:4	WORD
+./test.ws:18:4	Content:[cgi | cgi]
+./test.ws:18:4		Segment:[cgi | cgi]
+./test.ws:18:8	WORD
+./test.ws:18:8	Content:[py | py]
+./test.ws:18:8		Segment:[py | py]
+./test.ws:18:11	WORD
+./test.ws:18:11	Content:[/usr/bin/python3 | /usr/bin/python3]
+./test.ws:18:11		Segment:[/usr/bin/python3 | /usr/bin/python3]
+./test.ws:18:27	SEMICOLON
+./test.ws:19:4	WORD
+./test.ws:19:4	Content:[editable | editable]
+./test.ws:19:4		Segment:[editable | editable]
+./test.ws:19:13	WORD
+./test.ws:19:13	Content:[on | on]
+./test.ws:19:13		Segment:[on | on]
+./test.ws:19:15	SEMICOLON
+./test.ws:20:3	RBRACE
+./test.ws:22:3	WORD
+./test.ws:22:3	Content:[location | location]
+./test.ws:22:3		Segment:[location | location]
+./test.ws:22:12	WORD
+./test.ws:22:12	Content:[A | A]
+./test.ws:22:12		Segment:[A | A]
+./test.ws:22:14	LBRACE
+./test.ws:23:4	WORD
+./test.ws:23:4	Content:[editable | editable]
+./test.ws:23:4		Segment:[editable | editable]
+./test.ws:23:13	WORD
+./test.ws:23:13	Content:[on | on]
+./test.ws:23:13		Segment:[on | on]
+./test.ws:23:15	SEMICOLON
+./test.ws:24:3	RBRACE
+./test.ws:25:2	RBRACE
+./test.ws:26:1	RBRACE
+./test.ws:27:1	EOF
+
+AST:
+./test.ws:1:1	Directive: [http] [http]
+		Children:
+./test.ws:2:2		Directive: [include] [include]
+./test.ws:2:10			Arg: [mime.types] [mime.types]
+./test.ws:3:2		Directive: [error_page] [error_page]
+./test.ws:3:13			Arg: [404] [404]
+./test.ws:3:17			Arg: [=404] [=404]
+./test.ws:3:22			Arg: [/404.html] [/404.html]
+./test.ws:4:2		Directive: [error_page] [error_page]
+./test.ws:4:13			Arg: [502] [502]
+./test.ws:4:17			Arg: [=502] [=502]
+./test.ws:4:22			Arg: [/errorPages/502.html] [/errorPages/502.html]
+./test.ws:6:2		Directive: [server] [server]
+			Children:
+./test.ws:7:3			Directive: [listen] [listen]
+./test.ws:7:10				Arg: [localhost:6969] [localhost:6969]
+./test.ws:8:3			Directive: [listen] [listen]
+./test.ws:8:10				Arg: [8007] [8007]
+./test.ws:9:3			Directive: [timeout] [timeout]
+./test.ws:9:11				Arg: [1000s] [1000s]
+./test.ws:10:3			Directive: [root] [root]
+./test.ws:10:8				Arg: [./www] [./www]
+./test.ws:12:3			Directive: [autoindex] [autoindex]
+./test.ws:12:13				Arg: [on] [on]
+./test.ws:14:3			Directive: [cgi] [cgi]
+./test.ws:14:7				Arg: [py] [py]
+./test.ws:14:10				Arg: [/usr/bin/python3] [/usr/bin/python3]
+./test.ws:16:3			Directive: [location] [location]
+./test.ws:16:12				Arg: [cgi] [cgi]
+				Children:
+./test.ws:17:4				Directive: [error_page] [error_page]
+./test.ws:17:15					Arg: [502] [502]
+./test.ws:17:19					Arg: [=502] [=502]
+./test.ws:17:24					Arg: [/errorPages/502cgi.html] [/errorPages/502cgi.html]
+./test.ws:18:4				Directive: [cgi] [cgi]
+./test.ws:18:8					Arg: [py] [py]
+./test.ws:18:11					Arg: [/usr/bin/python3] [/usr/bin/python3]
+./test.ws:19:4				Directive: [editable] [editable]
+./test.ws:19:13					Arg: [on] [on]
+./test.ws:22:3			Directive: [location] [location]
+./test.ws:22:12				Arg: [A] [A]
+				Children:
+./test.ws:23:4				Directive: [editable] [editable]
+./test.ws:23:13					Arg: [on] [on]
+
+AST:
+./test.ws:1:1	Directive: [http] [http]
+		Children:
+mime.types:2:1		Directive: [types] [types]
+			Children:
+mime.types:3:5			Directive: [text/html] [text/html]
+mime.types:3:54				Arg: [html] [html]
+mime.types:3:59				Arg: [htm] [htm]
+mime.types:3:63				Arg: [shtml] [shtml]
+mime.types:4:5			Directive: [text/css] [text/css]
+mime.types:4:54				Arg: [css] [css]
+mime.types:5:5			Directive: [text/xml] [text/xml]
+mime.types:5:54				Arg: [xml] [xml]
+mime.types:6:5			Directive: [image/gif] [image/gif]
+mime.types:6:54				Arg: [gif] [gif]
+mime.types:7:5			Directive: [image/jpeg] [image/jpeg]
+mime.types:7:54				Arg: [jpeg] [jpeg]
+mime.types:7:59				Arg: [jpg] [jpg]
+mime.types:8:5			Directive: [application/javascript] [application/javascript]
+mime.types:8:54				Arg: [js] [js]
+mime.types:9:5			Directive: [application/atom+xml] [application/atom+xml]
+mime.types:9:54				Arg: [atom] [atom]
+mime.types:10:5			Directive: [application/rss+xml] [application/rss+xml]
+mime.types:10:54				Arg: [rss] [rss]
+mime.types:11:5			Directive: [text/mathml] [text/mathml]
+mime.types:11:54				Arg: [mml] [mml]
+mime.types:12:5			Directive: [text/plain] [text/plain]
+mime.types:12:54				Arg: [txt] [txt]
+mime.types:13:5			Directive: [text/vnd.sun.j2me.app-descriptor] [text/vnd.sun.j2me.app-descriptor]
+mime.types:13:54				Arg: [jad] [jad]
+mime.types:14:5			Directive: [text/vnd.wap.wml] [text/vnd.wap.wml]
+mime.types:14:54				Arg: [wml] [wml]
+mime.types:15:5			Directive: [text/x-component] [text/x-component]
+mime.types:15:54				Arg: [htc] [htc]
+mime.types:16:5			Directive: [image/avif] [image/avif]
+mime.types:16:54				Arg: [avif] [avif]
+mime.types:17:5			Directive: [image/png] [image/png]
+mime.types:17:54				Arg: [png] [png]
+mime.types:18:5			Directive: [image/svg+xml] [image/svg+xml]
+mime.types:18:54				Arg: [svg] [svg]
+mime.types:18:58				Arg: [svgz] [svgz]
+mime.types:19:5			Directive: [image/tiff] [image/tiff]
+mime.types:19:54				Arg: [tif] [tif]
+mime.types:19:58				Arg: [tiff] [tiff]
+mime.types:20:5			Directive: [image/vnd.wap.wbmp] [image/vnd.wap.wbmp]
+mime.types:20:54				Arg: [wbmp] [wbmp]
+mime.types:21:5			Directive: [image/webp] [image/webp]
+mime.types:21:54				Arg: [webp] [webp]
+mime.types:22:5			Directive: [image/x-icon] [image/x-icon]
+mime.types:22:54				Arg: [ico] [ico]
+mime.types:23:5			Directive: [image/x-jng] [image/x-jng]
+mime.types:23:54				Arg: [jng] [jng]
+mime.types:24:5			Directive: [image/x-ms-bmp] [image/x-ms-bmp]
+mime.types:24:54				Arg: [bmp] [bmp]
+mime.types:25:5			Directive: [font/woff] [font/woff]
+mime.types:25:54				Arg: [woff] [woff]
+mime.types:26:5			Directive: [font/woff2] [font/woff2]
+mime.types:26:54				Arg: [woff2] [woff2]
+mime.types:27:5			Directive: [application/java-archive] [application/java-archive]
+mime.types:27:54				Arg: [jar] [jar]
+mime.types:27:58				Arg: [war] [war]
+mime.types:27:62				Arg: [ear] [ear]
+mime.types:28:5			Directive: [application/json] [application/json]
+mime.types:28:54				Arg: [json] [json]
+mime.types:29:5			Directive: [application/mac-binhex40] [application/mac-binhex40]
+mime.types:29:54				Arg: [hqx] [hqx]
+mime.types:30:5			Directive: [application/msword] [application/msword]
+mime.types:30:54				Arg: [doc] [doc]
+mime.types:31:5			Directive: [application/pdf] [application/pdf]
+mime.types:31:54				Arg: [pdf] [pdf]
+mime.types:32:5			Directive: [application/postscript] [application/postscript]
+mime.types:32:54				Arg: [ps] [ps]
+mime.types:32:57				Arg: [eps] [eps]
+mime.types:32:61				Arg: [ai] [ai]
+mime.types:33:5			Directive: [application/rtf] [application/rtf]
+mime.types:33:54				Arg: [rtf] [rtf]
+mime.types:34:5			Directive: [application/vnd.apple.mpegurl] [application/vnd.apple.mpegurl]
+mime.types:34:54				Arg: [m3u8] [m3u8]
+mime.types:35:5			Directive: [application/vnd.google-earth.kml+xml] [application/vnd.google-earth.kml+xml]
+mime.types:35:54				Arg: [kml] [kml]
+mime.types:36:5			Directive: [application/vnd.google-earth.kmz] [application/vnd.google-earth.kmz]
+mime.types:36:54				Arg: [kmz] [kmz]
+mime.types:37:5			Directive: [application/vnd.ms-excel] [application/vnd.ms-excel]
+mime.types:37:54				Arg: [xls] [xls]
+mime.types:38:5			Directive: [application/vnd.ms-fontobject] [application/vnd.ms-fontobject]
+mime.types:38:54				Arg: [eot] [eot]
+mime.types:39:5			Directive: [application/vnd.ms-powerpoint] [application/vnd.ms-powerpoint]
+mime.types:39:54				Arg: [ppt] [ppt]
+mime.types:40:5			Directive: [application/vnd.oasis.opendocument.graphics] [application/vnd.oasis.opendocument.graphics]
+mime.types:40:54				Arg: [odg] [odg]
+mime.types:41:5			Directive: [application/vnd.oasis.opendocument.presentation] [application/vnd.oasis.opendocument.presentation]
+mime.types:41:54				Arg: [odp] [odp]
+mime.types:42:5			Directive: [application/vnd.oasis.opendocument.spreadsheet] [application/vnd.oasis.opendocument.spreadsheet]
+mime.types:42:54				Arg: [ods] [ods]
+mime.types:43:5			Directive: [application/vnd.oasis.opendocument.text] [application/vnd.oasis.opendocument.text]
+mime.types:43:54				Arg: [odt] [odt]
+mime.types:44:5			Directive: [application/vnd.openxmlformats-officedocument.presentationml.presentation] [application/vnd.openxmlformats-officedocument.presentationml.presentation]
+mime.types:44:79				Arg: [pptx] [pptx]
+mime.types:45:5			Directive: [application/vnd.openxmlformats-officedocument.spreadsheetml.sheet] [application/vnd.openxmlformats-officedocument.spreadsheetml.sheet]
+mime.types:45:71				Arg: [xlsx] [xlsx]
+mime.types:46:5			Directive: [application/vnd.openxmlformats-officedocument.wordprocessingml.document] [application/vnd.openxmlformats-officedocument.wordprocessingml.document]
+mime.types:46:77				Arg: [docx] [docx]
+mime.types:47:5			Directive: [application/vnd.wap.wmlc] [application/vnd.wap.wmlc]
+mime.types:47:54				Arg: [wmlc] [wmlc]
+mime.types:48:5			Directive: [application/wasm] [application/wasm]
+mime.types:48:54				Arg: [wasm] [wasm]
+mime.types:49:5			Directive: [application/x-7z-compressed] [application/x-7z-compressed]
+mime.types:49:54				Arg: [7z] [7z]
+mime.types:50:5			Directive: [application/x-cocoa] [application/x-cocoa]
+mime.types:50:54				Arg: [cco] [cco]
+mime.types:51:5			Directive: [application/x-java-archive-diff] [application/x-java-archive-diff]
+mime.types:51:54				Arg: [jardiff] [jardiff]
+mime.types:52:5			Directive: [application/x-java-jnlp-file] [application/x-java-jnlp-file]
+mime.types:52:54				Arg: [jnlp] [jnlp]
+mime.types:53:5			Directive: [application/x-makeself] [application/x-makeself]
+mime.types:53:54				Arg: [run] [run]
+mime.types:54:5			Directive: [application/x-perl] [application/x-perl]
+mime.types:54:54				Arg: [pl] [pl]
+mime.types:54:57				Arg: [pm] [pm]
+mime.types:55:5			Directive: [application/x-pilot] [application/x-pilot]
+mime.types:55:54				Arg: [prc] [prc]
+mime.types:55:58				Arg: [pdb] [pdb]
+mime.types:56:5			Directive: [application/x-rar-compressed] [application/x-rar-compressed]
+mime.types:56:54				Arg: [rar] [rar]
+mime.types:57:5			Directive: [application/x-redhat-package-manager] [application/x-redhat-package-manager]
+mime.types:57:54				Arg: [rpm] [rpm]
+mime.types:58:5			Directive: [application/x-sea] [application/x-sea]
+mime.types:58:54				Arg: [sea] [sea]
+mime.types:59:5			Directive: [application/x-shockwave-flash] [application/x-shockwave-flash]
+mime.types:59:54				Arg: [swf] [swf]
+mime.types:60:5			Directive: [application/x-stuffit] [application/x-stuffit]
+mime.types:60:54				Arg: [sit] [sit]
+mime.types:61:5			Directive: [application/x-tcl] [application/x-tcl]
+mime.types:61:54				Arg: [tcl] [tcl]
+mime.types:61:58				Arg: [tk] [tk]
+mime.types:62:5			Directive: [application/x-x509-ca-cert] [application/x-x509-ca-cert]
+mime.types:62:54				Arg: [der] [der]
+mime.types:62:58				Arg: [pem] [pem]
+mime.types:62:62				Arg: [crt] [crt]
+mime.types:63:5			Directive: [application/x-xpinstall] [application/x-xpinstall]
+mime.types:63:54				Arg: [xpi] [xpi]
+mime.types:64:5			Directive: [application/xhtml+xml] [application/xhtml+xml]
+mime.types:64:54				Arg: [xhtml] [xhtml]
+mime.types:65:5			Directive: [application/xspf+xml] [application/xspf+xml]
+mime.types:65:54				Arg: [xspf] [xspf]
+mime.types:66:5			Directive: [application/zip] [application/zip]
+mime.types:66:54				Arg: [zip] [zip]
+mime.types:67:5			Directive: [application/octet-stream] [application/octet-stream]
+mime.types:67:54				Arg: [bin] [bin]
+mime.types:67:58				Arg: [exe] [exe]
+mime.types:67:62				Arg: [dll] [dll]
+mime.types:68:5			Directive: [application/octet-stream] [application/octet-stream]
+mime.types:68:54				Arg: [deb] [deb]
+mime.types:69:5			Directive: [application/octet-stream] [application/octet-stream]
+mime.types:69:54				Arg: [dmg] [dmg]
+mime.types:70:5			Directive: [application/octet-stream] [application/octet-stream]
+mime.types:70:54				Arg: [iso] [iso]
+mime.types:70:58				Arg: [img] [img]
+mime.types:71:5			Directive: [application/octet-stream] [application/octet-stream]
+mime.types:71:54				Arg: [msi] [msi]
+mime.types:71:58				Arg: [msp] [msp]
+mime.types:71:62				Arg: [msm] [msm]
+mime.types:72:5			Directive: [audio/midi] [audio/midi]
+mime.types:72:54				Arg: [mid] [mid]
+mime.types:72:58				Arg: [midi] [midi]
+mime.types:72:63				Arg: [kar] [kar]
+mime.types:73:5			Directive: [audio/mpeg] [audio/mpeg]
+mime.types:73:54				Arg: [mp3] [mp3]
+mime.types:74:5			Directive: [audio/ogg] [audio/ogg]
+mime.types:74:54				Arg: [ogg] [ogg]
+mime.types:75:5			Directive: [audio/x-m4a] [audio/x-m4a]
+mime.types:75:54				Arg: [m4a] [m4a]
+mime.types:76:5			Directive: [audio/x-realaudio] [audio/x-realaudio]
+mime.types:76:54				Arg: [ra] [ra]
+mime.types:77:5			Directive: [video/3gpp] [video/3gpp]
+mime.types:77:54				Arg: [3gpp] [3gpp]
+mime.types:77:59				Arg: [3gp] [3gp]
+mime.types:78:5			Directive: [video/mp2t] [video/mp2t]
+mime.types:78:54				Arg: [ts] [ts]
+mime.types:79:5			Directive: [video/mp4] [video/mp4]
+mime.types:79:54				Arg: [mp4] [mp4]
+mime.types:80:5			Directive: [video/mpeg] [video/mpeg]
+mime.types:80:54				Arg: [mpeg] [mpeg]
+mime.types:80:59				Arg: [mpg] [mpg]
+mime.types:81:5			Directive: [video/quicktime] [video/quicktime]
+mime.types:81:54				Arg: [mov] [mov]
+mime.types:82:5			Directive: [video/webm] [video/webm]
+mime.types:82:54				Arg: [webm] [webm]
+mime.types:83:5			Directive: [video/x-flv] [video/x-flv]
+mime.types:83:54				Arg: [flv] [flv]
+mime.types:84:5			Directive: [video/x-m4v] [video/x-m4v]
+mime.types:84:54				Arg: [m4v] [m4v]
+mime.types:85:5			Directive: [video/x-mng] [video/x-mng]
+mime.types:85:54				Arg: [mng] [mng]
+mime.types:86:5			Directive: [video/x-ms-asf] [video/x-ms-asf]
+mime.types:86:54				Arg: [asx] [asx]
+mime.types:86:58				Arg: [asf] [asf]
+mime.types:87:5			Directive: [video/x-ms-wmv] [video/x-ms-wmv]
+mime.types:87:54				Arg: [wmv] [wmv]
+mime.types:88:5			Directive: [video/x-msvideo] [video/x-msvideo]
+mime.types:88:54				Arg: [avi] [avi]
+./test.ws:3:2		Directive: [error_page] [error_page]
+./test.ws:3:13			Arg: [404] [404]
+./test.ws:3:17			Arg: [=404] [=404]
+./test.ws:3:22			Arg: [/404.html] [/404.html]
+./test.ws:4:2		Directive: [error_page] [error_page]
+./test.ws:4:13			Arg: [502] [502]
+./test.ws:4:17			Arg: [=502] [=502]
+./test.ws:4:22			Arg: [/errorPages/502.html] [/errorPages/502.html]
+./test.ws:6:2		Directive: [server] [server]
+			Children:
+./test.ws:7:3			Directive: [listen] [listen]
+./test.ws:7:10				Arg: [localhost:6969] [localhost:6969]
+./test.ws:8:3			Directive: [listen] [listen]
+./test.ws:8:10				Arg: [8007] [8007]
+./test.ws:9:3			Directive: [timeout] [timeout]
+./test.ws:9:11				Arg: [1000s] [1000s]
+./test.ws:10:3			Directive: [root] [root]
+./test.ws:10:8				Arg: [./www] [./www]
+./test.ws:12:3			Directive: [autoindex] [autoindex]
+./test.ws:12:13				Arg: [on] [on]
+./test.ws:14:3			Directive: [cgi] [cgi]
+./test.ws:14:7				Arg: [py] [py]
+./test.ws:14:10				Arg: [/usr/bin/python3] [/usr/bin/python3]
+./test.ws:16:3			Directive: [location] [location]
+./test.ws:16:12				Arg: [cgi] [cgi]
+				Children:
+./test.ws:17:4				Directive: [error_page] [error_page]
+./test.ws:17:15					Arg: [502] [502]
+./test.ws:17:19					Arg: [=502] [=502]
+./test.ws:17:24					Arg: [/errorPages/502cgi.html] [/errorPages/502cgi.html]
+./test.ws:18:4				Directive: [cgi] [cgi]
+./test.ws:18:8					Arg: [py] [py]
+./test.ws:18:11					Arg: [/usr/bin/python3] [/usr/bin/python3]
+./test.ws:19:4				Directive: [editable] [editable]
+./test.ws:19:13					Arg: [on] [on]
+./test.ws:22:3			Directive: [location] [location]
+./test.ws:22:12				Arg: [A] [A]
+				Children:
+./test.ws:23:4				Directive: [editable] [editable]
+./test.ws:23:13					Arg: [on] [on]
+
+Config:
+	Http:
+		Client Max Body Size: 1000000
+		Error Pages:
+			error code: 404 response code: 404 page: /404.html
+			error code: 502 response code: 502 page: /errorPages/502.html
+		CGI:
+		Types:
+			extension: 3gp mimetype: video/3gpp
+			extension: 3gpp mimetype: video/3gpp
+			extension: 7z mimetype: application/x-7z-compressed
+			extension: ai mimetype: application/postscript
+			extension: asf mimetype: video/x-ms-asf
+			extension: asx mimetype: video/x-ms-asf
+			extension: atom mimetype: application/atom+xml
+			extension: avi mimetype: video/x-msvideo
+			extension: avif mimetype: image/avif
+			extension: bin mimetype: application/octet-stream
+			extension: bmp mimetype: image/x-ms-bmp
+			extension: cco mimetype: application/x-cocoa
+			extension: crt mimetype: application/x-x509-ca-cert
+			extension: css mimetype: text/css
+			extension: deb mimetype: application/octet-stream
+			extension: der mimetype: application/x-x509-ca-cert
+			extension: dll mimetype: application/octet-stream
+			extension: dmg mimetype: application/octet-stream
+			extension: doc mimetype: application/msword
+			extension: docx mimetype: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+			extension: ear mimetype: application/java-archive
+			extension: eot mimetype: application/vnd.ms-fontobject
+			extension: eps mimetype: application/postscript
+			extension: exe mimetype: application/octet-stream
+			extension: flv mimetype: video/x-flv
+			extension: gif mimetype: image/gif
+			extension: hqx mimetype: application/mac-binhex40
+			extension: htc mimetype: text/x-component
+			extension: htm mimetype: text/html
+			extension: html mimetype: text/html
+			extension: ico mimetype: image/x-icon
+			extension: img mimetype: application/octet-stream
+			extension: iso mimetype: application/octet-stream
+			extension: jad mimetype: text/vnd.sun.j2me.app-descriptor
+			extension: jar mimetype: application/java-archive
+			extension: jardiff mimetype: application/x-java-archive-diff
+			extension: jng mimetype: image/x-jng
+			extension: jnlp mimetype: application/x-java-jnlp-file
+			extension: jpeg mimetype: image/jpeg
+			extension: jpg mimetype: image/jpeg
+			extension: js mimetype: application/javascript
+			extension: json mimetype: application/json
+			extension: kar mimetype: audio/midi
+			extension: kml mimetype: application/vnd.google-earth.kml+xml
+			extension: kmz mimetype: application/vnd.google-earth.kmz
+			extension: m3u8 mimetype: application/vnd.apple.mpegurl
+			extension: m4a mimetype: audio/x-m4a
+			extension: m4v mimetype: video/x-m4v
+			extension: mid mimetype: audio/midi
+			extension: midi mimetype: audio/midi
+			extension: mml mimetype: text/mathml
+			extension: mng mimetype: video/x-mng
+			extension: mov mimetype: video/quicktime
+			extension: mp3 mimetype: audio/mpeg
+			extension: mp4 mimetype: video/mp4
+			extension: mpeg mimetype: video/mpeg
+			extension: mpg mimetype: video/mpeg
+			extension: msi mimetype: application/octet-stream
+			extension: msm mimetype: application/octet-stream
+			extension: msp mimetype: application/octet-stream
+			extension: odg mimetype: application/vnd.oasis.opendocument.graphics
+			extension: odp mimetype: application/vnd.oasis.opendocument.presentation
+			extension: ods mimetype: application/vnd.oasis.opendocument.spreadsheet
+			extension: odt mimetype: application/vnd.oasis.opendocument.text
+			extension: ogg mimetype: audio/ogg
+			extension: pdb mimetype: application/x-pilot
+			extension: pdf mimetype: application/pdf
+			extension: pem mimetype: application/x-x509-ca-cert
+			extension: pl mimetype: application/x-perl
+			extension: pm mimetype: application/x-perl
+			extension: png mimetype: image/png
+			extension: ppt mimetype: application/vnd.ms-powerpoint
+			extension: pptx mimetype: application/vnd.openxmlformats-officedocument.presentationml.presentation
+			extension: prc mimetype: application/x-pilot
+			extension: ps mimetype: application/postscript
+			extension: ra mimetype: audio/x-realaudio
+			extension: rar mimetype: application/x-rar-compressed
+			extension: rpm mimetype: application/x-redhat-package-manager
+			extension: rss mimetype: application/rss+xml
+			extension: rtf mimetype: application/rtf
+			extension: run mimetype: application/x-makeself
+			extension: sea mimetype: application/x-sea
+			extension: shtml mimetype: text/html
+			extension: sit mimetype: application/x-stuffit
+			extension: svg mimetype: image/svg+xml
+			extension: svgz mimetype: image/svg+xml
+			extension: swf mimetype: application/x-shockwave-flash
+			extension: tcl mimetype: application/x-tcl
+			extension: tif mimetype: image/tiff
+			extension: tiff mimetype: image/tiff
+			extension: tk mimetype: application/x-tcl
+			extension: ts mimetype: video/mp2t
+			extension: txt mimetype: text/plain
+			extension: war mimetype: application/java-archive
+			extension: wasm mimetype: application/wasm
+			extension: wbmp mimetype: image/vnd.wap.wbmp
+			extension: webm mimetype: video/webm
+			extension: webp mimetype: image/webp
+			extension: wml mimetype: text/vnd.wap.wml
+			extension: wmlc mimetype: application/vnd.wap.wmlc
+			extension: wmv mimetype: video/x-ms-wmv
+			extension: woff mimetype: font/woff
+			extension: woff2 mimetype: font/woff2
+			extension: xhtml mimetype: application/xhtml+xml
+			extension: xls mimetype: application/vnd.ms-excel
+			extension: xlsx mimetype: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+			extension: xml mimetype: text/xml
+			extension: xpi mimetype: application/x-xpinstall
+			extension: xspf mimetype: application/xspf+xml
+			extension: zip mimetype: application/zip
+		Servers:
+			Server:
+				Listen: localhost:6969, 0.0.0.0:8007
+				Root: ./www
+				Alias: 
+				Index Files: 
+				Error Pages:
+					error code: 404 response code: 404 page: /404.html
+					error code: 502 response code: 502 page: /errorPages/502.html
+				Client Max Body Size: 1000000
+				Allowed Methods: 
+				Autoindex: on
+				Redirection:
+				CGI:
+					extension: py interpreter: /usr/bin/python3
+				Editable: 0
+				Types:
+					extension: 3gp mimetype: video/3gpp
+					extension: 3gpp mimetype: video/3gpp
+					extension: 7z mimetype: application/x-7z-compressed
+					extension: ai mimetype: application/postscript
+					extension: asf mimetype: video/x-ms-asf
+					extension: asx mimetype: video/x-ms-asf
+					extension: atom mimetype: application/atom+xml
+					extension: avi mimetype: video/x-msvideo
+					extension: avif mimetype: image/avif
+					extension: bin mimetype: application/octet-stream
+					extension: bmp mimetype: image/x-ms-bmp
+					extension: cco mimetype: application/x-cocoa
+					extension: crt mimetype: application/x-x509-ca-cert
+					extension: css mimetype: text/css
+					extension: deb mimetype: application/octet-stream
+					extension: der mimetype: application/x-x509-ca-cert
+					extension: dll mimetype: application/octet-stream
+					extension: dmg mimetype: application/octet-stream
+					extension: doc mimetype: application/msword
+					extension: docx mimetype: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+					extension: ear mimetype: application/java-archive
+					extension: eot mimetype: application/vnd.ms-fontobject
+					extension: eps mimetype: application/postscript
+					extension: exe mimetype: application/octet-stream
+					extension: flv mimetype: video/x-flv
+					extension: gif mimetype: image/gif
+					extension: hqx mimetype: application/mac-binhex40
+					extension: htc mimetype: text/x-component
+					extension: htm mimetype: text/html
+					extension: html mimetype: text/html
+					extension: ico mimetype: image/x-icon
+					extension: img mimetype: application/octet-stream
+					extension: iso mimetype: application/octet-stream
+					extension: jad mimetype: text/vnd.sun.j2me.app-descriptor
+					extension: jar mimetype: application/java-archive
+					extension: jardiff mimetype: application/x-java-archive-diff
+					extension: jng mimetype: image/x-jng
+					extension: jnlp mimetype: application/x-java-jnlp-file
+					extension: jpeg mimetype: image/jpeg
+					extension: jpg mimetype: image/jpeg
+					extension: js mimetype: application/javascript
+					extension: json mimetype: application/json
+					extension: kar mimetype: audio/midi
+					extension: kml mimetype: application/vnd.google-earth.kml+xml
+					extension: kmz mimetype: application/vnd.google-earth.kmz
+					extension: m3u8 mimetype: application/vnd.apple.mpegurl
+					extension: m4a mimetype: audio/x-m4a
+					extension: m4v mimetype: video/x-m4v
+					extension: mid mimetype: audio/midi
+					extension: midi mimetype: audio/midi
+					extension: mml mimetype: text/mathml
+					extension: mng mimetype: video/x-mng
+					extension: mov mimetype: video/quicktime
+					extension: mp3 mimetype: audio/mpeg
+					extension: mp4 mimetype: video/mp4
+					extension: mpeg mimetype: video/mpeg
+					extension: mpg mimetype: video/mpeg
+					extension: msi mimetype: application/octet-stream
+					extension: msm mimetype: application/octet-stream
+					extension: msp mimetype: application/octet-stream
+					extension: odg mimetype: application/vnd.oasis.opendocument.graphics
+					extension: odp mimetype: application/vnd.oasis.opendocument.presentation
+					extension: ods mimetype: application/vnd.oasis.opendocument.spreadsheet
+					extension: odt mimetype: application/vnd.oasis.opendocument.text
+					extension: ogg mimetype: audio/ogg
+					extension: pdb mimetype: application/x-pilot
+					extension: pdf mimetype: application/pdf
+					extension: pem mimetype: application/x-x509-ca-cert
+					extension: pl mimetype: application/x-perl
+					extension: pm mimetype: application/x-perl
+					extension: png mimetype: image/png
+					extension: ppt mimetype: application/vnd.ms-powerpoint
+					extension: pptx mimetype: application/vnd.openxmlformats-officedocument.presentationml.presentation
+					extension: prc mimetype: application/x-pilot
+					extension: ps mimetype: application/postscript
+					extension: ra mimetype: audio/x-realaudio
+					extension: rar mimetype: application/x-rar-compressed
+					extension: rpm mimetype: application/x-redhat-package-manager
+					extension: rss mimetype: application/rss+xml
+					extension: rtf mimetype: application/rtf
+					extension: run mimetype: application/x-makeself
+					extension: sea mimetype: application/x-sea
+					extension: shtml mimetype: text/html
+					extension: sit mimetype: application/x-stuffit
+					extension: svg mimetype: image/svg+xml
+					extension: svgz mimetype: image/svg+xml
+					extension: swf mimetype: application/x-shockwave-flash
+					extension: tcl mimetype: application/x-tcl
+					extension: tif mimetype: image/tiff
+					extension: tiff mimetype: image/tiff
+					extension: tk mimetype: application/x-tcl
+					extension: ts mimetype: video/mp2t
+					extension: txt mimetype: text/plain
+					extension: war mimetype: application/java-archive
+					extension: wasm mimetype: application/wasm
+					extension: wbmp mimetype: image/vnd.wap.wbmp
+					extension: webm mimetype: video/webm
+					extension: webp mimetype: image/webp
+					extension: wml mimetype: text/vnd.wap.wml
+					extension: wmlc mimetype: application/vnd.wap.wmlc
+					extension: wmv mimetype: video/x-ms-wmv
+					extension: woff mimetype: font/woff
+					extension: woff2 mimetype: font/woff2
+					extension: xhtml mimetype: application/xhtml+xml
+					extension: xls mimetype: application/vnd.ms-excel
+					extension: xlsx mimetype: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+					extension: xml mimetype: text/xml
+					extension: xpi mimetype: application/x-xpinstall
+					extension: xspf mimetype: application/xspf+xml
+					extension: zip mimetype: application/zip
+				Location: /
+					Root: 
+					Alias: 
+					Index Files: 
+					Error Pages:
+						error code: 404 response code: 404 page: /404.html
+						error code: 502 response code: 502 page: /errorPages/502.html
+					Client Max Body Size: 1000000
+					Allowed Methods: 
+					Autoindex: off
+					Redirection: 
+					CGI: 
+					Editable: 0
+					Types: ...
+						extension: 3gp mimetype: video/3gpp
+						extension: 3gpp mimetype: video/3gpp
+						extension: 7z mimetype: application/x-7z-compressed
+						extension: ai mimetype: application/postscript
+						extension: asf mimetype: video/x-ms-asf
+						extension: asx mimetype: video/x-ms-asf
+						extension: atom mimetype: application/atom+xml
+						extension: avi mimetype: video/x-msvideo
+						extension: avif mimetype: image/avif
+						extension: bin mimetype: application/octet-stream
+						extension: bmp mimetype: image/x-ms-bmp
+						extension: cco mimetype: application/x-cocoa
+						extension: crt mimetype: application/x-x509-ca-cert
+						extension: css mimetype: text/css
+						extension: deb mimetype: application/octet-stream
+						extension: der mimetype: application/x-x509-ca-cert
+						extension: dll mimetype: application/octet-stream
+						extension: dmg mimetype: application/octet-stream
+						extension: doc mimetype: application/msword
+						extension: docx mimetype: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+						extension: ear mimetype: application/java-archive
+						extension: eot mimetype: application/vnd.ms-fontobject
+						extension: eps mimetype: application/postscript
+						extension: exe mimetype: application/octet-stream
+						extension: flv mimetype: video/x-flv
+						extension: gif mimetype: image/gif
+						extension: hqx mimetype: application/mac-binhex40
+						extension: htc mimetype: text/x-component
+						extension: htm mimetype: text/html
+						extension: html mimetype: text/html
+						extension: ico mimetype: image/x-icon
+						extension: img mimetype: application/octet-stream
+						extension: iso mimetype: application/octet-stream
+						extension: jad mimetype: text/vnd.sun.j2me.app-descriptor
+						extension: jar mimetype: application/java-archive
+						extension: jardiff mimetype: application/x-java-archive-diff
+						extension: jng mimetype: image/x-jng
+						extension: jnlp mimetype: application/x-java-jnlp-file
+						extension: jpeg mimetype: image/jpeg
+						extension: jpg mimetype: image/jpeg
+						extension: js mimetype: application/javascript
+						extension: json mimetype: application/json
+						extension: kar mimetype: audio/midi
+						extension: kml mimetype: application/vnd.google-earth.kml+xml
+						extension: kmz mimetype: application/vnd.google-earth.kmz
+						extension: m3u8 mimetype: application/vnd.apple.mpegurl
+						extension: m4a mimetype: audio/x-m4a
+						extension: m4v mimetype: video/x-m4v
+						extension: mid mimetype: audio/midi
+						extension: midi mimetype: audio/midi
+						extension: mml mimetype: text/mathml
+						extension: mng mimetype: video/x-mng
+						extension: mov mimetype: video/quicktime
+						extension: mp3 mimetype: audio/mpeg
+						extension: mp4 mimetype: video/mp4
+						extension: mpeg mimetype: video/mpeg
+						extension: mpg mimetype: video/mpeg
+						extension: msi mimetype: application/octet-stream
+						extension: msm mimetype: application/octet-stream
+						extension: msp mimetype: application/octet-stream
+						extension: odg mimetype: application/vnd.oasis.opendocument.graphics
+						extension: odp mimetype: application/vnd.oasis.opendocument.presentation
+						extension: ods mimetype: application/vnd.oasis.opendocument.spreadsheet
+						extension: odt mimetype: application/vnd.oasis.opendocument.text
+						extension: ogg mimetype: audio/ogg
+						extension: pdb mimetype: application/x-pilot
+						extension: pdf mimetype: application/pdf
+						extension: pem mimetype: application/x-x509-ca-cert
+						extension: pl mimetype: application/x-perl
+						extension: pm mimetype: application/x-perl
+						extension: png mimetype: image/png
+						extension: ppt mimetype: application/vnd.ms-powerpoint
+						extension: pptx mimetype: application/vnd.openxmlformats-officedocument.presentationml.presentation
+						extension: prc mimetype: application/x-pilot
+						extension: ps mimetype: application/postscript
+						extension: ra mimetype: audio/x-realaudio
+						extension: rar mimetype: application/x-rar-compressed
+						extension: rpm mimetype: application/x-redhat-package-manager
+						extension: rss mimetype: application/rss+xml
+						extension: rtf mimetype: application/rtf
+						extension: run mimetype: application/x-makeself
+						extension: sea mimetype: application/x-sea
+						extension: shtml mimetype: text/html
+						extension: sit mimetype: application/x-stuffit
+						extension: svg mimetype: image/svg+xml
+						extension: svgz mimetype: image/svg+xml
+						extension: swf mimetype: application/x-shockwave-flash
+						extension: tcl mimetype: application/x-tcl
+						extension: tif mimetype: image/tiff
+						extension: tiff mimetype: image/tiff
+						extension: tk mimetype: application/x-tcl
+						extension: ts mimetype: video/mp2t
+						extension: txt mimetype: text/plain
+						extension: war mimetype: application/java-archive
+						extension: wasm mimetype: application/wasm
+						extension: wbmp mimetype: image/vnd.wap.wbmp
+						extension: webm mimetype: video/webm
+						extension: webp mimetype: image/webp
+						extension: wml mimetype: text/vnd.wap.wml
+						extension: wmlc mimetype: application/vnd.wap.wmlc
+						extension: wmv mimetype: video/x-ms-wmv
+						extension: woff mimetype: font/woff
+						extension: woff2 mimetype: font/woff2
+						extension: xhtml mimetype: application/xhtml+xml
+						extension: xls mimetype: application/vnd.ms-excel
+						extension: xlsx mimetype: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+						extension: xml mimetype: text/xml
+						extension: xpi mimetype: application/x-xpinstall
+						extension: xspf mimetype: application/xspf+xml
+						extension: zip mimetype: application/zip
+				Location: /cgi
+					Root: ./www
+					Alias: 
+					Index Files: 
+					Error Pages:
+						error code: 404 response code: 404 page: /404.html
+						error code: 502 response code: 502 page: /errorPages/502cgi.html
+					Client Max Body Size: 1000000
+					Allowed Methods: 
+					Autoindex: on
+					Redirection: 
+					CGI: 
+						extension: py interpreter: /usr/bin/python3
+					Editable: 1
+					Types: ...
+						extension: 3gp mimetype: video/3gpp
+						extension: 3gpp mimetype: video/3gpp
+						extension: 7z mimetype: application/x-7z-compressed
+						extension: ai mimetype: application/postscript
+						extension: asf mimetype: video/x-ms-asf
+						extension: asx mimetype: video/x-ms-asf
+						extension: atom mimetype: application/atom+xml
+						extension: avi mimetype: video/x-msvideo
+						extension: avif mimetype: image/avif
+						extension: bin mimetype: application/octet-stream
+						extension: bmp mimetype: image/x-ms-bmp
+						extension: cco mimetype: application/x-cocoa
+						extension: crt mimetype: application/x-x509-ca-cert
+						extension: css mimetype: text/css
+						extension: deb mimetype: application/octet-stream
+						extension: der mimetype: application/x-x509-ca-cert
+						extension: dll mimetype: application/octet-stream
+						extension: dmg mimetype: application/octet-stream
+						extension: doc mimetype: application/msword
+						extension: docx mimetype: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+						extension: ear mimetype: application/java-archive
+						extension: eot mimetype: application/vnd.ms-fontobject
+						extension: eps mimetype: application/postscript
+						extension: exe mimetype: application/octet-stream
+						extension: flv mimetype: video/x-flv
+						extension: gif mimetype: image/gif
+						extension: hqx mimetype: application/mac-binhex40
+						extension: htc mimetype: text/x-component
+						extension: htm mimetype: text/html
+						extension: html mimetype: text/html
+						extension: ico mimetype: image/x-icon
+						extension: img mimetype: application/octet-stream
+						extension: iso mimetype: application/octet-stream
+						extension: jad mimetype: text/vnd.sun.j2me.app-descriptor
+						extension: jar mimetype: application/java-archive
+						extension: jardiff mimetype: application/x-java-archive-diff
+						extension: jng mimetype: image/x-jng
+						extension: jnlp mimetype: application/x-java-jnlp-file
+						extension: jpeg mimetype: image/jpeg
+						extension: jpg mimetype: image/jpeg
+						extension: js mimetype: application/javascript
+						extension: json mimetype: application/json
+						extension: kar mimetype: audio/midi
+						extension: kml mimetype: application/vnd.google-earth.kml+xml
+						extension: kmz mimetype: application/vnd.google-earth.kmz
+						extension: m3u8 mimetype: application/vnd.apple.mpegurl
+						extension: m4a mimetype: audio/x-m4a
+						extension: m4v mimetype: video/x-m4v
+						extension: mid mimetype: audio/midi
+						extension: midi mimetype: audio/midi
+						extension: mml mimetype: text/mathml
+						extension: mng mimetype: video/x-mng
+						extension: mov mimetype: video/quicktime
+						extension: mp3 mimetype: audio/mpeg
+						extension: mp4 mimetype: video/mp4
+						extension: mpeg mimetype: video/mpeg
+						extension: mpg mimetype: video/mpeg
+						extension: msi mimetype: application/octet-stream
+						extension: msm mimetype: application/octet-stream
+						extension: msp mimetype: application/octet-stream
+						extension: odg mimetype: application/vnd.oasis.opendocument.graphics
+						extension: odp mimetype: application/vnd.oasis.opendocument.presentation
+						extension: ods mimetype: application/vnd.oasis.opendocument.spreadsheet
+						extension: odt mimetype: application/vnd.oasis.opendocument.text
+						extension: ogg mimetype: audio/ogg
+						extension: pdb mimetype: application/x-pilot
+						extension: pdf mimetype: application/pdf
+						extension: pem mimetype: application/x-x509-ca-cert
+						extension: pl mimetype: application/x-perl
+						extension: pm mimetype: application/x-perl
+						extension: png mimetype: image/png
+						extension: ppt mimetype: application/vnd.ms-powerpoint
+						extension: pptx mimetype: application/vnd.openxmlformats-officedocument.presentationml.presentation
+						extension: prc mimetype: application/x-pilot
+						extension: ps mimetype: application/postscript
+						extension: ra mimetype: audio/x-realaudio
+						extension: rar mimetype: application/x-rar-compressed
+						extension: rpm mimetype: application/x-redhat-package-manager
+						extension: rss mimetype: application/rss+xml
+						extension: rtf mimetype: application/rtf
+						extension: run mimetype: application/x-makeself
+						extension: sea mimetype: application/x-sea
+						extension: shtml mimetype: text/html
+						extension: sit mimetype: application/x-stuffit
+						extension: svg mimetype: image/svg+xml
+						extension: svgz mimetype: image/svg+xml
+						extension: swf mimetype: application/x-shockwave-flash
+						extension: tcl mimetype: application/x-tcl
+						extension: tif mimetype: image/tiff
+						extension: tiff mimetype: image/tiff
+						extension: tk mimetype: application/x-tcl
+						extension: ts mimetype: video/mp2t
+						extension: txt mimetype: text/plain
+						extension: war mimetype: application/java-archive
+						extension: wasm mimetype: application/wasm
+						extension: wbmp mimetype: image/vnd.wap.wbmp
+						extension: webm mimetype: video/webm
+						extension: webp mimetype: image/webp
+						extension: wml mimetype: text/vnd.wap.wml
+						extension: wmlc mimetype: application/vnd.wap.wmlc
+						extension: wmv mimetype: video/x-ms-wmv
+						extension: woff mimetype: font/woff
+						extension: woff2 mimetype: font/woff2
+						extension: xhtml mimetype: application/xhtml+xml
+						extension: xls mimetype: application/vnd.ms-excel
+						extension: xlsx mimetype: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+						extension: xml mimetype: text/xml
+						extension: xpi mimetype: application/x-xpinstall
+						extension: xspf mimetype: application/xspf+xml
+						extension: zip mimetype: application/zip
+				Location: /A
+					Root: ./www
+					Alias: 
+					Index Files: 
+					Error Pages:
+						error code: 404 response code: 404 page: /404.html
+						error code: 502 response code: 502 page: /errorPages/502.html
+					Client Max Body Size: 1000000
+					Allowed Methods: 
+					Autoindex: on
+					Redirection: 
+					CGI: 
+					Editable: 1
+					Types: ...
+						extension: 3gp mimetype: video/3gpp
+						extension: 3gpp mimetype: video/3gpp
+						extension: 7z mimetype: application/x-7z-compressed
+						extension: ai mimetype: application/postscript
+						extension: asf mimetype: video/x-ms-asf
+						extension: asx mimetype: video/x-ms-asf
+						extension: atom mimetype: application/atom+xml
+						extension: avi mimetype: video/x-msvideo
+						extension: avif mimetype: image/avif
+						extension: bin mimetype: application/octet-stream
+						extension: bmp mimetype: image/x-ms-bmp
+						extension: cco mimetype: application/x-cocoa
+						extension: crt mimetype: application/x-x509-ca-cert
+						extension: css mimetype: text/css
+						extension: deb mimetype: application/octet-stream
+						extension: der mimetype: application/x-x509-ca-cert
+						extension: dll mimetype: application/octet-stream
+						extension: dmg mimetype: application/octet-stream
+						extension: doc mimetype: application/msword
+						extension: docx mimetype: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+						extension: ear mimetype: application/java-archive
+						extension: eot mimetype: application/vnd.ms-fontobject
+						extension: eps mimetype: application/postscript
+						extension: exe mimetype: application/octet-stream
+						extension: flv mimetype: video/x-flv
+						extension: gif mimetype: image/gif
+						extension: hqx mimetype: application/mac-binhex40
+						extension: htc mimetype: text/x-component
+						extension: htm mimetype: text/html
+						extension: html mimetype: text/html
+						extension: ico mimetype: image/x-icon
+						extension: img mimetype: application/octet-stream
+						extension: iso mimetype: application/octet-stream
+						extension: jad mimetype: text/vnd.sun.j2me.app-descriptor
+						extension: jar mimetype: application/java-archive
+						extension: jardiff mimetype: application/x-java-archive-diff
+						extension: jng mimetype: image/x-jng
+						extension: jnlp mimetype: application/x-java-jnlp-file
+						extension: jpeg mimetype: image/jpeg
+						extension: jpg mimetype: image/jpeg
+						extension: js mimetype: application/javascript
+						extension: json mimetype: application/json
+						extension: kar mimetype: audio/midi
+						extension: kml mimetype: application/vnd.google-earth.kml+xml
+						extension: kmz mimetype: application/vnd.google-earth.kmz
+						extension: m3u8 mimetype: application/vnd.apple.mpegurl
+						extension: m4a mimetype: audio/x-m4a
+						extension: m4v mimetype: video/x-m4v
+						extension: mid mimetype: audio/midi
+						extension: midi mimetype: audio/midi
+						extension: mml mimetype: text/mathml
+						extension: mng mimetype: video/x-mng
+						extension: mov mimetype: video/quicktime
+						extension: mp3 mimetype: audio/mpeg
+						extension: mp4 mimetype: video/mp4
+						extension: mpeg mimetype: video/mpeg
+						extension: mpg mimetype: video/mpeg
+						extension: msi mimetype: application/octet-stream
+						extension: msm mimetype: application/octet-stream
+						extension: msp mimetype: application/octet-stream
+						extension: odg mimetype: application/vnd.oasis.opendocument.graphics
+						extension: odp mimetype: application/vnd.oasis.opendocument.presentation
+						extension: ods mimetype: application/vnd.oasis.opendocument.spreadsheet
+						extension: odt mimetype: application/vnd.oasis.opendocument.text
+						extension: ogg mimetype: audio/ogg
+						extension: pdb mimetype: application/x-pilot
+						extension: pdf mimetype: application/pdf
+						extension: pem mimetype: application/x-x509-ca-cert
+						extension: pl mimetype: application/x-perl
+						extension: pm mimetype: application/x-perl
+						extension: png mimetype: image/png
+						extension: ppt mimetype: application/vnd.ms-powerpoint
+						extension: pptx mimetype: application/vnd.openxmlformats-officedocument.presentationml.presentation
+						extension: prc mimetype: application/x-pilot
+						extension: ps mimetype: application/postscript
+						extension: ra mimetype: audio/x-realaudio
+						extension: rar mimetype: application/x-rar-compressed
+						extension: rpm mimetype: application/x-redhat-package-manager
+						extension: rss mimetype: application/rss+xml
+						extension: rtf mimetype: application/rtf
+						extension: run mimetype: application/x-makeself
+						extension: sea mimetype: application/x-sea
+						extension: shtml mimetype: text/html
+						extension: sit mimetype: application/x-stuffit
+						extension: svg mimetype: image/svg+xml
+						extension: svgz mimetype: image/svg+xml
+						extension: swf mimetype: application/x-shockwave-flash
+						extension: tcl mimetype: application/x-tcl
+						extension: tif mimetype: image/tiff
+						extension: tiff mimetype: image/tiff
+						extension: tk mimetype: application/x-tcl
+						extension: ts mimetype: video/mp2t
+						extension: txt mimetype: text/plain
+						extension: war mimetype: application/java-archive
+						extension: wasm mimetype: application/wasm
+						extension: wbmp mimetype: image/vnd.wap.wbmp
+						extension: webm mimetype: video/webm
+						extension: webp mimetype: image/webp
+						extension: wml mimetype: text/vnd.wap.wml
+						extension: wmlc mimetype: application/vnd.wap.wmlc
+						extension: wmv mimetype: video/x-ms-wmv
+						extension: woff mimetype: font/woff
+						extension: woff2 mimetype: font/woff2
+						extension: xhtml mimetype: application/xhtml+xml
+						extension: xls mimetype: application/vnd.ms-excel
+						extension: xlsx mimetype: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+						extension: xml mimetype: text/xml
+						extension: xpi mimetype: application/x-xpinstall
+						extension: xspf mimetype: application/xspf+xml
+						extension: zip mimetype: application/zip
+

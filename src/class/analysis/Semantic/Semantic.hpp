@@ -26,6 +26,7 @@ class Semantic
 		static void			parseCGI(std::list<Directive>::const_iterator it, std::map<std::string, std::string> &cgi, DiagnosticContext &diag);
 		static void			parseListen(std::list<Directive>::const_iterator it, std::vector<std::pair<std::string, int> > &listen, DiagnosticContext &diag);
 		static void			parseRoot(std::list<Directive>::const_iterator it, std::string &root, DiagnosticContext &diag);
+		static void			parseAlias(std::list<Directive>::const_iterator it, std::string &alias, DiagnosticContext &diag);
 		static void			parseIndex(std::list<Directive>::const_iterator it, std::vector<std::string> &index_files, DiagnosticContext &diag);
 		static void			parseAllowMethods(std::list<Directive>::const_iterator it, std::vector<HttpMethod> &allowed_methods, DiagnosticContext &diag);
 		static void			parseAutoindex(std::list<Directive>::const_iterator it, bool &autoindex, DiagnosticContext &diag);

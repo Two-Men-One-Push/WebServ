@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include "Debug/Debug.hpp"
 
 int parseVerbose(const std::string &value) {
 	if (value == "silent")

@@ -1,6 +1,6 @@
 http {
 	include mime.types;
-	error_page 404 =404 /404.html;
+	error_page 404 =404 /errorPages/404.html;
 	error_page 502 =502 /errorPages/502.html;
 
 	server {
@@ -14,6 +14,7 @@ http {
 		cgi py /usr/bin/python3;
 
 		location cgi {
+			alias ./ok;
 			error_page 502 =502 /errorPages/502cgi.html;
 			cgi py /usr/bin/python3;
 			editable on;
@@ -21,6 +22,10 @@ http {
 
 		location A {
 			editable on;
+		}
+
+		location errorPages {
+			alias ./error;
 		}
 	}
 }

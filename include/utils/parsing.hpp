@@ -32,5 +32,6 @@ std::vector<std::string>	splitPath(const std::string &str);
 return true if the path unwinds to a path outside the root, false otherwise
 */
 bool	pathNormalize(std::string &result, const std::string &path);
+std::string	mergePathSegments(const std::vector<std::string> &segments);
 
 #endif

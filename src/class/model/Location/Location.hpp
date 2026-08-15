@@ -14,6 +14,7 @@ class	Location
 	private:
 		std::string																_path;
 		std::string																_root;
+		std::string																_alias;
 		std::vector<std::string>												_index_files;
 		std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	_error_pages;
 		size_t																	_max_body_size;
@@ -34,6 +35,8 @@ class	Location
 		std::string																	&path();
 		const std::string															&root() const;
 		std::string																	&root();
+		const std::string															&alias() const;
+		std::string																	&alias();
 		const std::vector<std::string>												&indexFiles() const;
 		std::vector<std::string>													&indexFiles();
 		const std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >	&errorPages() const;
