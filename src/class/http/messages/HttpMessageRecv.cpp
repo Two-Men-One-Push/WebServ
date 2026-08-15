@@ -121,8 +121,9 @@ bool HttpMessage::hasBody() const {
 
 bool HttpMessage::recvMessageHeaders(std::istream &input) {
 	std::string &buffer = this->_inBuffer;
-
 	std::pair<std::string, std::string> &headerField = this->_bufferedHeaderField;
+	HeaderMap &headers = this->_headers;
+
 	while (true) {
 		while (true) {
 			if (buffer.size() == HTTP_BUFFER_SIZE) throw HttpMessage::Exception();
@@ -142,7 +143,7 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 		buffer.clear();
 		// if empty it's the end of headers
 		if (line.empty()) {
-			if (!headerField.first.empty()) this->_headers.insert(headerField);
+			if (!headerField.first.empty()) headers.insert(headerField);
 			return true;
 		}
 
@@ -152,7 +153,17 @@ bool HttpMessage::recvMessageHeaders(std::istream &input) {
 			headerField.second += trim(line);
 		} else {
 			if (!headerField.first.empty()) {
-				this->_headers.insert(headerField);
+				if (headers.has(headerField.first)) {
+					if (headerField.first == "Host" || headerField.first == "Content-Length") throw HttpMessage::Exception();
+					if (!headerField.second.empty()) {
+						headers[headerField.first] += ", ";
+						headers[headerField.first] += headerField.second;
+					} else if (headers[headerField.first].empty()) {
+						headers[headerField.first] = headerField.second;
+					}
+				} else {
+					headers.insert(headerField);
+				}
 			}
 			size_t headerNamePos = line.find(':');
 			if (headerNamePos == line.npos) throw HttpMessage::Exception();
