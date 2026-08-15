@@ -79,6 +79,8 @@ class HttpResponse : public HttpMessage {
 	bool formatCompleted();
 
 	std::ostream &printTypeInfo(std::ostream &os) const;
+
+	static std::string getDateHeader();
 };
 
 #endif

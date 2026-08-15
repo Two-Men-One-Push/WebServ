@@ -1,6 +1,5 @@
 #include "./HttpResponse.hpp"
 #include "http/HttpStatus.hpp"
-#include "http/messages/Body/IBody.hpp"
 #include "http/messages/HttpMessage.hpp"
 #include <cstddef>
 #include <iostream>
@@ -44,4 +43,14 @@ HttpStatus::Code HttpResponse::status() const {
 
 std::ostream &HttpResponse::printTypeInfo(std::ostream &os) const {
 	return os << this->versionStr() << " " << this->_status << '\n';
+}
+
+std::string HttpResponse::getDateHeader() {
+	char buffer[128];
+	std::time_t now = std::time(NULL);
+	std::tm *tm = std::gmtime(&now);
+
+	std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", tm);
+
+	return std::string(buffer);
 }
