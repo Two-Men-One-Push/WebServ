@@ -106,7 +106,8 @@ void Ressource::setErrorPage(const Location &location, HttpStatus::Code errorCod
 	std::map<HttpStatus::Code, std::pair<HttpStatus::Code, std::string> >::const_iterator it = location.errorPages().find(errorCode);
 	if (it != location.errorPages().end()) {
 		this->_responseCode = it->second.first;
-		const Location &errorLocation = resolveLocation(URL(it->second.second), server);
+		URL errorUrl(it->second.second);
+		const Location &errorLocation = resolveLocation(errorUrl, server);
 		URL	url;
 		std::string	root;
 		if (!errorLocation.alias().empty()) {
