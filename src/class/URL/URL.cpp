@@ -1,7 +1,6 @@
 #include "URL.hpp"
 #include "utils/parsing.hpp"
 #include <cctype>
-#include <iostream>
 #include <string>
 
 URL::URL():
@@ -11,7 +10,6 @@ _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
-_path(""),
 _rawSegments(),
 _segments(),
 _queryString(""),
@@ -29,7 +27,6 @@ _scheme(""),
 _user(""),
 _host(""),
 _port(-1),
-_path(""),
 _rawSegments(),
 _segments(),
 _queryString(""),
@@ -357,7 +354,6 @@ _scheme(copy._scheme),
 _user(copy._user),
 _host(copy._host),
 _port(copy._port),
-_path(copy._path),
 _rawSegments(copy._rawSegments),
 _segments(copy._segments),
 _normalizedSegments(copy._normalizedSegments),
@@ -378,7 +374,6 @@ URL	&URL::operator=(const URL &other)
 		this->_user = other._user;
 		this->_host = other._host;
 		this->_port = other._port;
-		this->_path = other._path;
 		this->_rawSegments = other._rawSegments;
 		this->_segments = other._segments;
 		this->_normalizedSegments = other._normalizedSegments;

@@ -173,3 +173,12 @@ HttpMethod	parseHttpMethod(std::string method)
 	else
 		return UNKNOWN;
 }
+
+std::string	mergePathSegments(const std::vector<std::string> &segments)
+{
+	std::string result;
+	for (std::vector<std::string>::const_iterator it = segments.begin(); it != segments.end(); ++it) {
+		result += "/" + *it;
+	}
+	return result;
+}

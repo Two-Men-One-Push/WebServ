@@ -55,7 +55,7 @@ void printDirectoryLine(std::ostream &os, const std::string &directory, const st
 
 void printAutoIndex(std::ostream &os, const std::string &root, const std::string &path) {
 	const std::string fullPath(root + path);
-	const std::string displayPath(path.empty() ? "/" : path);
+	const std::string displayPath(root + (path.empty() ? "/" : path));
 
 	Directory dir(fullPath);
 

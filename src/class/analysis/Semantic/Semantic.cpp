@@ -81,6 +81,8 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 		{
 			if (!parseInt(penultimate->rawContent().substr(1), response_code))
 				diag.report("invalid response code '" + penultimate->rawContent().substr(1) + "'", *penultimate);
+			if (response_code >= 300 && response_code <= 399)
+				diag.report("invalid response code (cannot use 3xx code)", *penultimate);
 			try
 			{
 				response_httpCode = HttpStatus::fromInt(response_code);
@@ -96,11 +98,12 @@ void	Semantic::parseErrorPages(std::list<Directive>::const_iterator it, std::map
 		{
 			int code;
 			HttpStatus::Code httpCode;
-			if (!parseInt(arg->rawContent(), code))
-			{
-				diag.report("invalid response code '" + arg->rawContent() + "'", *arg);
+			if (!parseInt(arg->rawContent(), code)) {
+				diag.report("invalid error code '" + arg->rawContent() + "'", *arg);
 				continue;
 			}
+			if (code >= 300 && code <= 399)
+				diag.report("invalid error code (cannot use 3xx code)", *penultimate);
 			try
 			{
 				httpCode = HttpStatus::fromInt(code);
@@ -173,6 +176,12 @@ void	Semantic::parseRoot(std::list<Directive>::const_iterator it, std::string &r
 {
 	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
 		root = it->args().front().content();
+}
+
+void	Semantic::parseAlias(std::list<Directive>::const_iterator it, std::string &alias, DiagnosticContext &diag)
+{
+	if (checkShape(*it, ARGS_EXACT_ONE, BODY_FORBIDDEN, diag))
+		alias = it->args().front().content();
 }
 
 void	Semantic::parseIndex(std::list<Directive>::const_iterator it, std::vector<std::string> &index_files, DiagnosticContext &diag)
@@ -371,6 +380,7 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	std::set<std::string>	locationPathTable;
 	bool	hasListen = false;
 	bool	hasRoot = false;
+	bool	hasAlias = false;
 	bool	hasIndex = false;
 	bool	hashClientMaxBodySize = false;
 	bool	hasAllowMethods = false;
@@ -380,7 +390,6 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 	bool	hasTimeout = false;
 
 	locationPathTable.insert("/");
-	server.locations().push_back(server);
 	for (std::list<Directive>::const_iterator it = directives.begin(); it != directives.end(); ++it)
 	{
 		const std::string name = it->name().rawContent();
@@ -393,8 +402,20 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		{
 			if (hasRoot)
 				diag.report("duplicate 'root' directive", *it);
+			else if (hasAlias)
+				diag.report("Cannot define root (alias already defined)", *it);
 			hasRoot = true;
+			server.alias() = "";
 			parseRoot(it, server.root(), diag);
+		}
+		else if (name == "alias")
+		{
+			if (hasAlias)
+				diag.report("duplicate 'alias' directive", *it);
+			else if (hasRoot)
+				diag.report("Cannot define alias (root already defined)", *it);
+			hasAlias = true;
+			parseAlias(it, server.alias(), diag);
 		}
 		else if (name == "index")
 		{
@@ -455,10 +476,11 @@ Server	Semantic::analyseServer(const Directive &directive, Http &http, Diagnosti
 		else
 			diag.report("unknown directive '" + name + "'", *it);
 	}
+	server.locations().push_back(server);
 	if (!hasListen)
 		diag.report("no 'listen' directive found", directive);
-	if (!hasRoot)
-		diag.report("no 'root' directive found", directive);
+	if (!hasRoot && !hasAlias)
+		diag.report("no 'root' or 'alias' directive found", directive);
 	return server;
 }
 
@@ -467,6 +489,7 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 	const std::list<Directive> &directives = directive.children();
 	Location	location(parent, path);
 	bool		hasRoot = false;
+	bool		hasAlias = false;
 	bool		hasIndex = false;
 	bool		hasClientMaxBodySize = false;
 	bool		hasAllowMethods = false;
@@ -481,8 +504,20 @@ Location	Semantic::analyseLocation(const Directive &directive, std::vector<Locat
 		{
 			if (hasRoot)
 				diag.report("duplicate 'root' directive", *it);
+			else if (hasAlias)
+				diag.report("Cannot define root (alias already defined)", *it);
 			hasRoot = true;
+			location.alias() = "";
 			parseRoot(it, location.root(), diag);
+		}
+		else if (name == "alias")
+		{
+			if (hasAlias)
+				diag.report("duplicate 'alias' directive", *it);
+			else if (hasRoot)
+				diag.report("Cannot define alias (root already defined)", *it);
+			hasAlias = true;
+			parseAlias(it, location.alias(), diag);
 		}
 		else if (name == "index")
 		{

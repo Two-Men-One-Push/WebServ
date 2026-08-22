@@ -80,6 +80,7 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 {
 	os << std::string(indent, '\t') << "Location: " << location.path() << std::endl;
 	os << std::string(indent + 1, '\t') << "Root: " << location.root() << std::endl;
+	os << std::string(indent + 1, '\t') << "Alias: " << location.alias() << std::endl;
 	os << std::string(indent + 1, '\t') << "Index Files: ";
 	for (std::vector<std::string>::const_iterator index_it = location.indexFiles().begin(); index_it != location.indexFiles().end(); ++index_it)
 	{
@@ -111,10 +112,10 @@ void	Debug::printLocation(std::ostream &os, const Location &location, size_t ind
 	}
 	os << std::string(indent + 1, '\t') << "Editable: " << location.editable() << std::endl;
 	os << std::string(indent + 1, '\t') << "Types: ..." << std::endl;
-	// for (std::map<std::string, std::string>::const_iterator type_it = location.types().types().begin(); type_it != location.types().types().end(); ++type_it)
-	// {
-	// 	os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
-	// }
+	//for (std::map<std::string, std::string>::const_iterator type_it = location.types().types().begin(); type_it != location.types().types().end(); ++type_it)
+	//{
+	//	os << std::string(indent + 2, '\t') << "extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
+	//}
 }
 
 void	Debug::printConfig(std::ostream &os, const Config &config)
@@ -133,10 +134,10 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		os << "			extension: " << it->first << " interpreter: " << it->second << std::endl;
 	}
 	os << "		Types:" << std::endl;
-	for (std::map<std::string, std::string>::const_iterator it = config.http().types().types().begin(); it != config.http().types().types().end(); ++it)
-	{
-		os << "			extension: " << it->first << " mimetype: "<< it->second << std::endl;
-	}
+	//for (std::map<std::string, std::string>::const_iterator it = config.http().types().types().begin(); it != config.http().types().types().end(); ++it)
+	//{
+	//	os << "			extension: " << it->first << " mimetype: "<< it->second << std::endl;
+	//}
 	os << "		Servers:" << std::endl;
 	for (std::vector<Server>::const_iterator it = config.http().servers().begin(); it != config.http().servers().end(); ++it)
 	{
@@ -150,6 +151,7 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << std::endl;
 		os << "				Root: " << it->root() << std::endl;
+		os << "				Alias: " << it->alias() << std::endl;
 		os << "				Index Files: ";
 		for (std::vector<std::string>::const_iterator index_it = it->indexFiles().begin(); index_it != it->indexFiles().end(); ++index_it)
 		{
@@ -181,10 +183,10 @@ void	Debug::printConfig(std::ostream &os, const Config &config)
 		}
 		os << "				Editable: " << it->editable() << std::endl;
 		os << "				Types:" << std::endl;
-		for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
-		{
-			os << "					extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
-		}
+		//for (std::map<std::string, std::string>::const_iterator type_it = it->types().types().begin(); type_it != it->types().types().end(); ++type_it)
+		//{
+		//	os << "					extension: " << type_it->first << " mimetype: " << type_it->second << std::endl;
+		//}
 		for (std::vector<Location>::const_iterator location_it = it->locations().begin(); location_it != it->locations().end(); ++location_it)
 		{
 			printLocation(os, *location_it, 4);

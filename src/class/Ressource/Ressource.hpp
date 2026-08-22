@@ -27,11 +27,10 @@ class Ressource {
 	std::string _cgiInterpreter;
 	std::string _scriptName;
 	std::string _pathInfo;
-	std::string _fragmentString;
 	std::vector<HttpMethod>	_allowedMethod;
 	const Location *_location;
 
-	void setErrorPage(const Location &location, HttpStatus::Code errorCode);
+	void setErrorPage(const Location &location, HttpStatus::Code errorCode, const Server &server);
 	void reset();
 
   public:
