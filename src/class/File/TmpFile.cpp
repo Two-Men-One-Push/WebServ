@@ -46,9 +46,9 @@ std::string TmpFile::format(const std::string &path) {
 	std::string fileName;
 
 	if (pos == std::string::npos) {
-		return TMP_FILE_PREFIX + path;
+		return FILE_PREFIX + path;
 	} else {
-		return path.substr(0, pos + 1) + TMP_FILE_PREFIX + path.substr(pos + 1);
+		return path.substr(0, pos + 1) + FILE_PREFIX + path.substr(pos + 1);
 	}
 }
 
@@ -56,9 +56,9 @@ bool TmpFile::matchFormat(const std::string &path) {
 	size_t pos = path.find_last_of('/');
 
 	if (pos == std::string::npos) {
-		return path.compare(0, sizeof(TMP_FILE_PREFIX) - 1, TMP_FILE_PREFIX) == 0;
+		return path.compare(0, sizeof(FILE_PREFIX) - 1, FILE_PREFIX) == 0;
 	} else {
-		return path.compare(pos + 1, sizeof(TMP_FILE_PREFIX) - 1, TMP_FILE_PREFIX) == 0;
+		return path.compare(pos + 1, sizeof(FILE_PREFIX) - 1, FILE_PREFIX) == 0;
 	}
 }
 

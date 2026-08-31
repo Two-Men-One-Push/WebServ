@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define TMP_FILE_PREFIX ".webserv_tmp_"
+#define FILE_PREFIX ".webserv_tmp_"
 
 class TmpFile : public File {
   private:

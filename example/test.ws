@@ -1,6 +1,6 @@
 http {
 	include mime.types;
-	error_page 404 =404 /errorPages/404.html
+	error_page 404 =404 /errorPages/404.html;
 	error_page 502 =502 /errorPages/502.html;
 
 	server {
